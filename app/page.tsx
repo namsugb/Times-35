@@ -184,7 +184,9 @@ export default function AppointmentScheduler() {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold mb-2 md:text-4xl">만날래말래</h1>
-        <p className="text-muted-foreground text-lg">여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.</p>
+        <p className="text-muted-foreground text-lg mobile-break">
+          여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.
+        </p>
       </div>
 
       {/* 기본 방식들 */}
@@ -277,7 +279,9 @@ export default function AppointmentScheduler() {
 
             <div className="space-y-2">
               <Label htmlFor="participant-count" className="text-sm font-medium">
-                기준 인원 수 또는 참여 인원 수
+                {selectedMethod === "minimum-required"
+                  ? "기준 인원 수"
+                  : "참여 인원 수"}
               </Label>
               <Input
                 id="participant-count"
@@ -293,7 +297,7 @@ export default function AppointmentScheduler() {
             <div className="space-y-2">
               <Label htmlFor="creator-phone" className="text-sm font-medium flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                연락처 (선택사항)
+                연락처
               </Label>
               <Input
                 id="creator-phone"
@@ -325,9 +329,9 @@ export default function AppointmentScheduler() {
                 />
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 ">
                 <Label className="text-sm font-medium">투표 가능한 날짜 범위</Label>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-center">
                   <DateRangePicker value={dateRange} onChange={setDateRange} />
                 </div>
               </div>

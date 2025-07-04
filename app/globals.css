@@ -53,7 +53,18 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+
+@media (max-width: 640px) {
+  .mobile-break {
+    max-width: 260px;
+    margin-left: auto;
+    margin-right: auto;
+    word-break: break-word;
   }
 }

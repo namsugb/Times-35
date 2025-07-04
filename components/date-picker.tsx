@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { buttonVariants } from "@/components/ui/button"
 
 interface DatePickerProps {
   value?: Date
@@ -26,7 +27,21 @@ export function DatePicker({ value, onChange, placeholder = "날짜 선택", cla
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
-        <Calendar mode="single" selected={value} onSelect={onChange} initialFocus />
+        <Calendar
+          mode="single"
+          selected={value}
+          onSelect={onChange}
+          classNames={{
+            nav_button: cn(
+              buttonVariants({ variant: "outline" }),
+              "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100"
+            ),
+            day: cn(
+              buttonVariants({ variant: "ghost" }),
+              "h-8 w-8 p-0 font-normal aria-selected:opacity-100"
+            ),
+          }}
+        />
       </PopoverContent>
     </Popover>
   )

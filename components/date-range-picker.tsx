@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
+
 interface DateRangePickerProps {
   value?: { from: Date; to: Date }
   onChange?: (range: { from: Date; to: Date }) => void
@@ -56,7 +57,7 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
             </span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 max-w-[95vw]" align="start" side="bottom" sideOffset={4}>
+        <PopoverContent className="w-auto p-0 max-w-[95vw]" align="center" side="bottom" sideOffset={4}>
           <div className="p-3">
             <Calendar
               initialFocus
@@ -67,7 +68,7 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
               numberOfMonths={typeof window !== "undefined" && window.innerWidth < 768 ? 1 : 2}
               fixedWeeks
               showOutsideDays={false}
-              className="rounded-md"
+              className="rounded-md align-center"
               classNames={{
                 months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                 month: "space-y-4 w-full",
@@ -102,10 +103,6 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
                 day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
                 day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground rounded-none",
                 day_hidden: "invisible",
-              }}
-              components={{
-                IconLeft: () => <span className="h-4 w-4">‹</span>,
-                IconRight: () => <span className="h-4 w-4">›</span>,
               }}
             />
             <div className="mt-3 pt-3 border-t text-xs text-muted-foreground text-center">

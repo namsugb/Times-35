@@ -98,7 +98,12 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
             </CardContent>
           </Card>
 
+
+
           {/* 투표 링크 공유 */}
+          <div className="text-sm text-muted-foreground space-y-1">
+            친구들에게 공유하세요!
+          </div>
           <div className="space-y-3">
             <Label className="text-sm font-medium">투표 링크</Label>
             <div className="flex gap-2">
@@ -122,29 +127,11 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
 
           {/* 공유 버튼들 */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">친구들에게 공유하기</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" onClick={handleKakaoShare} className="flex items-center gap-2 bg-transparent">
+            <Label className="text-sm font-medium">카톡으로 한 번에 공유하기</Label>
+            <div className="grid grid-cols-2 gap-3 justify-center">
+              <Button variant="outline" onClick={handleKakaoShare} className="flex items-center gap-2 bg-transparent bg-yellow-300">
                 <MessageCircle className="h-4 w-4" />
                 카카오톡
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: appointmentData.title,
-                      text: "언제 만날지 투표해주세요!",
-                      url: voteUrl,
-                    })
-                  } else {
-                    copyToClipboard(voteUrl, "투표")
-                  }
-                }}
-                className="flex items-center gap-2"
-              >
-                <Share2 className="h-4 w-4" />
-                공유하기
               </Button>
             </div>
           </div>

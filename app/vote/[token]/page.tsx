@@ -352,7 +352,7 @@ export default function VotePage() {
                     setNameError(false)
                   }}
                   className={nameError ? "border-red-500 focus-visible:ring-red-500" : ""}
-                  placeholder="홍길동"
+                  placeholder="남승수"
                 />
                 {nameError && <p className="text-red-500 text-sm">이름을 입력해주세요.</p>}
               </div>
@@ -365,21 +365,19 @@ export default function VotePage() {
                   {weekdays.map((weekday) => (
                     <Card
                       key={weekday.id}
-                      className={`cursor-pointer transition-all duration-200 ${
-                        selectedWeekdays.includes(weekday.id)
-                          ? "border-primary bg-primary/5 shadow-md"
-                          : "border-border hover:border-primary/50 hover:shadow-sm"
-                      }`}
+                      className={`cursor-pointer transition-all duration-200 ${selectedWeekdays.includes(weekday.id)
+                        ? "border-primary bg-primary/5 shadow-md"
+                        : "border-border hover:border-primary/50 hover:shadow-sm"
+                        }`}
                       onClick={() => handleWeekdayToggle(weekday.id)}
                     >
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                              selectedWeekdays.includes(weekday.id)
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-secondary-foreground"
-                            }`}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${selectedWeekdays.includes(weekday.id)
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-secondary text-secondary-foreground"
+                              }`}
                           >
                             {weekday.short}
                           </div>
@@ -458,7 +456,7 @@ export default function VotePage() {
                   setNameError(false)
                 }}
                 className={nameError ? "border-red-500 focus-visible:ring-red-500" : ""}
-                placeholder="홍길동"
+                placeholder="남승수"
               />
               {nameError && <p className="text-red-500 text-sm">이름을 입력해주세요.</p>}
             </div>
@@ -471,11 +469,12 @@ export default function VotePage() {
               <div className="flex justify-center border rounded-md p-1">
                 <CalendarComponent
                   mode="multiple"
+                  numberOfMonths={1}
+                  locale={ko}
                   selected={selectedDates}
                   onSelect={handleDateSelect}
                   onDayClick={handleDateClick}
                   className="rounded-md mx-auto"
-                  locale={ko}
                   disabled={isDateDisabled}
                   defaultMonth={parseISO(appointment.start_date)}
                   fromDate={parseISO(appointment.start_date)}
@@ -555,17 +554,6 @@ export default function VotePage() {
             </div>
           </form>
         </CardContent>
-        <CardContent className="pt-0">
-          <div className="text-center text-sm text-muted-foreground">
-            선택한 날짜:{" "}
-            {selectedDates.length > 0
-              ? selectedDates
-                  .filter((date) => date instanceof Date && !isNaN(date.getTime()))
-                  .map((date) => format(date, "M월 d일", { locale: ko }))
-                  .join(", ")
-              : "없음"}
-          </div>
-        </CardContent>
       </Card>
 
       {/* 시간 선택 모달 */}
@@ -610,7 +598,7 @@ export default function VotePage() {
       </Dialog>
 
       {/* 기존 투표자 표시 */}
-      {voters.length > 0 && (
+      {/* {voters.length > 0 && (
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="text-lg">현재 참여자 ({voters.length}명)</CardTitle>
@@ -625,7 +613,7 @@ export default function VotePage() {
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
     </div>
   )
 }

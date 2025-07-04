@@ -19,11 +19,8 @@ export class KakaoShare {
         await this.loadKakaoSDK()
       }
 
-      const jsKey = (typeof document !== "undefined" && document.body?.dataset?.kakaoJsKey) || ""
-      if (!jsKey || jsKey === "your_kakao_javascript_key_here") {
-        console.warn("카카오톡 JavaScript 키가 설정되지 않았습니다.")
-        return false
-      }
+      const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+
 
       if (!window.Kakao.isInitialized()) {
         window.Kakao.init(jsKey)
@@ -78,9 +75,8 @@ export class KakaoShare {
         objectType: "feed",
         content: {
           title: `📅 ${appointmentData.title}`,
-          description: `${methodNames[appointmentData.method as keyof typeof methodNames]} 방식으로 약속을 정해요!\n${
-            appointmentData.dateRange ? `📆 ${appointmentData.dateRange}` : ""
-          }\n👥 예상 참여자: ${appointmentData.participantCount}명`,
+          description: `${methodNames[appointmentData.method as keyof typeof methodNames]} 방식으로 약속을 정해요!\n${appointmentData.dateRange ? `📆 ${appointmentData.dateRange}` : ""
+            }\n👥 예상 참여자: ${appointmentData.participantCount}명`,
           imageUrl: `${baseUrl}/api/og-image?title=${encodeURIComponent(appointmentData.title)}`,
           link: {
             mobileWebUrl: voteUrl,
@@ -216,10 +212,17 @@ export async function shareToKakao({ title, description = "", url, imageUrl }: K
     },
     buttons: [
       {
-        title: "바로가기",
+        title: "투표하기",
         link: {
           mobileWebUrl: url,
           webUrl: url,
+        },
+      },
+      {
+        title: "결과 보기",
+        link: {
+          mobileWebUrl: `${url}/results`,
+          webUrl: `${url}/results`,
         },
       },
     ],

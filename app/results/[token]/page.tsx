@@ -189,7 +189,7 @@ export default function ResultsPage() {
 
   const optimalDates = getOptimalDates()
 
-  // 특별한 날짜인지 확인 (최적의 날짜들)
+  // 특별한 날짜인지 확인 (최적의 날짜들) 아이콘 추가
   const getDateBadge = (dateStr: string) => {
     const result = dateResults[dateStr]
     if (!result) return null
@@ -288,13 +288,12 @@ export default function ResultsPage() {
                     return (
                       <div
                         key={weekdayIndex}
-                        className={`relative p-2 sm:p-4 rounded-lg border-2 text-center transition-all duration-200 ${
-                          isSelected
-                            ? "bg-gradient-to-br from-green-500 to-green-600 text-white border-green-700 shadow-lg transform scale-105"
-                            : result.count > 0
-                              ? "bg-green-50 border-green-200 hover:border-green-300"
-                              : "bg-gray-50 border-gray-200"
-                        }`}
+                        className={`relative p-2 sm:p-4 rounded-lg border-2 text-center transition-all duration-200 ${isSelected
+                          ? "bg-gradient-to-br from-green-500 to-green-600 text-white border-green-700 shadow-lg transform scale-105"
+                          : result.count > 0
+                            ? "bg-green-50 border-green-200 hover:border-green-300"
+                            : "bg-gray-50 border-gray-200"
+                          }`}
                       >
                         {isSelected && (
                           <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-yellow-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold shadow-md">
@@ -364,15 +363,13 @@ export default function ResultsPage() {
                       return (
                         <div
                           key={weekday.weekday}
-                          className={`flex items-center justify-between p-3 rounded-lg border ${
-                            isSelected ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
-                          }`}
+                          className={`flex items-center justify-between p-3 rounded-lg border ${isSelected ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
+                            }`}
                         >
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                isSelected ? "bg-green-600 text-white" : "bg-gray-300 text-gray-600"
-                              }`}
+                              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isSelected ? "bg-green-600 text-white" : "bg-gray-300 text-gray-600"
+                                }`}
                             >
                               {index + 1}
                             </div>
@@ -434,10 +431,10 @@ export default function ResultsPage() {
                   <span className="font-medium">
                     {voters.length > 0
                       ? Math.round(
-                          (Object.values(weekdayResults).reduce((sum: number, result: any) => sum + result.count, 0) /
-                            (voters.length * 7)) *
-                            100,
-                        )
+                        (Object.values(weekdayResults).reduce((sum: number, result: any) => sum + result.count, 0) /
+                          (voters.length * 7)) *
+                        100,
+                      )
                       : 0}
                     %
                   </span>
@@ -487,8 +484,6 @@ export default function ResultsPage() {
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-xl sm:text-2xl truncate">{appointment.title}</CardTitle>
                   <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
-                    <Badge variant="secondary">{getMethodName(appointment.method)}</Badge>
-                    <span className="text-sm">기준 인원: {appointment.required_participants}명</span>
                   </CardDescription>
                 </div>
               </div>
@@ -531,9 +526,8 @@ export default function ResultsPage() {
                     {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
                       <div
                         key={day}
-                        className={`text-center py-2 text-xs sm:text-sm font-medium ${
-                          index === 0 ? "text-red-500" : index === 6 ? "text-blue-500" : "text-gray-700"
-                        }`}
+                        className={`text-center py-2 text-xs sm:text-sm font-medium ${index === 0 ? "text-red-500" : index === 6 ? "text-blue-500" : "text-gray-700"
+                          }`}
                       >
                         {day}
                       </div>
@@ -566,9 +560,8 @@ export default function ResultsPage() {
                       return (
                         <div
                           key={dateStr}
-                          className={`h-16 sm:h-20 rounded-lg flex flex-col items-center justify-center relative cursor-pointer border-2 transition-all duration-200 ${colorClasses} ${
-                            result.count > 0 && isInRange ? "hover:scale-105 hover:shadow-lg" : ""
-                          } ${!isInRange ? "cursor-default" : ""}`}
+                          className={`h-16 sm:h-20 rounded-lg flex flex-col items-center justify-center relative cursor-pointer border-2 transition-all duration-200 ${colorClasses} ${result.count > 0 && isInRange ? "hover:scale-105 hover:shadow-lg" : ""
+                            } ${!isInRange ? "cursor-default" : ""}`}
                           onClick={() => isInRange && result.count > 0 && handleDateClick(day)}
                         >
                           <span className="text-sm sm:text-lg font-bold mb-1">{format(day, "d")}</span>
@@ -617,55 +610,66 @@ export default function ResultsPage() {
           {/* 최적의 날짜 */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">추천 날짜</CardTitle>
-              <CardDescription className="text-sm">투표 결과에 따른 최적의 날짜들입니다.</CardDescription>
+              <CardTitle className="text-lg">투표 결과</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+
               {/* 전원 참여 가능 */}
-              {optimalDates.allAvailable.length > 0 && (
+              {appointment.method === "all-available" && (
                 <div>
-                  <h4 className="font-medium text-emerald-700 mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" />
-                    전원 참여 가능
-                  </h4>
-                  <div className="space-y-1">
-                    {optimalDates.allAvailable.map((date) => (
-                      <div
-                        key={date.date}
-                        className="flex justify-between items-center p-2 bg-emerald-50 rounded text-sm"
-                      >
-                        <span className="truncate">{format(parseISO(date.date), "M월 d일 (E)", { locale: ko })}</span>
-                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 flex-shrink-0">
-                          {date.count}명 (100%)
-                        </Badge>
+                  {optimalDates.allAvailable.length > 0 ? (
+                    <>
+                      <h4 className="font-medium text-emerald-700 mb-2 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4" />
+                        전원 참여 가능
+                      </h4>
+                      <div className="space-y-1">
+                        {optimalDates.allAvailable.map((date) => (
+                          <div
+                            key={date.date}
+                            className="flex justify-between items-center p-2 bg-emerald-50 rounded text-sm"
+                          >
+                            <span className="truncate">{format(parseISO(date.date), "M월 d일 (E)", { locale: ko })}</span>
+                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 flex-shrink-0">
+                              {date.count}명 (100%)
+                            </Badge>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </>
+                  ) : (
+                    <div className="text-center text-sm text-muted-foreground py-2">
+                      전원이 참여 가능한 날이 없습니다..!
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* 최다 참여 */}
-              {optimalDates.maxAvailable.length > 0 && (
+              {appointment.method === "maximum-participants" && (
                 <div>
-                  <h4 className="font-medium text-yellow-700 mb-2 flex items-center gap-2">
-                    <Crown className="h-4 w-4" />
-                    최다 참여
-                  </h4>
-                  <div className="space-y-1">
-                    {optimalDates.maxAvailable.map((date) => (
-                      <div
-                        key={date.date}
-                        className="flex justify-between items-center p-2 bg-yellow-50 rounded text-sm"
-                      >
-                        <span className="truncate">{format(parseISO(date.date), "M월 d일 (E)", { locale: ko })}</span>
-                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 flex-shrink-0">
-                          {date.count}명 ({date.percentage}%)
-                        </Badge>
+                  {optimalDates.maxAvailable.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-yellow-700 mb-2 flex items-center gap-2">
+                        <Crown className="h-4 w-4" />
+                        최다 참여
+                      </h4>
+                      <div className="space-y-1">
+                        {optimalDates.maxAvailable.map((date) => (
+                          <div
+                            key={date.date}
+                            className="flex justify-between items-center p-2 bg-yellow-50 rounded text-sm"
+                          >
+                            <span className="truncate">{format(parseISO(date.date), "M월 d일 (E)", { locale: ko })}</span>
+                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 flex-shrink-0">
+                              {date.count}명 ({date.percentage}%)
+                            </Badge>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                    </div>
+                  )}
+                </div>)}
 
               {/* 기준 인원 이상 */}
               {optimalDates.requiredAvailable.length > 0 && (
@@ -720,29 +724,11 @@ export default function ResultsPage() {
           {selectedDate && dateResults[selectedDate] && (
             <div className="py-4">
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-green-900">총 참여 인원</h3>
-                    <p className="text-2xl font-bold text-green-700">{dateResults[selectedDate].count}명</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-green-600">참여율</p>
-                    <p className="text-lg font-semibold text-green-700">
-                      {Math.round((dateResults[selectedDate].count / voters.length) * 100)}%
-                    </p>
-                  </div>
-                </div>
-
                 <div>
-                  <h4 className="font-medium mb-3">참여자 목록</h4>
+                  <h4 className="font-medium mb-3">가능</h4>
                   <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
                     {dateResults[selectedDate].voters.map((voterName: string, index: number) => (
                       <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-md">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                            {voterName.substring(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
                         <span className="text-sm font-medium truncate">{voterName}</span>
                       </div>
                     ))}
@@ -750,7 +736,7 @@ export default function ResultsPage() {
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-2">불참자</h4>
+                  <h4 className="font-medium mb-2">불가능</h4>
                   <div className="text-sm text-muted-foreground break-words">
                     {voters
                       .filter((voter) => !dateResults[selectedDate].voters.includes(voter.name))
