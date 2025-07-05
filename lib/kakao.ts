@@ -2,7 +2,7 @@
 
 declare global {
   interface Window {
-    Kakao: any
+    Kakao?: any
   }
 }
 
@@ -19,7 +19,7 @@ export class KakaoShare {
         await this.loadKakaoSDK()
       }
 
-      const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+      const jsKey = window.KAKAO_JS_KEY
 
       if (!jsKey) {
         console.warn("카카오톡 JavaScript 키가 설정되지 않았습니다.")
@@ -38,16 +38,16 @@ export class KakaoShare {
     }
   }
 
-  private static loadKakaoSDK(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement("script")
-      script.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
-      script.integrity = "sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
-      script.crossOrigin = "anonymous"
-      script.onload = () => resolve()
-      script.onerror = () => reject(new Error("카카오 SDK 로드 실패"))
-      document.head.appendChild(script)
-    })
+  private static async loadKakaoSDK(): Promise<void> {
+    // 1. Fetch the key from our server route
+    const res = await fetch("/api/kakao-js-key")
+    const { key } = (await res.json()) as { key: string }
+
+    // 2. Dynamically load the SDK script (only once)
+    await loadScript("https://developers.kakao.com/sdk/js/kakao.js")
+
+    // 3. Initialise and return the Kakao object
+    window.Kakao.init(key)
   }
 
   static async shareAppointment(appointmentData: {
@@ -195,7 +195,7 @@ type KakaoShareParams = {
  * 브라우저 환경에서 카카오톡 기본 공유 템플릿을 호출합니다.
  * 내부적으로 Kakao SDK 초기화 여부를 확인하고, feed 타입으로 공유합니다.
  */
-export const shareToKakao = (appointmentData: any) => {
+export const shareToKakao = async (appointmentData: any) => {
   if (typeof window === "undefined") return
 
   const { token, title } = appointmentData
@@ -203,19 +203,10 @@ export const shareToKakao = (appointmentData: any) => {
   const voteUrl = `${currentUrl}/vote/${token}`
   const resultUrl = `${currentUrl}/results/${token}`
 
-  if (!window.Kakao) {
+  const isReady = await KakaoShare.initialize()
+  if (!isReady) {
     console.error("Kakao SDK not loaded")
     return
-  }
-
-  if (!window.Kakao.isInitialized()) {
-    const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
-    if (kakaoKey) {
-      window.Kakao.init(kakaoKey)
-    } else {
-      console.error("Kakao JS Key not found")
-      return
-    }
   }
 
   window.Kakao.Share.sendDefault({
@@ -241,9 +232,23 @@ export const shareToKakao = (appointmentData: any) => {
         title: "결과보기",
         link: {
           mobileWebUrl: resultUrl,
-          webUrl: resultUrl,
+          webUrl: voteUrl,
         },
       },
     ],
+  })
+}
+
+function loadScript(src: string) {
+  return new Promise<void>((resolve, reject) => {
+    // If it’s already in the document, resolve immediately
+    if (document.querySelector(`script[src="${src}"]`)) return resolve()
+
+    const script = document.createElement("script")
+    script.src = src
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error(`Failed to load ${src}`))
+    document.head.appendChild(script)
   })
 }

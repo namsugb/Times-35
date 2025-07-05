@@ -23,6 +23,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // NOTE: there is **no** reference to the Kakao env-var here anymore
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={inter.className}>
