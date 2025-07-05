@@ -89,10 +89,10 @@ export async function getAppointmentByToken(shareToken: string | null | undefine
   }
 }
 
-// 투표자 생성 또는 업데이트 (기존 투표자가 있으면 업데이트)
+// 투표자 생성 (투표 완료 체크 추가)
 export async function createVoter(data: VoterInsert) {
   try {
-    // 기존 투표자 체크
+    // 중복 투표자 체크
     const { data: existingVoter } = await supabase
       .from("voters")
       .select("id")
@@ -100,46 +100,22 @@ export async function createVoter(data: VoterInsert) {
       .eq("name", data.name.trim())
       .single()
 
-    let voter
-
     if (existingVoter) {
-      // 기존 투표자가 있으면 업데이트
-      const { data: updatedVoter, error } = await supabase
-        .from("voters")
-        .update({
-          session_id: data.session_id,
-          voted_at: new Date().toISOString(),
-        })
-        .eq("id", existingVoter.id)
-        .select()
-        .single()
+      throw new Error(`이미 "${data.name}" 이름으로 투표가 완료되었습니다.`)
+    }
 
-      if (error) {
-        console.error("투표자 업데이트 오류:", error)
-        throw new Error(`투표자 정보 업데이트에 실패했습니다: ${error.message}`)
-      }
+    const { data: voter, error } = await supabase
+      .from("voters")
+      .insert({
+        ...data,
+        name: data.name.trim(),
+      })
+      .select()
+      .single()
 
-      voter = updatedVoter
-
-      // 기존 투표 데이터 삭제
-      await deleteExistingVotes(existingVoter.id, data.appointment_id)
-    } else {
-      // 새 투표자 생성
-      const { data: newVoter, error } = await supabase
-        .from("voters")
-        .insert({
-          ...data,
-          name: data.name.trim(),
-        })
-        .select()
-        .single()
-
-      if (error) {
-        console.error("투표자 생성 오류:", error)
-        throw new Error(`투표자 등록에 실패했습니다: ${error.message}`)
-      }
-
-      voter = newVoter
+    if (error) {
+      console.error("투표자 생성 오류:", error)
+      throw new Error(`투표자 등록에 실패했습니다: ${error.message}`)
     }
 
     // 투표 완료 체크
@@ -149,25 +125,6 @@ export async function createVoter(data: VoterInsert) {
   } catch (error: any) {
     console.error("createVoter 오류:", error)
     throw error
-  }
-}
-
-// 기존 투표 데이터 삭제 함수
-async function deleteExistingVotes(voterId: string, appointmentId: string) {
-  try {
-    // 날짜 투표 삭제
-    await supabase.from("date_votes").delete().eq("voter_id", voterId).eq("appointment_id", appointmentId)
-
-    // 시간 투표 삭제
-    await supabase.from("time_votes").delete().eq("voter_id", voterId).eq("appointment_id", appointmentId)
-
-    // 요일 투표 삭제
-    await supabase.from("weekday_votes").delete().eq("voter_id", voterId).eq("appointment_id", appointmentId)
-
-    console.log("기존 투표 데이터 삭제 완료")
-  } catch (error) {
-    console.error("기존 투표 데이터 삭제 오류:", error)
-    // 삭제 실패해도 계속 진행
   }
 }
 

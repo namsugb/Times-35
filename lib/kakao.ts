@@ -3,6 +3,7 @@
 declare global {
   interface Window {
     Kakao?: any
+    KAKAO_JS_KEY?: string
   }
 }
 
@@ -13,41 +14,41 @@ export class KakaoShare {
     if (typeof window === "undefined") return false
     if (this.isInitialized) return true
 
-    try {
-      // 카카오 SDK 동적 로드
-      if (!window.Kakao) {
-        await this.loadKakaoSDK()
-      }
+    // 1️⃣ Load Kakao SDK script once
+    if (!window.Kakao) {
+      await this.loadKakaoSDK()
+    }
 
-      const jsKey = window.KAKAO_JS_KEY
+    // 2️⃣ Get the JS key from our server route (cache on window)
+    if (!window.KAKAO_JS_KEY) {
+      const res = await fetch("/api/kakao-js-key")
+      const data = (await res.json()) as { key: string }
+      window.KAKAO_JS_KEY = data.key
+    }
 
-      if (!jsKey) {
-        console.warn("카카오톡 JavaScript 키가 설정되지 않았습니다.")
-        return false
-      }
-
-      if (!window.Kakao.isInitialized()) {
-        window.Kakao.init(jsKey)
-      }
-
-      this.isInitialized = true
-      return true
-    } catch (error) {
-      console.error("카카오 SDK 초기화 실패:", error)
+    if (!window.KAKAO_JS_KEY) {
+      console.warn("카카오톡 JavaScript 키가 설정되지 않았습니다.")
       return false
     }
+
+    if (!window.Kakao.isInitialized()) {
+      window.Kakao.init(window.KAKAO_JS_KEY)
+    }
+
+    this.isInitialized = true
+    return true
   }
 
-  private static async loadKakaoSDK(): Promise<void> {
-    // 1. Fetch the key from our server route
-    const res = await fetch("/api/kakao-js-key")
-    const { key } = (await res.json()) as { key: string }
-
-    // 2. Dynamically load the SDK script (only once)
-    await loadScript("https://developers.kakao.com/sdk/js/kakao.js")
-
-    // 3. Initialise and return the Kakao object
-    window.Kakao.init(key)
+  private static loadKakaoSDK(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script")
+      script.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
+      script.integrity = "sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
+      script.crossOrigin = "anonymous"
+      script.onload = () => resolve()
+      script.onerror = () => reject(new Error("카카오 SDK 로드 실패"))
+      document.head.appendChild(script)
+    })
   }
 
   static async shareAppointment(appointmentData: {
@@ -203,8 +204,10 @@ export const shareToKakao = async (appointmentData: any) => {
   const voteUrl = `${currentUrl}/vote/${token}`
   const resultUrl = `${currentUrl}/results/${token}`
 
-  const isReady = await KakaoShare.initialize()
-  if (!isReady) {
+  const ready = await KakaoShare.initialize()
+  if (!ready) return
+
+  if (!window.Kakao) {
     console.error("Kakao SDK not loaded")
     return
   }
@@ -232,23 +235,9 @@ export const shareToKakao = async (appointmentData: any) => {
         title: "결과보기",
         link: {
           mobileWebUrl: resultUrl,
-          webUrl: voteUrl,
+          webUrl: resultUrl,
         },
       },
     ],
-  })
-}
-
-function loadScript(src: string) {
-  return new Promise<void>((resolve, reject) => {
-    // If it’s already in the document, resolve immediately
-    if (document.querySelector(`script[src="${src}"]`)) return resolve()
-
-    const script = document.createElement("script")
-    script.src = src
-    script.async = true
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error(`Failed to load ${src}`))
-    document.head.appendChild(script)
   })
 }
