@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Calendar, Clock, Users, Repeat, Timer, TrendingUp, Sunrise, DollarSign, Phone } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Calendar, Clock, Users, Repeat, Timer, TrendingUp, Sunrise, DollarSign, Phone, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -11,26 +11,36 @@ import { DateRangePicker } from "@/components/date-range-picker"
 import { useRouter } from "next/navigation"
 import { addDays, format } from "date-fns"
 import { createAppointment } from "@/lib/database"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { ShareModal } from "@/components/share-modal"
 
 export default function AppointmentScheduler() {
   const router = useRouter()
-  const { toast } = useToast()
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isComingSoonModalOpen, setIsComingSoonModalOpen] = useState(false)
   const [appointmentName, setAppointmentName] = useState("")
   const [participantCount, setParticipantCount] = useState<string>("5")
   const [creatorPhone, setCreatorPhone] = useState("")
-  const [dateRange, setDateRange] = useState({
-    from: new Date(),
-    to: addDays(new Date(), 14),
-  })
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | null>(null)
   const [weeklyMeetings, setWeeklyMeetings] = useState<string>("1")
   const [deadline, setDeadline] = useState<string>("")
   const [isCreating, setIsCreating] = useState(false)
   const [createdAppointment, setCreatedAppointment] = useState<any>(null)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  // 클라이언트 사이드에서만 날짜 초기화
+  useEffect(() => {
+    setIsClient(true)
+    setDateRange({
+      from: new Date(),
+      to: addDays(new Date(), 14),
+    })
+  }, [])
+
+  // 준비중인 기능들
+  const comingSoonMethods = ["time-scheduling", "priority-voting", "time-period", "budget-consideration"]
 
   const methods = [
     {
@@ -60,6 +70,7 @@ export default function AppointmentScheduler() {
       description: "날짜와 시간을 함께 선택하여 약속을 정합니다.",
       icon: <Timer className="h-8 w-8 mb-2 text-primary" />,
       category: "기본",
+      comingSoon: true,
     },
     {
       id: "recurring",
@@ -76,6 +87,7 @@ export default function AppointmentScheduler() {
       icon: <TrendingUp className="h-8 w-8 mb-2 text-green-600" />,
       category: "고급",
       isNew: true,
+      comingSoon: true,
     },
     {
       id: "time-period",
@@ -84,6 +96,7 @@ export default function AppointmentScheduler() {
       icon: <Sunrise className="h-8 w-8 mb-2 text-orange-600" />,
       category: "고급",
       isNew: true,
+      comingSoon: true,
     },
     {
       id: "budget-consideration",
@@ -92,20 +105,24 @@ export default function AppointmentScheduler() {
       icon: <DollarSign className="h-8 w-8 mb-2 text-purple-600" />,
       category: "고급",
       isNew: true,
+      comingSoon: true,
     },
   ]
 
   const handleMethodSelect = (methodId: string) => {
+    if (comingSoonMethods.includes(methodId)) {
+      setIsComingSoonModalOpen(true)
+      return
+    }
+
     setSelectedMethod(methodId)
     setIsModalOpen(true)
   }
 
   const handleCreateAppointment = async () => {
     if (!selectedMethod || !appointmentName.trim()) {
-      toast({
-        title: "입력 정보를 확인해주세요",
+      toast.error("입력 정보를 확인해주세요", {
         description: "약속 이름과 방식을 모두 선택해주세요.",
-        variant: "destructive",
       })
       return
     }
@@ -127,8 +144,8 @@ export default function AppointmentScheduler() {
         method: selectedMethod as any,
         required_participants: Number.parseInt(participantCount) || 1,
         weekly_meetings: isRecurring ? Number.parseInt(weeklyMeetings) || 1 : 1,
-        start_date: isRecurring ? null : format(dateRange.from, "yyyy-MM-dd"),
-        end_date: isRecurring ? null : format(dateRange.to, "yyyy-MM-dd"),
+        start_date: isRecurring || !dateRange ? null : format(dateRange.from, "yyyy-MM-dd"),
+        end_date: isRecurring || !dateRange ? null : format(dateRange.to, "yyyy-MM-dd"),
         deadline: deadline ? format(new Date(deadline), "yyyy-MM-dd HH:mm:ss") : null,
         is_public: true,
         status: "active" as const,
@@ -141,8 +158,7 @@ export default function AppointmentScheduler() {
 
       console.log("약속 생성 완료:", appointment)
 
-      toast({
-        title: "🎉 약속이 생성되었습니다!",
+      toast.success("🎉 약속이 생성되었습니다!", {
         description: creatorPhone.trim()
           ? "모든 인원이 투표 완료 시 카카오 알림톡을 보내드립니다."
           : "이제 친구들을 초대해보세요.",
@@ -163,14 +179,16 @@ export default function AppointmentScheduler() {
         errorMessage = error.message
       }
 
-      toast({
-        title: "❌ 오류가 발생했습니다",
+      toast.error("❌ 오류가 발생했습니다", {
         description: errorMessage,
-        variant: "destructive",
       })
     } finally {
       setIsCreating(false)
     }
+  }
+
+  const handleDateRangeChange = (newRange: { from: Date; to: Date }) => {
+    setDateRange(newRange)
   }
 
   const isRecurring = selectedMethod === "recurring"
@@ -179,6 +197,23 @@ export default function AppointmentScheduler() {
   // 카테고리별로 그룹화
   const basicMethods = methods.filter((m) => m.category === "기본")
   const advancedMethods = methods.filter((m) => m.category === "고급")
+
+  // 클라이언트 사이드에서만 렌더링
+  if (!isClient) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold mb-2 md:text-4xl">만날래말래</h1>
+          <p className="text-muted-foreground text-lg mobile-break">
+            여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.
+          </p>
+        </div>
+        <div className="flex justify-center">
+          <div className="animate-pulse">로딩 중...</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -199,9 +234,18 @@ export default function AppointmentScheduler() {
           {basicMethods.map((method) => (
             <Card
               key={method.id}
-              className="transition-all duration-300 hover:shadow-lg hover:border-primary cursor-pointer"
+              className={`transition-all duration-300 hover:shadow-lg hover:border-primary cursor-pointer relative ${
+                method.comingSoon ? "opacity-60" : ""
+              }`}
               onClick={() => handleMethodSelect(method.id)}
             >
+              {method.comingSoon && (
+                <div className="absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center z-10">
+                  <div className="bg-white/90 rounded-full p-3 shadow-lg">
+                    <Lock className="h-6 w-6 text-gray-600" />
+                  </div>
+                </div>
+              )}
               <CardHeader className="text-center pb-2">
                 <div className="flex justify-center">{method.icon}</div>
                 <CardTitle className="text-xl">{method.title}</CardTitle>
@@ -227,10 +271,19 @@ export default function AppointmentScheduler() {
           {advancedMethods.map((method) => (
             <Card
               key={method.id}
-              className="transition-all duration-300 hover:shadow-lg hover:border-primary cursor-pointer relative overflow-hidden"
+              className={`transition-all duration-300 hover:shadow-lg hover:border-primary cursor-pointer relative overflow-hidden ${
+                method.comingSoon ? "opacity-60" : ""
+              }`}
               onClick={() => handleMethodSelect(method.id)}
             >
-              {method.isNew && (
+              {method.comingSoon && (
+                <div className="absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center z-10">
+                  <div className="bg-white/90 rounded-full p-3 shadow-lg">
+                    <Lock className="h-6 w-6 text-gray-600" />
+                  </div>
+                </div>
+              )}
+              {method.isNew && !method.comingSoon && (
                 <div className="absolute top-2 right-2 bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs px-2 py-1 rounded-full">
                   NEW
                 </div>
@@ -246,6 +299,29 @@ export default function AppointmentScheduler() {
           ))}
         </div>
       </div>
+
+      {/* 준비중 모달 */}
+      <Dialog open={isComingSoonModalOpen} onOpenChange={setIsComingSoonModalOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader className="text-center space-y-3">
+            <div className="flex justify-center">
+              <div className="bg-blue-100 rounded-full p-4">
+                <Lock className="h-8 w-8 text-blue-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-xl font-semibold text-center">준비중입니다</DialogTitle>
+            <DialogDescription className="text-center">
+              해당 기능은 현재 개발 중입니다.
+              <br />곧 만나보실 수 있어요! 🚀
+            </DialogDescription>
+          </DialogHeader>
+          <div className="pt-4">
+            <Button className="w-full" onClick={() => setIsComingSoonModalOpen(false)}>
+              확인
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -279,9 +355,7 @@ export default function AppointmentScheduler() {
 
             <div className="space-y-2">
               <Label htmlFor="participant-count" className="text-sm font-medium">
-                {selectedMethod === "minimum-required"
-                  ? "기준 인원 수"
-                  : "참여 인원 수"}
+                {selectedMethod === "minimum-required" ? "기준 인원 수" : "참여 인원 수"}
               </Label>
               <Input
                 id="participant-count"
@@ -329,10 +403,12 @@ export default function AppointmentScheduler() {
                 />
               </div>
             ) : (
-              <div className="space-y-2 ">
+              <div className="space-y-2">
                 <Label className="text-sm font-medium">투표 가능한 날짜 범위</Label>
                 <div className="flex items-center justify-center">
-                  <DateRangePicker value={dateRange} onChange={setDateRange} />
+                  {dateRange && (
+                    <DateRangePicker value={dateRange} onChange={handleDateRangeChange} className="w-full" />
+                  )}
                 </div>
               </div>
             )}
@@ -376,7 +452,7 @@ export default function AppointmentScheduler() {
                   isCreating ||
                   !appointmentName ||
                   !participantCount ||
-                  (isRecurring ? !weeklyMeetings : !dateRange.from || !dateRange.to)
+                  (isRecurring ? !weeklyMeetings : !dateRange?.from || !dateRange?.to)
                 }
               >
                 {isCreating ? "생성 중..." : isNewMethod ? "새로운 방식으로 만들기" : "만들기"}

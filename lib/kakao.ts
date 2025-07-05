@@ -21,6 +21,10 @@ export class KakaoShare {
 
       const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
 
+      if (!jsKey) {
+        console.warn("카카오톡 JavaScript 키가 설정되지 않았습니다.")
+        return false
+      }
 
       if (!window.Kakao.isInitialized()) {
         window.Kakao.init(jsKey)
@@ -75,8 +79,9 @@ export class KakaoShare {
         objectType: "feed",
         content: {
           title: `📅 ${appointmentData.title}`,
-          description: `${methodNames[appointmentData.method as keyof typeof methodNames]} 방식으로 약속을 정해요!\n${appointmentData.dateRange ? `📆 ${appointmentData.dateRange}` : ""
-            }\n👥 예상 참여자: ${appointmentData.participantCount}명`,
+          description: `${methodNames[appointmentData.method as keyof typeof methodNames]} 방식으로 약속을 정해요!\n${
+            appointmentData.dateRange ? `📆 ${appointmentData.dateRange}` : ""
+          }\n👥 예상 참여자: ${appointmentData.participantCount}명`,
           imageUrl: `${baseUrl}/api/og-image?title=${encodeURIComponent(appointmentData.title)}`,
           link: {
             mobileWebUrl: voteUrl,
@@ -161,7 +166,7 @@ export class ClipboardShare {
 ${methodNames[appointmentData.method as keyof typeof methodNames]} 방식으로 약속을 정해요!
 ${appointmentData.dateRange ? `📆 ${appointmentData.dateRange}` : ""}
 
-🗳️ 투표하러 가기: ${voteUrl}
+🗳️투표하러 가기: ${voteUrl}
 
 만날래말래에서 간편하게 약속을 정해보세요! ✨`
 
@@ -190,42 +195,55 @@ type KakaoShareParams = {
  * 브라우저 환경에서 카카오톡 기본 공유 템플릿을 호출합니다.
  * 내부적으로 Kakao SDK 초기화 여부를 확인하고, feed 타입으로 공유합니다.
  */
-export async function shareToKakao({ title, description = "", url, imageUrl }: KakaoShareParams) {
-  const isReady = await KakaoShare.initialize()
-  if (!isReady) {
-    throw new Error("카카오톡 공유 기능을 사용할 수 없습니다.")
+export const shareToKakao = (appointmentData: any) => {
+  if (typeof window === "undefined") return
+
+  const { token, title } = appointmentData
+  const currentUrl = window.location.origin
+  const voteUrl = `${currentUrl}/vote/${token}`
+  const resultUrl = `${currentUrl}/results/${token}`
+
+  if (!window.Kakao) {
+    console.error("Kakao SDK not loaded")
+    return
   }
 
-  // 기본 OG 이미지가 없을 경우 placeholder 제공
-  const fallbackImg = `${window.location.origin}/placeholder.svg?height=630&width=1200&query=og-image`
+  if (!window.Kakao.isInitialized()) {
+    const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+    if (kakaoKey) {
+      window.Kakao.init(kakaoKey)
+    } else {
+      console.error("Kakao JS Key not found")
+      return
+    }
+  }
 
   window.Kakao.Share.sendDefault({
     objectType: "feed",
     content: {
-      title,
-      description,
-      imageUrl: imageUrl || fallbackImg,
+      title: `${title} - 만날래말래`,
+      description: "언제 만날지 투표해주세요!",
+      imageUrl: `${currentUrl}/placeholder.svg?height=400&width=400&query=calendar`,
       link: {
-        mobileWebUrl: url,
-        webUrl: url,
+        mobileWebUrl: voteUrl,
+        webUrl: voteUrl,
       },
     },
     buttons: [
       {
         title: "투표하기",
         link: {
-          mobileWebUrl: url,
-          webUrl: url,
+          mobileWebUrl: voteUrl,
+          webUrl: voteUrl,
         },
       },
       {
-        title: "결과 보기",
+        title: "결과보기",
         link: {
-          mobileWebUrl: `${url}/results`,
-          webUrl: `${url}/results`,
+          mobileWebUrl: resultUrl,
+          webUrl: resultUrl,
         },
       },
     ],
-    installTalk: true,
   })
 }

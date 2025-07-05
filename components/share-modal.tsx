@@ -7,7 +7,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Copy, Share2, MessageCircle, ExternalLink, CheckCircle2 } from "lucide-react"
+import {
+  Copy,
+  Share2,
+  MessageCircle,
+  ExternalLink,
+  CheckCircle2,
+  Calendar,
+  Users,
+  RotateCcw,
+  Clock,
+} from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { shareToKakao } from "@/lib/kakao"
 
@@ -68,84 +78,154 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="space-y-3">
-          <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-            <CheckCircle2 className="h-6 w-6 text-green-500" />
+        <DialogHeader className="space-y-4 pb-4">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-3 text-green-600">
+            <div className="p-2 bg-green-100 rounded-full">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
             약속이 생성되었습니다!
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* 약속 정보 카드 */}
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div>
-                <h3 className="font-semibold text-lg">{appointmentData.title}</h3>
-                <Badge variant="secondary" className="mt-1">
+          {/* 약속 정보 카드 - 모던하고 심플한 디자인 */}
+          <Card className="border-0 bg-gradient-to-br from-slate-50 to-slate-100/50 shadow-sm">
+            <CardContent className="p-6 space-y-4">
+              {/* 제목과 방식 */}
+              <div className="space-y-3">
+                <h3 className="font-bold text-xl text-slate-800 leading-tight">{appointmentData.title}</h3>
+                <Badge
+                  variant="secondary"
+                  className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 text-sm font-medium"
+                >
                   {getMethodName(appointmentData.method)}
                 </Badge>
               </div>
 
-              <div className="text-sm text-muted-foreground space-y-1">
+              {/* 약속 세부 정보 */}
+              <div className="space-y-3 pt-2">
                 {appointmentData.start_date && appointmentData.end_date && (
-                  <p>
-                    📅 투표 기간: {appointmentData.start_date} ~ {appointmentData.end_date}
-                  </p>
+                  <div className="flex items-center gap-3 text-slate-600">
+                    <div className="p-1.5 bg-slate-200 rounded-lg">
+                      <Calendar className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-500">투표 기간</p>
+                      <p className="text-sm font-semibold">
+                        {appointmentData.start_date} ~ {appointmentData.end_date}
+                      </p>
+                    </div>
+                  </div>
                 )}
-                <p>👥 기준 인원: {appointmentData.required_participants}명</p>
-                {appointmentData.method === "recurring" && <p>🔄 주간 모임: 주 {appointmentData.weekly_meetings}회</p>}
+
+                <div className="flex items-center gap-3 text-slate-600">
+                  <div className="p-1.5 bg-slate-200 rounded-lg">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-500">기준 인원</p>
+                    <p className="text-sm font-semibold">{appointmentData.required_participants}명</p>
+                  </div>
+                </div>
+
+                {appointmentData.method === "recurring" && (
+                  <div className="flex items-center gap-3 text-slate-600">
+                    <div className="p-1.5 bg-slate-200 rounded-lg">
+                      <RotateCcw className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-500">주간 모임</p>
+                      <p className="text-sm font-semibold">주 {appointmentData.weekly_meetings}회</p>
+                    </div>
+                  </div>
+                )}
+
+                {appointmentData.deadline && (
+                  <div className="flex items-center gap-3 text-slate-600">
+                    <div className="p-1.5 bg-slate-200 rounded-lg">
+                      <Clock className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-500">투표 마감</p>
+                      <p className="text-sm font-semibold">{appointmentData.deadline}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-
+          {/* 공유 안내 */}
+          <div className="text-center py-2">
+            <p className="text-slate-600 font-medium">친구들에게 공유해서 투표를 받아보세요!</p>
+          </div>
 
           {/* 투표 링크 공유 */}
-          <div className="text-sm text-muted-foreground space-y-1">
-            친구들에게 공유하세요!
-          </div>
           <div className="space-y-3">
-            <Label className="text-sm font-medium">투표 링크</Label>
+            <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <Share2 className="h-4 w-4" />
+              투표 링크
+            </Label>
             <div className="flex gap-2">
-              <Input value={voteUrl} readOnly className="flex-1" />
-              <Button variant="outline" size="icon" onClick={() => copyToClipboard(voteUrl, "투표")}>
-                {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              <Input value={voteUrl} readOnly className="flex-1 bg-slate-50 border-slate-200 text-sm" />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => copyToClipboard(voteUrl, "투표")}
+                className="shrink-0 hover:bg-slate-100"
+              >
+                {copied ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
           </div>
 
           {/* 결과 링크 공유 */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">결과 확인 링크</Label>
+            <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              결과 확인 링크
+            </Label>
             <div className="flex gap-2">
-              <Input value={resultsUrl} readOnly className="flex-1" />
-              <Button variant="outline" size="icon" onClick={() => copyToClipboard(resultsUrl, "결과")}>
-                {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              <Input value={resultsUrl} readOnly className="flex-1 bg-slate-50 border-slate-200 text-sm" />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => copyToClipboard(resultsUrl, "결과")}
+                className="shrink-0 hover:bg-slate-100"
+              >
+                {copied ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
           </div>
 
-          {/* 공유 버튼들 */}
+          {/* 카카오톡 공유 */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">카톡으로 한 번에 공유하기</Label>
-            <div className="grid grid-cols-2 gap-3 justify-center">
-              <Button variant="outline" onClick={handleKakaoShare} className="flex items-center gap-2 bg-transparent bg-yellow-300">
-                <MessageCircle className="h-4 w-4" />
-                카카오톡
-              </Button>
-            </div>
+            <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              카톡으로 한 번에 공유하기
+            </Label>
+            <Button
+              onClick={handleKakaoShare}
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-semibold py-3 rounded-lg transition-colors"
+            >
+              <MessageCircle className="h-5 w-5 mr-2" />
+              카카오톡으로 공유하기
+            </Button>
           </div>
 
           {/* 바로가기 버튼들 */}
-          <div className="grid grid-cols-2 gap-3 pt-4 border-t">
-            <Button onClick={() => window.open(voteUrl, "_blank")} className="flex items-center gap-2">
+          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-200">
+            <Button
+              onClick={() => window.open(voteUrl, "_blank")}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 py-3"
+            >
               <ExternalLink className="h-4 w-4" />
               투표 페이지
             </Button>
             <Button
               variant="outline"
               onClick={() => window.open(resultsUrl, "_blank")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-slate-300 hover:bg-slate-50 py-3"
             >
               <ExternalLink className="h-4 w-4" />
               결과 페이지

@@ -2,14 +2,12 @@
 
 import * as React from "react"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import type { DateRange } from "react-day-picker"
+import { CalendarIcon, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface DateRangePickerProps {
   value?: { from: Date; to: Date }
@@ -18,99 +16,122 @@ interface DateRangePickerProps {
 }
 
 export function DateRangePicker({ value, onChange, className }: DateRangePickerProps) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: value?.from,
-    to: value?.to,
-  })
+  const [startDate, setStartDate] = React.useState(value?.from ? format(value.from, "yyyy-MM-dd") : "")
+  const [endDate, setEndDate] = React.useState(value?.to ? format(value.to, "yyyy-MM-dd") : "")
+  const [isOpen, setIsOpen] = React.useState(false)
 
   React.useEffect(() => {
-    if (date?.from && date?.to && onChange) {
-      onChange({ from: date.from, to: date.to })
+    if (value?.from) {
+      setStartDate(format(value.from, "yyyy-MM-dd"))
     }
-  }, [date, onChange])
+    if (value?.to) {
+      setEndDate(format(value.to, "yyyy-MM-dd"))
+    }
+  }, [value])
+
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStartDate = e.target.value
+    setStartDate(newStartDate)
+
+    if (newStartDate && endDate && onChange) {
+      onChange({
+        from: new Date(newStartDate),
+        to: new Date(endDate),
+      })
+    }
+  }
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEndDate = e.target.value
+    setEndDate(newEndDate)
+
+    if (startDate && newEndDate && onChange) {
+      onChange({
+        from: new Date(startDate),
+        to: new Date(newEndDate),
+      })
+    }
+  }
+
+  const handleApply = () => {
+    if (startDate && endDate && onChange) {
+      onChange({
+        from: new Date(startDate),
+        to: new Date(endDate),
+      })
+    }
+    setIsOpen(false)
+  }
+
+  const handleCancel = () => {
+    setIsOpen(false)
+  }
 
   return (
-    <div className={cn("grid gap-2", className)}>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            id="date"
-            variant={"outline"}
-            className={cn(
-              "w-full justify-start text-left font-normal min-h-[44px] px-3 py-2",
-              !date && "text-muted-foreground",
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-            <span className="truncate">
-              {date?.from ? (
-                date.to ? (
-                  <>
-                    {format(date.from, "yyyy.MM.dd")} - {format(date.to, "yyyy.MM.dd")}
-                  </>
-                ) : (
-                  format(date.from, "yyyy.MM.dd")
-                )
-              ) : (
-                "날짜 범위 선택"
-              )}
-            </span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 max-w-[95vw]" align="center" side="bottom" sideOffset={4}>
-          <div className="p-3">
-            <Calendar
-              initialFocus
-              mode="range"
-              defaultMonth={date?.from}
-              selected={date}
-              onSelect={setDate}
-              numberOfMonths={typeof window !== "undefined" && window.innerWidth < 768 ? 1 : 2}
-              fixedWeeks
-              showOutsideDays={false}
-              className="rounded-md align-center"
-              classNames={{
-                months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                month: "space-y-4 w-full",
-                caption: "flex justify-center pt-1 relative items-center px-1",
-                caption_label: "text-sm font-medium truncate",
-                nav: "space-x-1 flex items-center",
-                nav_button: cn(
-                  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
-                  "hover:bg-accent hover:text-accent-foreground",
-                  "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100",
-                ),
-                nav_button_previous: "absolute left-1",
-                nav_button_next: "absolute right-1",
-                table: "w-full border-collapse space-y-1",
-                head_row: "flex w-full",
-                head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem] flex-1 text-center",
-                row: "flex w-full mt-2",
-                cell: cn("relative p-0 text-center text-sm focus-within:relative focus-within:z-20", "flex-1 h-8 w-8"),
-                day: cn(
-                  "inline-flex items-center justify-center rounded-md text-sm font-normal transition-colors",
-                  "hover:bg-accent hover:text-accent-foreground",
-                  "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
-                ),
-                day_range_start: "day-range-start rounded-l-md",
-                day_range_end: "day-range-end rounded-r-md",
-                day_selected: cn(
-                  "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-                  "focus:bg-primary focus:text-primary-foreground",
-                ),
-                day_today: "bg-accent text-accent-foreground font-semibold",
-                day_outside: "text-muted-foreground opacity-50",
-                day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
-                day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground rounded-none",
-                day_hidden: "invisible",
-              }}
-            />
-            <div className="mt-3 pt-3 border-t text-xs text-muted-foreground text-center">
-              시작일과 종료일을 선택해주세요
+    <div className={cn("grid gap-2 relative", className)}>
+      <Button
+        variant="outline"
+        className={cn(
+          "w-full justify-start text-left font-normal min-h-[44px] px-3 py-2",
+          (!startDate || !endDate) && "text-muted-foreground",
+        )}
+        onClick={() => setIsOpen(true)}
+      >
+        <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+        <span className="truncate">
+          {startDate && endDate
+            ? `${format(new Date(startDate), "yyyy.MM.dd")} - ${format(new Date(endDate), "yyyy.MM.dd")}`
+            : "날짜 범위 선택"}
+        </span>
+      </Button>
+
+      {/* 모달 방식 날짜 선택기 */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/20 z-[10000] flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl border max-w-sm w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">날짜 범위 선택</h3>
+              <Button variant="ghost" size="sm" onClick={handleCancel}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="start-date">시작일</Label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={handleStartDateChange}
+                  max={endDate || undefined}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="end-date">종료일</Label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={endDate}
+                  onChange={handleEndDateChange}
+                  min={startDate || undefined}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" size="sm" className="flex-1 bg-transparent" onClick={handleCancel}>
+                  취소
+                </Button>
+                <Button size="sm" className="flex-1" onClick={handleApply} disabled={!startDate || !endDate}>
+                  적용
+                </Button>
+              </div>
+              <div className="text-xs text-muted-foreground text-center">시작일과 종료일을 선택해주세요</div>
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
+        </div>
+      )}
     </div>
   )
 }
