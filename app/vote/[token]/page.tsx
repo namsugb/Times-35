@@ -23,6 +23,7 @@ import {
   createWeekdayVotes,
   getVoters,
 } from "@/lib/database"
+import 'react-day-picker/dist/style.css'
 
 interface DateTimeSelection {
   date: string
@@ -365,21 +366,19 @@ export default function VotePage() {
                   {weekdays.map((weekday) => (
                     <Card
                       key={weekday.id}
-                      className={`cursor-pointer transition-all duration-200 ${
-                        selectedWeekdays.includes(weekday.id)
-                          ? "border-primary bg-primary/5 shadow-md"
-                          : "border-border hover:border-primary/50 hover:shadow-sm"
-                      }`}
+                      className={`cursor-pointer transition-all duration-200 ${selectedWeekdays.includes(weekday.id)
+                        ? "border-primary bg-primary/5 shadow-md"
+                        : "border-border hover:border-primary/50 hover:shadow-sm"
+                        }`}
                       onClick={() => handleWeekdayToggle(weekday.id)}
                     >
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                              selectedWeekdays.includes(weekday.id)
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-secondary-foreground"
-                            }`}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${selectedWeekdays.includes(weekday.id)
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-secondary text-secondary-foreground"
+                              }`}
                           >
                             {weekday.short}
                           </div>
@@ -484,22 +483,21 @@ export default function VotePage() {
                   showOutsideDays={false}
                   fixedWeeks={false}
                   classNames={{
-                    months: "flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                    month: "space-y-4 w-full flex flex-col",
-                    caption: "flex justify-center pt-1 relative items-center",
-                    caption_label: "text-sm font-medium",
-                    nav: "space-x-1 flex items-center",
+                    months: "",
+                    month: "",
+                    caption: "flex items-center justify-between px-2 h-10",
+                    caption_label: "text-base font-semibold text-center flex-1 leading-7",
+
                     nav_button:
-                      "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground",
-                    nav_button_previous: "absolute left-1",
-                    nav_button_next: "absolute right-1",
+                      "h-7 w-7 flex items-center justify-center text-lg bg-transparent p-0 opacity-50 hover:opacity-100 rounded-md border border-input text-primary hover:bg-accent hover:text-accent-foreground transition-colors",
+                    nav_button_previous: "order-first",
+                    nav_button_next: "order-last",
                     table: "w-full border-collapse space-y-1",
-                    head_row: "flex w-full",
-                    head_cell:
-                      "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] flex-1 flex items-center justify-center",
-                    row: "flex w-full mt-2",
-                    cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 flex-1 flex items-center justify-center",
-                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 inline-flex items-center justify-center rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground",
+                    head_row: "",
+                    head_cell: "text-muted-foreground rounded-md font-normal text-[0.8rem]",
+                    row: "",
+                    cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground",
                     day_selected:
                       "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
                     day_today: "bg-accent text-accent-foreground",
@@ -509,25 +507,9 @@ export default function VotePage() {
                     day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
                     day_hidden: "invisible",
                   }}
-                  components={{
-                    DayContent: ({ date }) => {
-                      const dateTimeInfo = getDateTimeInfo(date)
-                      const isSelected = selectedDates.some((selectedDate) => selectedDate.getTime() === date.getTime())
-
-                      return (
-                        <div className="relative w-full h-full flex flex-col items-center justify-center">
-                          <span className={isSelected ? "text-primary-foreground" : ""}>{date.getDate()}</span>
-                          {dateTimeInfo && dateTimeInfo.times.length > 0 && (
-                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
-                              <Clock className={`h-3 w-3 ${isSelected ? "text-primary-foreground" : "text-primary"}`} />
-                            </div>
-                          )}
-                        </div>
-                      )
-                    },
-                  }}
                 />
               </div>
+
               <p className="text-sm text-muted-foreground mt-2">
                 참석 가능한{" "}
                 {appointment.method === "time-scheduling" ? "날짜를 클릭하여 시간을" : "날짜를 모두 클릭하여"}{" "}
