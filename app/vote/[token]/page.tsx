@@ -365,19 +365,21 @@ export default function VotePage() {
                   {weekdays.map((weekday) => (
                     <Card
                       key={weekday.id}
-                      className={`cursor-pointer transition-all duration-200 ${selectedWeekdays.includes(weekday.id)
-                        ? "border-primary bg-primary/5 shadow-md"
-                        : "border-border hover:border-primary/50 hover:shadow-sm"
-                        }`}
+                      className={`cursor-pointer transition-all duration-200 ${
+                        selectedWeekdays.includes(weekday.id)
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-border hover:border-primary/50 hover:shadow-sm"
+                      }`}
                       onClick={() => handleWeekdayToggle(weekday.id)}
                     >
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${selectedWeekdays.includes(weekday.id)
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-secondary text-secondary-foreground"
-                              }`}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
+                              selectedWeekdays.includes(weekday.id)
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-secondary text-secondary-foreground"
+                            }`}
                           >
                             {weekday.short}
                           </div>
@@ -466,7 +468,7 @@ export default function VotePage() {
                 참석 가능한 {appointment.method === "time-scheduling" ? "날짜와 시간" : "날짜"}{" "}
                 {selectedDates.length > 0 && `(${selectedDates.length}개 선택됨)`}
               </Label>
-              <div className="flex justify-center border rounded-md p-1">
+              <div className="w-full border rounded-md p-2 bg-background">
                 <CalendarComponent
                   mode="multiple"
                   numberOfMonths={1}
@@ -474,32 +476,38 @@ export default function VotePage() {
                   selected={selectedDates}
                   onSelect={handleDateSelect}
                   onDayClick={handleDateClick}
-                  className="rounded-md mx-auto"
+                  className="w-full mx-auto"
                   disabled={isDateDisabled}
                   defaultMonth={parseISO(appointment.start_date)}
                   fromDate={parseISO(appointment.start_date)}
                   toDate={parseISO(appointment.end_date)}
                   showOutsideDays={false}
                   fixedWeeks={false}
-                  modifiers={{
-                    selected: selectedDates,
-                  }}
-                  modifiersStyles={{
-                    selected: {
-                      backgroundColor: "hsl(var(--primary))",
-                      color: "hsl(var(--primary-foreground))",
-                    },
-                  }}
-                  styles={{
-                    day_selected: {
-                      backgroundColor: "hsl(var(--primary))",
-                      color: "hsl(var(--primary-foreground))",
-                    },
-                    day_today: {
-                      backgroundColor: "transparent",
-                      color: "hsl(var(--primary))",
-                      fontWeight: "bold",
-                    },
+                  classNames={{
+                    months: "flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                    month: "space-y-4 w-full flex flex-col",
+                    caption: "flex justify-center pt-1 relative items-center",
+                    caption_label: "text-sm font-medium",
+                    nav: "space-x-1 flex items-center",
+                    nav_button:
+                      "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:bg-accent hover:text-accent-foreground",
+                    nav_button_previous: "absolute left-1",
+                    nav_button_next: "absolute right-1",
+                    table: "w-full border-collapse space-y-1",
+                    head_row: "flex w-full",
+                    head_cell:
+                      "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] flex-1 flex items-center justify-center",
+                    row: "flex w-full mt-2",
+                    cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 flex-1 flex items-center justify-center",
+                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 inline-flex items-center justify-center rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground",
+                    day_selected:
+                      "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                    day_today: "bg-accent text-accent-foreground",
+                    day_outside:
+                      "text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                    day_disabled: "text-muted-foreground opacity-50",
+                    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                    day_hidden: "invisible",
                   }}
                   components={{
                     DayContent: ({ date }) => {
@@ -558,7 +566,7 @@ export default function VotePage() {
 
       {/* 시간 선택 모달 */}
       <Dialog open={isTimeModalOpen} onOpenChange={setIsTimeModalOpen}>
-        <DialogContent className="sm:max-w-[600px] mx-4">
+        <DialogContent className="w-[90vw] max-w-[400px] mx-auto">
           <DialogHeader>
             <DialogTitle>시간 선택</DialogTitle>
             <DialogDescription>
@@ -568,7 +576,7 @@ export default function VotePage() {
           </DialogHeader>
 
           <div className="py-4">
-            <div className="grid grid-cols-6 sm:grid-cols-12 gap-2">
+            <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
               {timeSlots.map((hour) => (
                 <Button
                   key={hour}
@@ -596,24 +604,6 @@ export default function VotePage() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* 기존 투표자 표시 */}
-      {/* {voters.length > 0 && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg">현재 참여자 ({voters.length}명)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {voters.map((voter) => (
-                <Badge key={voter.id} variant="secondary">
-                  {voter.name}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )} */}
     </div>
   )
 }
