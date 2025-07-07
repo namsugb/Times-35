@@ -23,7 +23,6 @@ import {
   createWeekdayVotes,
   getVoters,
 } from "@/lib/database"
-import 'react-day-picker/dist/style.css'
 
 interface DateTimeSelection {
   date: string
@@ -366,19 +365,21 @@ export default function VotePage() {
                   {weekdays.map((weekday) => (
                     <Card
                       key={weekday.id}
-                      className={`cursor-pointer transition-all duration-200 ${selectedWeekdays.includes(weekday.id)
-                        ? "border-primary bg-primary/5 shadow-md"
-                        : "border-border hover:border-primary/50 hover:shadow-sm"
-                        }`}
+                      className={`cursor-pointer transition-all duration-200 ${
+                        selectedWeekdays.includes(weekday.id)
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-border hover:border-primary/50 hover:shadow-sm"
+                      }`}
                       onClick={() => handleWeekdayToggle(weekday.id)}
                     >
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${selectedWeekdays.includes(weekday.id)
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-secondary text-secondary-foreground"
-                              }`}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
+                              selectedWeekdays.includes(weekday.id)
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-secondary text-secondary-foreground"
+                            }`}
                           >
                             {weekday.short}
                           </div>
