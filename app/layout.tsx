@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { Footer } from "@/components/footer"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -14,8 +15,7 @@ export const metadata: Metadata = {
     title: "만날래말래",
     description: "여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.",
     type: "website",
-  },
-  generator: 'v0.dev'
+  }
 }
 
 export default function RootLayout({
@@ -28,6 +28,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           {children}
+          <Footer />
           <Toaster />
         </ThemeProvider>
       </body>

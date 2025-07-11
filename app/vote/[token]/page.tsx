@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { CustomCalendar } from "@/components/ui/custom-calendar"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -22,8 +22,7 @@ import {
   createWeekdayVotes,
   getVoters,
 } from "@/lib/database"
-import 'react-day-picker/dist/style.css'
-import { isSameDay } from "date-fns"
+
 
 interface DateTimeSelection {
   date: string
@@ -199,43 +198,23 @@ export default function VotePage() {
 
     if (!name.trim()) {
       setNameError(true)
-      toast({
-        title: "이름을 입력해주세요",
-        variant: "destructive",
-      })
       return
     }
 
-    // 방식별 유효성 검사
-    if (appointment.method === "recurring") {
-      if (selectedWeekdays.length === 0) {
-        toast({
-          title: "요일을 선택해주세요",
-          variant: "destructive",
-        })
-        return
-      }
-    } else {
-      if (selectedDates.length === 0) {
-        toast({
-          title: "날짜를 선택해주세요",
-          variant: "destructive",
-        })
-        return
-      }
-    }
+    setSubmitting(true)
 
     try {
-      setSubmitting(true)
-
-      // 1. 투표자 생성
-      const voter = await createVoter({
+      // 투표자 생성
+      const { data: voter, error: voterError } = await createVoter({
         appointment_id: appointment.id,
         name: name.trim(),
-        session_id: `session_${Date.now()}_${Math.random().toString(36).substring(2)}`,
       })
 
-      // 2. 방식별 투표 데이터 저장
+      if (voterError) {
+        throw new Error("투표자 생성 실패")
+      }
+
+      // 투표 방법에 따라 투표 데이터 생성
       if (appointment.method === "recurring") {
         await createWeekdayVotes(voter.id, appointment.id, selectedWeekdays)
       } else if (appointment.method === "time-scheduling") {
@@ -246,39 +225,22 @@ export default function VotePage() {
       }
 
       toast({
-        title: "🎉 투표가 완료되었습니다!",
-        description: "참여해주셔서 감사합니다.",
+        title: "투표 완료!",
+        description: "투표가 성공적으로 제출되었습니다.",
       })
 
       // 결과 페이지로 이동
       router.push(`/results/${token}`)
-    } catch (error: any) {
-      console.error("투표 제출 오류:", error)
+    } catch (err: any) {
+      console.error("투표 제출 오류:", err)
       toast({
         title: "투표 실패",
-        description: error.message || "투표 제출에 실패했습니다.",
+        description: err.message || "투표 제출에 실패했습니다.",
         variant: "destructive",
       })
     } finally {
       setSubmitting(false)
     }
-  }
-
-  // 시간 슬롯 생성 (0-23시)
-  const timeSlots = Array.from({ length: 24 }, (_, i) => i)
-
-  // 날짜-시간 정보 가져오기
-  const getDateTimeInfo = (date: Date) => {
-    if (appointment?.method !== "time-scheduling") return null
-    const dateStr = format(date, "yyyy-MM-dd")
-    return selectedDateTimes.find((dt) => dt.date === dateStr)
-  }
-
-  // 시간 범위 포맷팅
-  const formatTimeRange = (times: number[]) => {
-    if (times.length === 0) return ""
-    if (times.length === 1) return `${times[0]}시`
-    return `${times[0]}시~${times[times.length - 1]}시 외 ${times.length}개`
   }
 
   if (loading) {
@@ -464,10 +426,7 @@ export default function VotePage() {
                 {selectedDates.length > 0 && `(${selectedDates.length}개 선택됨)`}
               </Label>
               <div className="w-full border rounded-md p-2 bg-background">
-                <CalendarComponent
-                  mode="multiple"
-                  numberOfMonths={1}
-                  locale={ko}
+                <CustomCalendar
                   selected={selectedDates}
                   onSelect={handleDateSelect}
                   onDayClick={handleDateClick}
@@ -477,10 +436,9 @@ export default function VotePage() {
                   fromDate={parseISO(appointment.start_date)}
                   toDate={parseISO(appointment.end_date)}
                   showOutsideDays={false}
-                  fixedWeeks={false}
+                  isTimeScheduling={appointment.method === "time-scheduling"}
+                  selectedDateTimes={selectedDateTimes}
                 />
-
-
               </div>
 
               <p className="text-sm text-muted-foreground mt-2">
@@ -496,7 +454,7 @@ export default function VotePage() {
                     {selectedDateTimes.map((dt) => (
                       <div key={dt.date} className="flex items-center justify-between text-sm">
                         <span>{format(parseISO(dt.date), "M월 d일 (eee)", { locale: ko })}</span>
-                        <Badge variant="outline">{formatTimeRange(dt.times)}</Badge>
+                        <Badge variant="outline">{dt.times.length === 1 ? `${dt.times[0]}시` : `${dt.times[0]}시~${dt.times[dt.times.length - 1]}시 외 ${dt.times.length}개`}</Badge>
                       </div>
                     ))}
                   </div>
@@ -532,7 +490,7 @@ export default function VotePage() {
 
           <div className="py-4">
             <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
-              {timeSlots.map((hour) => (
+              {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
                 <Button
                   key={hour}
                   variant={tempSelectedTimes.includes(hour) ? "default" : "outline"}
