@@ -1,7 +1,7 @@
+import "./globals.css"
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     description: "여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.",
     type: "website",
   },
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({

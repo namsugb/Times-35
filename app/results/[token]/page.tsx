@@ -175,14 +175,15 @@ export default function ResultsPage() {
       }))
       .sort((a, b) => b.count - a.count)
 
-    const allAvailable = sortedDates.filter((d) => d.count === voters.length)
-    const maxAvailable = sortedDates.length > 0 ? [sortedDates[0]] : []
+    const allAvailable = sortedDates.filter((d) => d.count === appointment.required_participants)
+    const maxCount = sortedDates.length > 0 ? sortedDates[0].count : 0
+    const maxAvailable = sortedDates.filter((d) => d.count === maxCount)
     const requiredAvailable = sortedDates.filter((d) => d.count >= appointment.required_participants)
 
     return {
       allAvailable,
       maxAvailable,
-      requiredAvailable: requiredAvailable.slice(0, 5), // 상위 5개만
+      requiredAvailable,
     }
   }
 
@@ -287,13 +288,12 @@ export default function ResultsPage() {
                     return (
                       <div
                         key={weekdayIndex}
-                        className={`relative p-2 sm:p-4 rounded-lg border-2 text-center transition-all duration-200 ${
-                          isSelected
+                        className={`relative p-2 sm:p-4 rounded-lg border-2 text-center transition-all duration-200 ${isSelected
                             ? "bg-gradient-to-br from-green-500 to-green-600 text-white border-green-700 shadow-lg transform scale-105"
                             : result.count > 0
                               ? "bg-green-50 border-green-200 hover:border-green-300"
                               : "bg-gray-50 border-gray-200"
-                        }`}
+                          }`}
                       >
                         {isSelected && (
                           <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-yellow-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold shadow-md">
@@ -363,15 +363,13 @@ export default function ResultsPage() {
                       return (
                         <div
                           key={weekday.weekday}
-                          className={`flex items-center justify-between p-3 rounded-lg border ${
-                            isSelected ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
-                          }`}
+                          className={`flex items-center justify-between p-3 rounded-lg border ${isSelected ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
+                            }`}
                         >
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                isSelected ? "bg-green-600 text-white" : "bg-gray-300 text-gray-600"
-                              }`}
+                              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isSelected ? "bg-green-600 text-white" : "bg-gray-300 text-gray-600"
+                                }`}
                             >
                               {index + 1}
                             </div>
@@ -433,10 +431,10 @@ export default function ResultsPage() {
                   <span className="font-medium">
                     {voters.length > 0
                       ? Math.round(
-                          (Object.values(weekdayResults).reduce((sum: number, result: any) => sum + result.count, 0) /
-                            (voters.length * 7)) *
-                            100,
-                        )
+                        (Object.values(weekdayResults).reduce((sum: number, result: any) => sum + result.count, 0) /
+                          (voters.length * 7)) *
+                        100,
+                      )
                       : 0}
                     %
                   </span>
@@ -534,9 +532,8 @@ export default function ResultsPage() {
                     {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
                       <div
                         key={day}
-                        className={`text-center py-2 text-sm font-medium ${
-                          index === 0 ? "text-red-500" : index === 6 ? "text-blue-500" : "text-gray-600"
-                        }`}
+                        className={`text-center py-2 text-sm font-medium ${index === 0 ? "text-red-500" : index === 6 ? "text-blue-500" : "text-gray-600"
+                          }`}
                       >
                         {day}
                       </div>
@@ -569,9 +566,8 @@ export default function ResultsPage() {
                       return (
                         <div
                           key={dateStr}
-                          className={`aspect-square rounded-lg flex flex-col items-center justify-center relative cursor-pointer border transition-all duration-200 ${colorClasses} ${
-                            result.count > 0 && isInRange ? "hover:scale-105 hover:shadow-md active:scale-95" : ""
-                          } ${!isInRange ? "cursor-default" : ""}`}
+                          className={`aspect-square rounded-lg flex flex-col items-center justify-center relative cursor-pointer border transition-all duration-200 ${colorClasses} ${result.count > 0 && isInRange ? "hover:scale-105 hover:shadow-md active:scale-95" : ""
+                            } ${!isInRange ? "cursor-default" : ""}`}
                           onClick={() => isInRange && result.count > 0 && handleDateClick(day)}
                         >
                           <span className="text-sm font-semibold mb-0.5">{format(day, "d")}</span>
@@ -650,7 +646,7 @@ export default function ResultsPage() {
                       </div>
                     </>
                   ) : (
-                    <div className="text-center text-sm text-muted-foreground py-4 bg-gray-50 rounded-lg">
+                    <div className="text-center text-red text-sm text-muted-foreground py-4 bg-gray-50 rounded-lg">
                       전원이 참여 가능한 날이 없습니다
                     </div>
                   )}
@@ -658,7 +654,7 @@ export default function ResultsPage() {
               )}
 
               {/* 최다 참여 */}
-              {appointment.method === "maximum-participants" && (
+              {appointment.method === "max-available" && (
                 <div>
                   {optimalDates.maxAvailable.length > 0 && (
                     <div>
@@ -687,7 +683,7 @@ export default function ResultsPage() {
               )}
 
               {/* 기준 인원 이상 */}
-              {optimalDates.requiredAvailable.length > 0 && (
+              {appointment.method === "minimum-required" && (
                 <div>
                   <h4 className="font-medium text-blue-700 mb-2 flex items-center gap-2">
                     <Users className="h-4 w-4" />

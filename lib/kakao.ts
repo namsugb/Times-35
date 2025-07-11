@@ -1,5 +1,3 @@
-// No changes needed here – just confirming there is **no**
-// reference to process.env.NEXT_PUBLIC_KAKAO_JS_KEY anywhere.
 "use client"
 
 declare global {

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { format, parseISO } from "date-fns"
@@ -24,6 +23,7 @@ import {
   getVoters,
 } from "@/lib/database"
 import 'react-day-picker/dist/style.css'
+import { isSameDay } from "date-fns"
 
 interface DateTimeSelection {
   date: string
@@ -45,7 +45,6 @@ export default function VotePage() {
   const router = useRouter()
   const { toast } = useToast()
   const token = params.token as string
-
   const [appointment, setAppointment] = useState<any>(null)
   const [voters, setVoters] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -119,22 +118,9 @@ export default function VotePage() {
 
   // 날짜 선택 핸들러
   const handleDateSelect = (dates: Date[] | undefined) => {
-    if (!dates) {
-      setSelectedDates([])
-      setSelectedDateTimes([])
-      return
-    }
-
-    const validDates = dates.filter((date) => date instanceof Date && !isNaN(date.getTime()))
-    setSelectedDates(validDates)
-
-    if (appointment?.method !== "time-scheduling") {
-      return
-    }
-
-    const validDateStrings = validDates.map((date) => format(date, "yyyy-MM-dd"))
-    setSelectedDateTimes((prev) => prev.filter((dt) => validDateStrings.includes(dt.date)))
+    setSelectedDates(dates ?? [])
   }
+
 
   // 요일 선택 핸들러
   const handleWeekdayToggle = (weekdayId: number) => {
@@ -147,9 +133,18 @@ export default function VotePage() {
     })
   }
 
-  // 날짜 클릭 핸들러 (시간 스케줄링용)
+  // 날짜 클릭 핸들러 
   const handleDateClick = (date: Date) => {
     if (appointment?.method !== "time-scheduling") return
+
+    const isAlreadySelected = selectedDates.some(
+      (d) => format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
+    )
+
+    if (isAlreadySelected) {
+      // 이미 선택된 날짜면 모달 열지 않음 (선택은 자동 해제됨)
+      return
+    }
 
     const dateStr = format(date, "yyyy-MM-dd")
     const existingSelection = selectedDateTimes.find((dt) => dt.date === dateStr)
@@ -158,6 +153,7 @@ export default function VotePage() {
     setTempSelectedTimes(existingSelection?.times || [])
     setIsTimeModalOpen(true)
   }
+
 
   // 시간 선택 핸들러
   const handleTimeToggle = (hour: number) => {
@@ -475,39 +471,16 @@ export default function VotePage() {
                   selected={selectedDates}
                   onSelect={handleDateSelect}
                   onDayClick={handleDateClick}
-                  className="w-full mx-auto"
+                  className="mx-auto p-3"
                   disabled={isDateDisabled}
                   defaultMonth={parseISO(appointment.start_date)}
                   fromDate={parseISO(appointment.start_date)}
                   toDate={parseISO(appointment.end_date)}
                   showOutsideDays={false}
                   fixedWeeks={false}
-                  classNames={{
-                    months: "",
-                    month: "",
-                    caption: "flex items-center justify-between px-2 h-10",
-                    caption_label: "text-base font-semibold text-center flex-1 leading-7",
-
-                    nav_button:
-                      "h-7 w-7 flex items-center justify-center text-lg bg-transparent p-0 opacity-50 hover:opacity-100 rounded-md border border-input text-primary hover:bg-accent hover:text-accent-foreground transition-colors",
-                    nav_button_previous: "order-first",
-                    nav_button_next: "order-last",
-                    table: "w-full border-collapse space-y-1",
-                    head_row: "",
-                    head_cell: "text-muted-foreground rounded-md font-normal text-[0.8rem]",
-                    row: "",
-                    cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground",
-                    day_selected:
-                      "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                    day_today: "bg-accent text-accent-foreground",
-                    day_outside:
-                      "text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
-                    day_disabled: "text-muted-foreground opacity-50",
-                    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                    day_hidden: "invisible",
-                  }}
                 />
+
+
               </div>
 
               <p className="text-sm text-muted-foreground mt-2">

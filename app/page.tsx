@@ -13,6 +13,7 @@ import { addDays, format } from "date-fns"
 import { createAppointment } from "@/lib/database"
 import { toast } from "sonner"
 import { ShareModal } from "@/components/share-modal"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 
 export default function AppointmentScheduler() {
   const router = useRouter()
@@ -234,9 +235,8 @@ export default function AppointmentScheduler() {
           {basicMethods.map((method) => (
             <Card
               key={method.id}
-              className={`transition-all duration-300 hover:shadow-lg hover:border-primary cursor-pointer relative ${
-                method.comingSoon ? "opacity-60" : ""
-              }`}
+              className={`transition-all duration-300 hover:shadow-lg hover:border-primary cursor-pointer relative ${method.comingSoon ? "opacity-60" : ""
+                }`}
               onClick={() => handleMethodSelect(method.id)}
             >
               {method.comingSoon && (
@@ -271,9 +271,8 @@ export default function AppointmentScheduler() {
           {advancedMethods.map((method) => (
             <Card
               key={method.id}
-              className={`transition-all duration-300 hover:shadow-lg hover:border-primary cursor-pointer relative overflow-hidden ${
-                method.comingSoon ? "opacity-60" : ""
-              }`}
+              className={`transition-all duration-300 hover:shadow-lg hover:border-primary cursor-pointer relative overflow-hidden ${method.comingSoon ? "opacity-60" : ""
+                }`}
               onClick={() => handleMethodSelect(method.id)}
             >
               {method.comingSoon && (

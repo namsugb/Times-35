@@ -89,27 +89,15 @@ export async function getAppointmentByToken(shareToken: string | null | undefine
   }
 }
 
-// 투표자 생성 (투표 완료 체크 추가)
+// 투표자 생성 
 export async function createVoter(data: VoterInsert) {
   try {
-    // 중복 투표자 체크
-    const { data: existingVoter } = await supabase
-      .from("voters")
-      .select("id")
-      .eq("appointment_id", data.appointment_id)
-      .eq("name", data.name.trim())
-      .single()
-
-    if (existingVoter) {
-      throw new Error(`이미 "${data.name}" 이름으로 투표가 완료되었습니다.`)
-    }
-
     const { data: voter, error } = await supabase
       .from("voters")
-      .insert({
+      .upsert({
         ...data,
         name: data.name.trim(),
-      })
+      }, { onConflict: ["appointment_id", "name"] })
       .select()
       .single()
 
@@ -119,9 +107,10 @@ export async function createVoter(data: VoterInsert) {
     }
 
     // 투표 완료 체크
-    await checkVotingCompletion(data.appointment_id)
-
+    const response = await checkVotingCompletion(data.appointment_id)
+    console.log("투표 완료 체크 결과:", response)
     return voter
+
   } catch (error: any) {
     console.error("createVoter 오류:", error)
     throw error
