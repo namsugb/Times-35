@@ -147,7 +147,6 @@ export default function ResultsPage() {
   const goToPreviousMonth = () => {
     setCurrentMonth((prev) => subMonths(prev, 1))
   }
-
   const goToNextMonth = () => {
     setCurrentMonth((prev) => addMonths(prev, 1))
   }
