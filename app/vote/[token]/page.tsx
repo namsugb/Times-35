@@ -21,6 +21,9 @@ import {
   createTimeVotes,
   createWeekdayVotes,
   getVoters,
+  updateDateVotes,
+  updateTimeVotes,
+  updateWeekdayVotes,
 } from "@/lib/database"
 
 
@@ -59,6 +62,7 @@ export default function VotePage() {
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false)
   const [currentSelectedDate, setCurrentSelectedDate] = useState<Date | null>(null)
   const [tempSelectedTimes, setTempSelectedTimes] = useState<number[]>([])
+  const [showVotingCompleteModal, setShowVotingCompleteModal] = useState(false)
 
   useEffect(() => {
     if (token) {
@@ -192,6 +196,34 @@ export default function VotePage() {
     return date < startDate || date > endDate
   }
 
+
+
+  // 투표 완료 체크
+  const checkVotingCompletion = async () => {
+    try {
+      const response = await fetch(`/api/check-completion/${appointment.id}`, {
+        method: "POST",
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.isComplete) {
+          setShowVotingCompleteModal(true)
+          return true // 완료됨을 나타내는 플래그 반환
+        }
+      }
+      return false // 완료되지 않음
+    } catch (error) {
+      console.error("투표 완료 체크 실패:", error)
+      return false
+    }
+  }
+
+  // 첫 투표인지 확인 (기존 투표자 목록에서 이름 검색)
+  const isFirstVote = (voterName: string) => {
+    return !voters.some(voter => voter.name === voterName)
+  }
+
   // 투표 제출
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -204,33 +236,75 @@ export default function VotePage() {
     setSubmitting(true)
 
     try {
-      // 투표자 생성
-      const { data: voter, error: voterError } = await createVoter({
+      // 1단계: 투표 완료 상태 확인
+      const isVotingComplete = await checkVotingCompletion()
+
+      // 2단계: 현재 투표자가 첫 투표인지 수정 투표인지 확인
+      const isNewVoter = isFirstVote(name.trim())
+
+      // 3단계: 투표 완료 상태에서의 처리
+      if (isVotingComplete) {
+        // 투표가 완료된 상태에서 새로운 투표자는 차단
+        if (isNewVoter) {
+          toast({
+            title: "투표 종료료",
+            description: "모든 인원이 투표를 완료하여 새로운 투표는 불가능합니다. 기존 투표자만 수정할 수 있습니다.",
+            variant: "destructive",
+          })
+          setSubmitting(false)
+          return
+        }
+        // 기존 투표자는 수정 허용 (모달 닫기)
+        setShowVotingCompleteModal(false)
+      }
+
+      // 4단계: 투표자 생성 (기존 투표자는 upsert로 수정됨)
+      const voter = await createVoter({
         appointment_id: appointment.id,
         name: name.trim(),
       })
 
-      if (voterError) {
+      if (!voter) {
         throw new Error("투표자 생성 실패")
       }
 
-      // 투표 방법에 따라 투표 데이터 생성
+      // 5단계: 투표 방법에 따라 투표 데이터 처리
       if (appointment.method === "recurring") {
-        await createWeekdayVotes(voter.id, appointment.id, selectedWeekdays)
+        // 반복 일정 투표
+        if (isNewVoter) {
+          // 첫 투표: 새로운 요일 투표 생성
+          await createWeekdayVotes(voter.id, appointment.id, selectedWeekdays)
+        } else {
+          // 수정 투표: 기존 요일 투표 삭제 후 새로 생성
+          await updateWeekdayVotes(voter.id, appointment.id, selectedWeekdays)
+        }
       } else if (appointment.method === "time-scheduling") {
-        await createTimeVotes(voter.id, appointment.id, selectedDateTimes)
+        // 시간 스케줄링 투표
+        if (isNewVoter) {
+          // 첫 투표: 새로운 시간 투표 생성
+          await createTimeVotes(voter.id, appointment.id, selectedDateTimes)
+        } else {
+          // 수정 투표: 기존 시간 투표 삭제 후 새로 생성
+          await updateTimeVotes(voter.id, appointment.id, selectedDateTimes)
+        }
       } else {
+        // 일반 날짜 투표
         const dateStrings = selectedDates.map((date) => format(date, "yyyy-MM-dd"))
-        await createDateVotes(voter.id, appointment.id, dateStrings)
+        if (isNewVoter) {
+          // 첫 투표: 새로운 날짜 투표 생성
+          await createDateVotes(voter.id, appointment.id, dateStrings)
+        } else {
+          // 수정 투표: 기존 날짜 투표 삭제 후 새로 생성
+          await updateDateVotes(voter.id, appointment.id, dateStrings)
+        }
       }
 
-      toast({
-        title: "투표 완료!",
-        description: "투표가 성공적으로 제출되었습니다.",
-      })
 
-      // 결과 페이지로 이동
-      router.push(`/results/${token}`)
+      // 7단계: 결과 페이지로 이동 (수정 투표인 경우 새로고침 파라미터 추가)
+      const resultUrl = isNewVoter
+        ? `/results/${token}`
+        : `/results/${token}?refresh=${Date.now()}`
+      router.push(resultUrl)
     } catch (err: any) {
       console.error("투표 제출 오류:", err)
       toast({
@@ -513,6 +587,45 @@ export default function VotePage() {
                 </Button>
                 <Button onClick={handleTimeConfirm}>확인</Button>
               </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 투표 완료 모달 */}
+      <Dialog open={showVotingCompleteModal} onOpenChange={setShowVotingCompleteModal}>
+        <DialogContent className="w-[90vw] max-w-[400px] mx-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center"> !투표가 완료된 약속입니다!</DialogTitle>
+            <DialogDescription className="text-center">
+              모든 인원이 투표에 참여하여 투표가 종료되었습니다.
+              <br />
+              <span className="text-sm text-muted-foreground">
+                기존 투표자 이름으로 재투표시 투표가 수정됩니다.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 text-center">
+
+
+            <div className="flex gap-2 justify-center">
+              <Button
+                onClick={() => {
+                  setShowVotingCompleteModal(false)
+                  router.push(`/results/${token}`)
+                }}
+                className="flex-1"
+              >
+                결과 보기
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowVotingCompleteModal(false)}
+                className="flex-1"
+              >
+                닫기
+              </Button>
             </div>
           </div>
         </DialogContent>

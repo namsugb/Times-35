@@ -121,9 +121,9 @@ export default function AppointmentScheduler() {
   }
 
   const handleCreateAppointment = async () => {
-    if (!selectedMethod || !appointmentName.trim()) {
+    if (!selectedMethod || !appointmentName || !participantCount || !creatorPhone) {
       toast.error("입력 정보를 확인해주세요", {
-        description: "약속 이름과 방식을 모두 선택해주세요.",
+        description: "모든 필수 정보를 입력해주세요.",
       })
       return
     }
@@ -150,7 +150,7 @@ export default function AppointmentScheduler() {
         deadline: deadline ? format(new Date(deadline), "yyyy-MM-dd HH:mm:ss") : null,
         is_public: true,
         status: "active" as const,
-        creator_phone: creatorPhone.trim() || null,
+        creator_phone: creatorPhone.trim() || undefined,
       }
 
       console.log("약속 데이터:", appointmentData)
@@ -322,6 +322,7 @@ export default function AppointmentScheduler() {
         </DialogContent>
       </Dialog>
 
+      {/* 약속 생성 모달 */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="space-y-3">
@@ -381,7 +382,7 @@ export default function AppointmentScheduler() {
                 onChange={(e) => setCreatorPhone(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                모든 인원이 투표 완료 시 카카오 알림톡을 받으려면 연락처를 입력해주세요.
+                모든 인원이 투표 완료 시 카카오 알림톡으로 알림을 보내드립니다.
               </p>
             </div>
 
@@ -428,7 +429,7 @@ export default function AppointmentScheduler() {
             )}
 
             {/* 마감 시간 설정 (선택사항) */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="deadline" className="text-sm font-medium">
                 투표 마감 시간 (선택사항)
               </Label>
@@ -440,7 +441,7 @@ export default function AppointmentScheduler() {
                 onChange={(e) => setDeadline(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">설정하지 않으면 마감 시간이 없습니다.</p>
-            </div>
+            </div> */}
 
             <div className="pt-4">
               <Button
@@ -454,7 +455,7 @@ export default function AppointmentScheduler() {
                   (isRecurring ? !weeklyMeetings : !dateRange?.from || !dateRange?.to)
                 }
               >
-                {isCreating ? "생성 중..." : isNewMethod ? "새로운 방식으로 만들기" : "만들기"}
+                {isCreating ? "생성 중..." : "만들기"}
               </Button>
             </div>
           </div>

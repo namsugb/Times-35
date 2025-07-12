@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast"
 export default function ResultsPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const token = params.token as string
 
@@ -82,6 +83,7 @@ export default function ResultsPage() {
         setTimeResults(timeData)
       } else {
         const dateData = await getDateVoteResults(appointmentData.id)
+        console.log("날짜 투표 결과:", dateData)
         setDateResults(dateData)
       }
     } catch (err: any) {
@@ -138,6 +140,8 @@ export default function ResultsPage() {
   const handleDateClick = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd")
     if (dateResults[dateStr] && dateResults[dateStr].count > 0) {
+      console.log("선택된 날짜 데이터:", dateStr, dateResults[dateStr])
+      console.log("전체 투표자 목록:", voters)
       setSelectedDate(dateStr)
       setShowDateDetail(true)
     }
@@ -193,10 +197,10 @@ export default function ResultsPage() {
     const result = dateResults[dateStr]
     if (!result) return null
 
-    if (optimalDates.allAvailable.some((d) => d.date === dateStr)) {
+    if (appointment.method === "all-available" && optimalDates.allAvailable.some((d) => d.date === dateStr)) {
       return <CheckCircle2 className="absolute -top-1 -right-1 h-3 w-3 text-emerald-500 bg-white rounded-full" />
     }
-    if (optimalDates.maxAvailable.some((d) => d.date === dateStr)) {
+    if (appointment.method === "max-available" && optimalDates.maxAvailable.some((d) => d.date === dateStr)) {
       return <Crown className="absolute -top-1 -right-1 h-3 w-3 text-yellow-500 bg-white rounded-full" />
     }
     return null
@@ -288,10 +292,10 @@ export default function ResultsPage() {
                       <div
                         key={weekdayIndex}
                         className={`relative p-2 sm:p-4 rounded-lg border-2 text-center transition-all duration-200 ${isSelected
-                            ? "bg-gradient-to-br from-green-500 to-green-600 text-white border-green-700 shadow-lg transform scale-105"
-                            : result.count > 0
-                              ? "bg-green-50 border-green-200 hover:border-green-300"
-                              : "bg-gray-50 border-gray-200"
+                          ? "bg-gradient-to-br from-green-500 to-green-600 text-white border-green-700 shadow-lg transform scale-105"
+                          : result.count > 0
+                            ? "bg-green-50 border-green-200 hover:border-green-300"
+                            : "bg-gray-50 border-gray-200"
                           }`}
                       >
                         {isSelected && (
@@ -731,7 +735,14 @@ export default function ResultsPage() {
 
       {/* 날짜 상세 정보 모달 */}
       <Dialog open={showDateDetail} onOpenChange={setShowDateDetail}>
-        <DialogContent className="sm:max-w-[500px] mx-4">
+        <DialogContent
+          className="
+            max-w-[300px] mx-auto 
+            p-2 sm:p-6
+            rounded-xl
+            max-h-[75vh] 
+          "
+        >
           <DialogHeader>
             <DialogTitle>날짜별 상세 투표 결과</DialogTitle>
             <DialogDescription>
@@ -740,28 +751,29 @@ export default function ResultsPage() {
           </DialogHeader>
 
           {selectedDate && dateResults[selectedDate] && (
-            <div className="py-4">
-              <div className="space-y-4">
+            <div className="py-2">
+              <div className="space-y-2">
                 <div>
-                  <h4 className="font-medium mb-3 text-green-700">참여 가능 ({dateResults[selectedDate].count}명)</h4>
-                  <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
-                    {dateResults[selectedDate].voters.map((voterName: string, index: number) => (
+                  <h4 className="font-medium mb-2 text-green-700">
+                    참여 가능 ({dateResults[selectedDate].count}명)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto">
+                    {dateResults[selectedDate].voterss.map((voter: any, index: number) => (
                       <div
                         key={index}
-                        className="flex items-center gap-3 p-2 bg-green-50 rounded-md border border-green-200"
+                        className="flex items-center gap-1 p-1 bg-green-50 rounded border border-green-200"
                       >
                         <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                        <span className="text-sm font-medium truncate">{voterName}</span>
+                        <span className="text-sm font-medium truncate">{voter}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-
                 <div>
-                  <h4 className="font-medium mb-3 text-gray-700">참여 불가능</h4>
-                  <div className="text-sm text-muted-foreground bg-gray-50 p-3 rounded-lg">
+                  <h4 className="font-medium mb-2 text-gray-700">참여 불가능</h4>
+                  <div className="text-sm text-muted-foreground bg-gray-50 p-2 rounded">
                     {voters
-                      .filter((voter) => !dateResults[selectedDate].voters.includes(voter.name))
+                      .filter((voter) => !dateResults[selectedDate].voterss.includes(voter.name))
                       .map((voter) => voter.name)
                       .join(", ") || "없음"}
                   </div>

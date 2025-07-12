@@ -29,7 +29,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const currentVoters = voters?.length || 0
     const requiredParticipants = appointment.required_participants || 0
     const isComplete = currentVoters >= requiredParticipants
-    const finished = 
 
     // 투표 완료되었고 아직 알림을 보내지 않았다면
     // if (isComplete && !appointment.notification_sent && appointment.creator_phone) {
