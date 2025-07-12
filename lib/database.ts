@@ -65,7 +65,7 @@ function generateShareToken(): string {
 // 약속 조회 (share_token으로)
 export async function getAppointmentByToken(shareToken: string | null | undefined) {
   try {
-    // ➜ 0) 잘못된 토큰(빈 문자열 · undefined · null) 차단
+    // 잘못된 토큰(빈 문자열 · undefined · null) 차단
     if (!shareToken || shareToken === "undefined") {
       return null
     }
@@ -108,7 +108,12 @@ export async function createVoter(data: VoterInsert) {
 
     // 투표 완료 체크
     const response = await checkVotingCompletion(data.appointment_id)
-    console.log("투표 완료 체크 결과:", response)
+
+    // 모든 인원이 투표 했으면 투표 불가능
+    if(response.isComplete){
+      console.log("모든 인원이 투표를 완료했습니다.")
+    }
+
     return voter
 
   } catch (error: any) {
@@ -120,12 +125,21 @@ export async function createVoter(data: VoterInsert) {
 // 투표 완료 체크 함수
 async function checkVotingCompletion(appointmentId: string) {
   try {
-    await fetch(
+    const res = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/check-completion/${appointmentId}`,
       {
         method: "POST",
       },
+      
     )
+    if (!res.ok) {
+    console.error("서버 응답 실패")
+    return
+    }
+
+    const response = await res.json()
+    return response
+
   } catch (error) {
     console.error("투표 완료 체크 실패:", error)
   }
