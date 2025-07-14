@@ -59,10 +59,10 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
     try {
       await shareToKakao({
         title: appointmentData.title,
-        description: `#${appointmentData.title} 투표에 참여해주세요!`,
+        description: `${appointmentData.title} 투표에 참여해주세요!`,
         voteUrl: voteUrl,
         resultsUrl: resultsUrl,
-        imageUrl: `${window.location.origin}/api/og-image?title=${encodeURIComponent(appointmentData.title)}`,
+        imageUrl: `${window.location.origin}/logo.png`,
       })
 
       // 성공 시 토스트 메시지 (모바일에서만 표시)
