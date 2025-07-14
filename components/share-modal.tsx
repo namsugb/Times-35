@@ -56,7 +56,7 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
     shareToKakao({
       title: appointmentData.title,
       description: "언제 만날지 투표해주세요!",
-      url: voteUrl,
+      linkUrl: voteUrl,
       imageUrl: `${window.location.origin}/api/og-image?title=${encodeURIComponent(appointmentData.title)}`,
     })
   }
