@@ -29,7 +29,8 @@ export async function GET(request: NextRequest) {
             marginBottom: 20,
           }}
         >
-          📅 만날래말래
+          <img src="/logo.png" alt="만날래말래" style={{ width: 100, height: 100 }} />
+          <span style={{ fontSize: 60, fontWeight: "bold" }}>만날래말래</span>
         </div>
         <div
           style={{
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
             opacity: 0.9,
           }}
         >
-          약속 투표에 참여해주세요! 🗳️
+          약속 투표에 참여해주세요!
         </div>
       </div>,
       {

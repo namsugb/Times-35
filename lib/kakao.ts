@@ -11,7 +11,8 @@ type ShareOptions = {
   title: string
   description?: string
   imageUrl?: string
-  linkUrl: string
+  voteUrl: string
+  resultsUrl: string
 }
 
 async function initKakao() {
@@ -48,7 +49,7 @@ async function initKakao() {
   return window.kakaoInitPromise
 }
 
-export async function shareToKakao({ title, description = "", imageUrl, linkUrl }: ShareOptions) {
+export async function shareToKakao({ title, description = "", imageUrl, voteUrl, resultsUrl }: ShareOptions) {
   try {
     await initKakao()
 
@@ -58,12 +59,15 @@ export async function shareToKakao({ title, description = "", imageUrl, linkUrl 
       templateArgs: {
         TITLE: title,
         DESCRIPTION: description,
-        WEB_URL: linkUrl,
-        MOBILE_WEB_URL: linkUrl,
+        WEB_URL: voteUrl,
+        MOBILE_WEB_URL: voteUrl,
         IMAGE_URL: imageUrl ?? `${window.location.origin}/placeholder-logo.png`,
-        FIRST_BUTTON_TITLE: "보기",
-        FIRST_BUTTON_WEB_URL: linkUrl,
-        FIRST_BUTTON_MOBILE_WEB_URL: linkUrl,
+        FIRST_BUTTON_TITLE: "투표하기",
+        FIRST_BUTTON_WEB_URL: voteUrl,
+        FIRST_BUTTON_MOBILE_WEB_URL: voteUrl,
+        SECOND_BUTTON_TITLE: "결과보기",
+        SECOND_BUTTON_WEB_URL: resultsUrl,
+        SECOND_BUTTON_MOBILE_WEB_URL: resultsUrl,
       },
     })
   } catch (error) {
@@ -77,13 +81,13 @@ export async function shareToKakao({ title, description = "", imageUrl, linkUrl 
         // PC에서는 링크 복사 안내
         if (navigator.clipboard) {
           try {
-            await navigator.clipboard.writeText(linkUrl)
+            await navigator.clipboard.writeText(voteUrl)
             alert("PC에서는 카카오톡 공유가 제한됩니다.\n링크가 클립보드에 복사되었습니다.")
           } catch (clipboardError) {
-            alert("PC에서는 카카오톡 공유가 제한됩니다.\n링크를 수동으로 복사해주세요: " + linkUrl)
+            alert("PC에서는 카카오톡 공유가 제한됩니다.\n링크를 수동으로 복사해주세요: " + voteUrl)
           }
         } else {
-          alert("PC에서는 카카오톡 공유가 제한됩니다.\n링크를 수동으로 복사해주세요: " + linkUrl)
+          alert("PC에서는 카카오톡 공유가 제한됩니다.\n링크를 수동으로 복사해주세요: " + voteUrl)
         }
       } else {
         // 모바일에서 에러 발생 시
