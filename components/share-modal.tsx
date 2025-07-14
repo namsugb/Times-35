@@ -17,6 +17,7 @@ import {
   Users,
   RotateCcw,
   Clock,
+  Loader2,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { shareToKakao } from "@/lib/kakao"
@@ -30,6 +31,7 @@ interface ShareModalProps {
 export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps) {
   const { toast } = useToast()
   const [copied, setCopied] = useState(false)
+  const [isKakaoSharing, setIsKakaoSharing] = useState(false)
 
   const voteUrl = `${window.location.origin}/vote/${appointmentData.share_token}`
   const resultsUrl = `${window.location.origin}/results/${appointmentData.share_token}`
@@ -52,13 +54,34 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
     }
   }
 
-  const handleKakaoShare = () => {
-    shareToKakao({
-      title: appointmentData.title,
-      description: "언제 만날지 투표해주세요!",
-      linkUrl: voteUrl,
-      imageUrl: `${window.location.origin}/api/og-image?title=${encodeURIComponent(appointmentData.title)}`,
-    })
+  const handleKakaoShare = async () => {
+    setIsKakaoSharing(true)
+    try {
+      await shareToKakao({
+        title: appointmentData.title,
+        description: "언제 만날지 투표해주세요!",
+        linkUrl: voteUrl,
+        imageUrl: `${window.location.origin}/api/og-image?title=${encodeURIComponent(appointmentData.title)}`,
+      })
+
+      // 성공 시 토스트 메시지 (모바일에서만 표시)
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+      if (isMobile) {
+        toast({
+          title: "카카오톡 공유 완료!",
+          description: "카카오톡 앱에서 공유가 진행됩니다.",
+        })
+      }
+    } catch (error) {
+      console.error("카카오 공유 에러:", error)
+      toast({
+        title: "공유 실패",
+        description: "카카오톡 공유에 실패했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsKakaoSharing(false)
+    }
   }
 
   const getMethodName = (method: string) => {
@@ -206,10 +229,15 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
             </Label>
             <Button
               onClick={handleKakaoShare}
-              className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-semibold py-3 rounded-lg transition-colors"
+              disabled={isKakaoSharing}
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <MessageCircle className="h-5 w-5 mr-2" />
-              카카오톡으로 공유하기
+              {isKakaoSharing ? (
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              ) : (
+                <MessageCircle className="h-5 w-5 mr-2" />
+              )}
+              {isKakaoSharing ? "공유 중..." : "카카오톡으로 공유하기"}
             </Button>
           </div>
 

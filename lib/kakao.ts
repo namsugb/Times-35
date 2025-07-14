@@ -49,15 +49,46 @@ async function initKakao() {
 }
 
 export async function shareToKakao({ title, description = "", imageUrl, linkUrl }: ShareOptions) {
-  await initKakao()
-  window.Kakao.Link.sendDefault({
-    objectType: "feed",
-    content: {
-      title,
-      description,
-      imageUrl: imageUrl ?? `${window.location.origin}/placeholder-logo.png`,
-      link: { mobileWebUrl: linkUrl, webUrl: linkUrl },
-    },
-    buttons: [{ title: "보기", link: { mobileWebUrl: linkUrl, webUrl: linkUrl } }],
-  })
+  try {
+    await initKakao()
+
+    // 카카오 공식 JS SDK의 sendCustom 사용 (PC/모바일 모두 지원)
+    window.Kakao.Link.sendCustom({
+      templateId: 3139, // 기본 피드 템플릿 ID
+      templateArgs: {
+        TITLE: title,
+        DESCRIPTION: description,
+        WEB_URL: linkUrl,
+        MOBILE_WEB_URL: linkUrl,
+        IMAGE_URL: imageUrl ?? `${window.location.origin}/placeholder-logo.png`,
+        FIRST_BUTTON_TITLE: "보기",
+        FIRST_BUTTON_WEB_URL: linkUrl,
+        FIRST_BUTTON_MOBILE_WEB_URL: linkUrl,
+      },
+    })
+  } catch (error) {
+    console.error("카카오 공유 실패:", error)
+
+    // 폴백: 링크 복사 안내
+    if (typeof window !== "undefined") {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+      if (!isMobile) {
+        // PC에서는 링크 복사 안내
+        if (navigator.clipboard) {
+          try {
+            await navigator.clipboard.writeText(linkUrl)
+            alert("PC에서는 카카오톡 공유가 제한됩니다.\n링크가 클립보드에 복사되었습니다.")
+          } catch (clipboardError) {
+            alert("PC에서는 카카오톡 공유가 제한됩니다.\n링크를 수동으로 복사해주세요: " + linkUrl)
+          }
+        } else {
+          alert("PC에서는 카카오톡 공유가 제한됩니다.\n링크를 수동으로 복사해주세요: " + linkUrl)
+        }
+      } else {
+        // 모바일에서 에러 발생 시
+        alert("카카오톡 공유에 실패했습니다.\n카카오톡 앱이 설치되어 있는지 확인해주세요.")
+      }
+    }
+  }
 }
