@@ -53,22 +53,34 @@ export async function shareToKakao({ title, description = "", imageUrl, voteUrl,
   try {
     await initKakao()
 
-    // 카카오 공식 JS SDK의 sendCustom 사용 (PC/모바일 모두 지원)
-    window.Kakao.Link.sendCustom({
-      templateId: 3139, // 기본 피드 템플릿 ID
-      templateArgs: {
-        TITLE: title,
-        DESCRIPTION: description,
-        WEB_URL: voteUrl,
-        MOBILE_WEB_URL: voteUrl,
-        IMAGE_URL: imageUrl ?? `${window.location.origin}/placeholder-logo.png`,
-        FIRST_BUTTON_TITLE: "투표하기",
-        FIRST_BUTTON_WEB_URL: voteUrl,
-        FIRST_BUTTON_MOBILE_WEB_URL: voteUrl,
-        SECOND_BUTTON_TITLE: "결과보기",
-        SECOND_BUTTON_WEB_URL: resultsUrl,
-        SECOND_BUTTON_MOBILE_WEB_URL: resultsUrl,
+    // 카카오 공식 JS SDK의 sendDefault 사용 (PC/모바일 모두 지원)
+    window.Kakao.Link.sendDefault({
+      objectType: "feed",
+      content: {
+        title: title,
+        description: description,
+        imageUrl: imageUrl ?? `${window.location.origin}/placeholder-logo.png`,
+        link: {
+          mobileWebUrl: voteUrl,
+          webUrl: voteUrl,
+        },
       },
+      buttons: [
+        {
+          title: "투표하기",
+          link: {
+            mobileWebUrl: voteUrl,
+            webUrl: voteUrl,
+          },
+        },
+        {
+          title: "결과보기",
+          link: {
+            mobileWebUrl: resultsUrl,
+            webUrl: resultsUrl,
+          },
+        },
+      ],
     })
   } catch (error) {
     console.error("카카오 공유 실패:", error)
