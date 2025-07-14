@@ -6,7 +6,7 @@ import { NextResponse } from "next/server"
  * accidentally expose the secret forever.
  */
 export async function GET() {
-  const key = process.env.KAKAO_JS_KEY
+  const key = process.env.NEXXT_PUBLIC_KAKAO_JS_KEY
 
   if (!key) {
     return NextResponse.json({ error: "KAKAO_JS_KEY environment variable is not set" }, { status: 500 })
