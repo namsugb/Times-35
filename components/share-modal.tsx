@@ -59,8 +59,9 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
     try {
       await shareToKakao({
         title: appointmentData.title,
-        description: "언제 만날지 투표해주세요!",
-        linkUrl: voteUrl,
+        description: `#${appointmentData.title} 투표에 참여해주세요!`,
+        voteUrl: voteUrl,
+        resultsUrl: resultsUrl,
         imageUrl: `${window.location.origin}/api/og-image?title=${encodeURIComponent(appointmentData.title)}`,
       })
 
@@ -228,6 +229,7 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
               카톡으로 한 번에 공유하기
             </Label>
             <Button
+              id="kakao-share-btn"
               onClick={handleKakaoShare}
               disabled={isKakaoSharing}
               className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

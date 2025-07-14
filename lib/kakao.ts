@@ -23,10 +23,12 @@ async function initKakao() {
     window.kakaoInitPromise = new Promise<void>(async (resolve, reject) => {
       try {
         // 1. Load SDK if not already present
-        if (!document.querySelector('script[src*="kakao.js"]')) {
+        if (!document.querySelector('script[src*="kakao.min.js"]')) {
           await new Promise<void>((res, rej) => {
             const s = document.createElement("script")
-            s.src = "https://developers.kakao.com/sdk/js/kakao.js"
+            s.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.5/kakao.min.js"
+            s.integrity = "sha384-dok87au0gKqJdxs7msEdBPNnKSRT+/mhTVzq+qOhcL464zXwvcrpjeWvyj1kCdq6"
+            s.crossOrigin = "anonymous"
             s.async = true
             s.onload = () => res()
             s.onerror = () => rej(new Error("Failed to load Kakao JS SDK"))
@@ -53,13 +55,19 @@ export async function shareToKakao({ title, description = "", imageUrl, voteUrl,
   try {
     await initKakao()
 
-    // 카카오 공식 JS SDK의 sendDefault 사용 (PC/모바일 모두 지원)
-    window.Kakao.Link.sendDefault({
-      objectType: "feed",
+    // 이미지 URL 검증 및 기본값 설정
+    const defaultImageUrl = "https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png"
+    const finalImageUrl = imageUrl || defaultImageUrl
+
+    console.log("카카오 공유 이미지 URL:", finalImageUrl)
+
+    // 카카오 공식 JS SDK의 Share.sendDefault 사용
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
       content: {
         title: title,
         description: description,
-        imageUrl: imageUrl ?? `${window.location.origin}/placeholder-logo.png`,
+        imageUrl: finalImageUrl,
         link: {
           mobileWebUrl: voteUrl,
           webUrl: voteUrl,
@@ -67,14 +75,14 @@ export async function shareToKakao({ title, description = "", imageUrl, voteUrl,
       },
       buttons: [
         {
-          title: "투표하기",
+          title: '투표하기',
           link: {
             mobileWebUrl: voteUrl,
             webUrl: voteUrl,
           },
         },
         {
-          title: "결과보기",
+          title: '결과보기',
           link: {
             mobileWebUrl: resultsUrl,
             webUrl: resultsUrl,
