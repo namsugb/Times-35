@@ -70,6 +70,8 @@ export default function VotePage() {
     }
   }, [token])
 
+
+
   const loadAppointment = async () => {
     try {
       setLoading(true)
@@ -244,15 +246,18 @@ export default function VotePage() {
 
       // 3단계: 투표 완료 상태에서의 처리
       if (isVotingComplete) {
-        // 투표가 완료된 상태에서 새로운 투표자는 차단
-        if (isNewVoter) {
-          toast({
-            title: "투표 종료료",
-            description: "모든 인원이 투표를 완료하여 새로운 투표는 불가능합니다. 기존 투표자만 수정할 수 있습니다.",
-            variant: "destructive",
-          })
-          setSubmitting(false)
-          return
+        // 기준인원 모드가 아닌 경우에만 새로운 투표 제한
+        if (appointment.method !== "minimum-required") {
+          // 투표가 완료된 상태에서 새로운 투표자는 차단
+          if (isNewVoter) {
+            toast({
+              title: "투표 종료",
+              description: "모든 인원이 투표를 완료하여 새로운 투표는 불가능합니다. 기존 투표자만 수정할 수 있습니다.",
+              variant: "destructive",
+            })
+            setSubmitting(false)
+            return
+          }
         }
         // 기존 투표자는 수정 허용 (모달 닫기)
         setShowVotingCompleteModal(false)
@@ -268,7 +273,7 @@ export default function VotePage() {
         throw new Error("투표자 생성 실패")
       }
 
-      // 5단계: 투표 방법에 따라 투표 데이터 처리
+      // 5단계: 투표 방법에 따라 투표 데이터 생성
       if (appointment.method === "recurring") {
         // 반복 일정 투표
         if (isNewVoter) {
@@ -299,11 +304,13 @@ export default function VotePage() {
         }
       }
 
+      // 6단계: 투표 완료 상태 체크
+      await fetch(`/api/check-completion/${appointment.id}`, {
+        method: "POST",
+      })
 
       // 7단계: 결과 페이지로 이동 (수정 투표인 경우 새로고침 파라미터 추가)
-      const resultUrl = isNewVoter
-        ? `/results/${token}`
-        : `/results/${token}?refresh=${Date.now()}`
+      const resultUrl = `/results/${token}?refresh=${Date.now()}`
       router.push(resultUrl)
     } catch (err: any) {
       console.error("투표 제출 오류:", err)
@@ -446,6 +453,45 @@ export default function VotePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* 투표 완료 모달 */}
+        <Dialog open={showVotingCompleteModal} onOpenChange={setShowVotingCompleteModal}>
+          <DialogContent className="w-[90vw] max-w-[400px] mx-auto">
+            <DialogHeader>
+              <DialogTitle className="text-center"> !투표가 완료된 약속입니다!</DialogTitle>
+              <DialogDescription className="text-center">
+                모든 인원이 투표에 참여하여 투표가 종료되었습니다.
+                <br />
+                <span className="text-sm text-muted-foreground">
+                  기존 투표자 이름으로 재투표시 투표가 수정됩니다.
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-4 text-center">
+
+
+              <div className="flex gap-2 justify-center">
+                <Button
+                  onClick={() => {
+                    setShowVotingCompleteModal(false)
+                    router.push(`/results/${token}`)
+                  }}
+                  className="flex-1"
+                >
+                  결과 보기
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowVotingCompleteModal(false)}
+                  className="flex-1"
+                >
+                  닫기
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }

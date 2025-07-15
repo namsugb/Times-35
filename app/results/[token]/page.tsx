@@ -46,6 +46,12 @@ export default function ResultsPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [showDateDetail, setShowDateDetail] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [selectedWeekday, setSelectedWeekday] = useState<number | null>(null)
+  const [showWeekdayDetail, setShowWeekdayDetail] = useState(false)
+
+  // 요일 이름 배열
+  const weekdayNames = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
+  const weekdayShorts = ["일", "월", "화", "수", "목", "금", "토"]
 
   useEffect(() => {
     loadResults()
@@ -86,6 +92,7 @@ export default function ResultsPage() {
         console.log("날짜 투표 결과:", dateData)
         setDateResults(dateData)
       }
+
     } catch (err: any) {
       console.error("결과 로딩 오류:", err)
       setError(err.message || "결과를 불러오는데 실패했습니다.")
@@ -144,6 +151,15 @@ export default function ResultsPage() {
       console.log("전체 투표자 목록:", voters)
       setSelectedDate(dateStr)
       setShowDateDetail(true)
+    }
+  }
+
+  // 요일 클릭 핸들러
+  const handleWeekdayClick = (weekdayIndex: number) => {
+    const result = weekdayResults[weekdayIndex]
+    if (result && result.count > 0) {
+      setSelectedWeekday(weekdayIndex)
+      setShowWeekdayDetail(true)
     }
   }
 
@@ -236,10 +252,8 @@ export default function ResultsPage() {
 
   // 반복 일정 전용 UI
   if (appointment.method === "recurring") {
-    const weekdayNames = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
-    const weekdayShorts = ["일", "월", "화", "수", "목", "금", "토"]
-
     // 요일별 결과를 투표수 순으로 정렬
+    console.log("weekdayResults", weekdayResults)
     const sortedWeekdays = Object.entries(weekdayResults)
       .map(([weekday, result]: [string, any]) => ({
         weekday: Number.parseInt(weekday),
@@ -286,46 +300,36 @@ export default function ResultsPage() {
                   {weekdayShorts.map((day, weekdayIndex) => {
                     const result = weekdayResults[weekdayIndex] || { count: 0, voters: [] }
                     const isSelected = selectedWeekdays.some((w) => w.weekday === weekdayIndex)
-                    const rank = sortedWeekdays.findIndex((w) => w.weekday === weekdayIndex) + 1
 
                     return (
                       <div
                         key={weekdayIndex}
                         className={`relative p-2 sm:p-4 rounded-lg border-2 text-center transition-all duration-200 ${isSelected
-                          ? "bg-gradient-to-br from-green-500 to-green-600 text-white border-green-700 shadow-lg transform scale-105"
+                          ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-700 shadow-lg transform scale-105"
                           : result.count > 0
-                            ? "bg-green-50 border-green-200 hover:border-green-300"
+                            ? "bg-blue-50 border-blue-200 hover:border-blue-300 cursor-pointer hover:scale-105"
                             : "bg-gray-50 border-gray-200"
                           }`}
+                        onClick={() => handleWeekdayClick(weekdayIndex)}
                       >
-                        {isSelected && (
-                          <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-yellow-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold shadow-md">
-                            {rank}
-                          </div>
-                        )}
-
                         <div
                           className={`font-medium text-xs sm:text-sm mb-1 ${isSelected ? "text-white" : "text-gray-700"}`}
                         >
                           {day}
                         </div>
                         <div
-                          className={`text-xs mb-1 sm:mb-2 hidden sm:block ${isSelected ? "text-green-100" : "text-gray-500"}`}
+                          className={`text-xs mb-1 sm:mb-2 hidden sm:block ${isSelected ? "text-blue-100" : "text-gray-500"}`}
                         >
                           {weekdayNames[weekdayIndex]}
                         </div>
                         <div
-                          className={`text-lg sm:text-2xl font-bold mb-1 ${isSelected ? "text-white" : result.count > 0 ? "text-green-600" : "text-gray-400"}`}
+                          className={`text-lg sm:text-2xl font-bold mb-1 ${isSelected ? "text-white" : result.count > 0 ? "text-blue-600" : "text-gray-400"}`}
                         >
                           {result.count}
                         </div>
-                        <div className={`text-xs ${isSelected ? "text-green-100" : "text-gray-500"}`}>
+                        <div className={`text-xs ${isSelected ? "text-blue-100" : "text-gray-500"}`}>
                           {result.count > 0 ? `${Math.round((result.count / voters.length) * 100)}%` : "0%"}
                         </div>
-
-                        {isSelected && (
-                          <div className="absolute inset-0 border-2 border-yellow-400 rounded-lg animate-pulse"></div>
-                        )}
                       </div>
                     )
                   })}
@@ -333,23 +337,22 @@ export default function ResultsPage() {
 
                 {/* 선택된 요일 요약 */}
                 {selectedWeekdays.length > 0 && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
-                      <Crown className="h-5 w-5 text-yellow-600" />
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-blue-800 mb-2">
                       선택된 모임 요일 (주 {appointment.weekly_meetings}회)
                     </h3>
                     <div className="space-y-2">
                       {selectedWeekdays.map((weekday, index) => (
                         <div key={weekday.weekday} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                            <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                               {index + 1}
                             </div>
-                            <span className="font-medium text-green-900">{weekdayNames[weekday.weekday]}</span>
+                            <span className="font-medium text-blue-900">{weekdayNames[weekday.weekday]}</span>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-bold text-green-700">{weekday.count}명</div>
-                            <div className="text-sm text-green-600">{weekday.percentage}%</div>
+                            <div className="text-lg font-bold text-blue-700">{weekday.count}명</div>
+                            <div className="text-sm text-blue-600">{weekday.percentage}%</div>
                           </div>
                         </div>
                       ))}
@@ -357,41 +360,7 @@ export default function ResultsPage() {
                   </div>
                 )}
 
-                {/* 전체 순위 */}
-                <div className="mt-6">
-                  <h4 className="font-medium mb-3 text-gray-700">전체 투표 현황</h4>
-                  <div className="space-y-2">
-                    {sortedWeekdays.map((weekday, index) => {
-                      const isSelected = index < appointment.weekly_meetings
-                      return (
-                        <div
-                          key={weekday.weekday}
-                          className={`flex items-center justify-between p-3 rounded-lg border ${isSelected ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
-                            }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isSelected ? "bg-green-600 text-white" : "bg-gray-300 text-gray-600"
-                                }`}
-                            >
-                              {index + 1}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium">{weekdayNames[weekday.weekday]}</div>
-                              <div className="text-sm text-muted-foreground truncate">
-                                {weekday.voters.join(", ") || "투표 없음"}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <div className="text-lg font-bold">{weekday.count}명</div>
-                            <div className="text-sm text-muted-foreground">{weekday.percentage}%</div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
+
               </CardContent>
             </Card>
           </div>
@@ -413,38 +382,6 @@ export default function ResultsPage() {
               </CardContent>
             </Card>
 
-            {/* 모임 정보 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">모임 정보</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">주간 모임 횟수</span>
-                  <span className="font-medium">{appointment.weekly_meetings}회</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">총 투표 수</span>
-                  <span className="font-medium">
-                    {Object.values(weekdayResults).reduce((sum: number, result: any) => sum + result.count, 0)}개
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">평균 참여율</span>
-                  <span className="font-medium">
-                    {voters.length > 0
-                      ? Math.round(
-                        (Object.values(weekdayResults).reduce((sum: number, result: any) => sum + result.count, 0) /
-                          (voters.length * 7)) *
-                        100,
-                      )
-                      : 0}
-                    %
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* 추가 액션 버튼들 */}
             <div className="space-y-3">
               <Button onClick={() => router.push(`/vote/${token}`)} className="w-full">
@@ -456,24 +393,64 @@ export default function ResultsPage() {
             </div>
           </div>
         </div>
+
+        {/* 요일 상세 정보 모달 */}
+        <Dialog open={showWeekdayDetail} onOpenChange={setShowWeekdayDetail}>
+          <DialogContent
+            className="
+           max-w-[300px] mx-auto 
+           p-2 sm:p-6
+           rounded-xl
+           max-h-[75vh] 
+         "
+          >
+            <DialogHeader>
+              <DialogTitle>요일별 상세 투표 결과</DialogTitle>
+              <DialogDescription>
+                {selectedWeekday !== null && weekdayNames[selectedWeekday]}의 투표 상세 정보
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedWeekday !== null && weekdayResults[selectedWeekday] && (
+              <div className="py-2">
+                <div className="space-y-2">
+                  <div>
+                    <h4 className="font-medium mb-2 text-blue-700">
+                      참여 가능 ({weekdayResults[selectedWeekday].count}명)
+                    </h4>
+                    <div className="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto">
+                      {weekdayResults[selectedWeekday].voters.map((voter: any, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-1 p-1 bg-blue-50 rounded border border-blue-200"
+                        >
+                          <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                          <span className="text-sm font-medium truncate">{voter}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2 text-gray-700">참여 불가능</h4>
+                    <div className="text-sm text-muted-foreground bg-gray-50 p-2 rounded">
+                      {voters
+                        .filter((voter) => !weekdayResults[selectedWeekday].voters.includes(voter.name))
+                        .map((voter) => voter.name)
+                        .join(", ") || "없음"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }
 
-  // 시간 스케줄링 방식 처리
-  if (appointment.method === "time-scheduling") {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">시간 스케줄링 방식은 아직 지원하지 않습니다.</p>
-          <Button onClick={() => router.push("/")} className="mt-4">
-            홈으로 돌아가기
-          </Button>
-        </div>
-      </div>
-    )
-  }
 
+
+  // 기본 투표 방식 처리
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -604,9 +581,17 @@ export default function ResultsPage() {
           <Card>
             <CardContent className="p-6">
               <div className="text-center space-y-3">
-                <div className="text-3xl font-bold text-primary">
-                  {voters.length}/{appointment.required_participants}
-                </div>
+                {appointment.method === "minimum-required" && (
+                  <div className="text-3xl font-bold text-primary">
+                    {voters.length}
+                  </div>
+                )}
+                {appointment.method !== "minimum-required" && (
+
+                  <div className="text-3xl font-bold text-primary">
+                    {voters.length}/{appointment.required_participants}
+                  </div>
+                )}
                 <div className="text-lg font-medium">참여 인원</div>
                 {voters.length > 0 && (
                   <div className="text-sm text-muted-foreground break-words">
@@ -690,7 +675,7 @@ export default function ResultsPage() {
                 <div>
                   <h4 className="font-medium text-blue-700 mb-2 flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    기준 인원 이상 ({appointment.required_participants}명+)
+                    {appointment.required_participants}명 이상 가능한 날
                   </h4>
                   <div className="space-y-2">
                     {optimalDates.requiredAvailable.map((date) => (
@@ -730,6 +715,7 @@ export default function ResultsPage() {
               새 약속 만들기
             </Button>
           </div>
+
         </div>
       </div>
 

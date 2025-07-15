@@ -15,10 +15,10 @@ export function generateSessionId(): string {
 }
 
 // 약속 생성 (연락처 필드 추가)
-export async function createAppointment(data: AppointmentInsert & { creator_phone?: string }) {
+export async function createAppointment(data: AppointmentInsert) {
   try {
     // ➜ 1) 필수값 & 기본값 채우기
-    const prepared: AppointmentInsert & { creator_phone?: string } = {
+    const prepared: AppointmentInsert = {
       title: data.title.trim(),
       method: data.method,
       required_participants: data.required_participants ?? 1,
@@ -62,7 +62,7 @@ function generateShareToken(): string {
   return Math.random().toString(36).substring(2) + Date.now().toString(36)
 }
 
-// 약속 조회 (share_token으로)
+// 약속 조회 
 export async function getAppointmentByToken(shareToken: string | undefined) {
   try {
     // ➜ 0) 잘못된 토큰(빈 문자열 · undefined · null) 차단
@@ -106,9 +106,6 @@ export async function createVoter(data: VoterInsert) {
       throw new Error(`투표자 등록에 실패했습니다: ${error.message}`)
     }
 
-    // 투표 완료 체크
-    const response = await checkVotingCompletion(data.appointment_id)
-    console.log("투표 완료 체크 결과:", response)
     return voter
 
   } catch (error: any) {
@@ -117,21 +114,7 @@ export async function createVoter(data: VoterInsert) {
   }
 }
 
-// 투표 완료 체크 함수
-async function checkVotingCompletion(appointmentId: string) {
-  try {
-    await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/check-completion/${appointmentId}`,
-      {
-        method: "POST",
-      },
-    )
-  } catch (error) {
-    console.error("투표 완료 체크 실패:", error)
-  }
-}
-
-// 날짜 방식 투표 데이터 생성
+// 날짜 방식(모두가능, 최대, 기준) 투표 데이터 생성
 export async function createDateVotes(voterId: string, appointmentId: string, dates: string[]) {
   try {
     const votes = dates.map((date) => ({
@@ -154,7 +137,7 @@ export async function createDateVotes(voterId: string, appointmentId: string, da
   }
 }
 
-// 날짜 방식 투표 데이터 수정
+// 날짜 방식(모두가능, 최대, 기준) 투표 데이터 수정
 export async function updateDateVotes(voterId: string, appointmentId: string, dates: string[]) {
   try {
     // 기존 투표 삭제 후 새로 생성 (수정을 위해)
@@ -395,9 +378,8 @@ export async function getWeekdayVoteResults(appointmentId: string) {
         acc[weekday] = { count: 0, voters: [] }
       }
       acc[weekday].count += 1
-      if (vote.voters && Array.isArray(vote.voters) && vote.voters.length > 0) {
-        acc[weekday].voters.push(vote.voters[0].name)
-      }
+      acc[weekday].voters.push(vote.voters.name)
+
       return acc
     },
     {} as Record<number, { count: number; voters: string[] }>,

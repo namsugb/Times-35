@@ -14,6 +14,7 @@ import { createAppointment } from "@/lib/database"
 import { toast } from "sonner"
 import { ShareModal } from "@/components/share-modal"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Footer } from "@/components/footer"
 
 export default function AppointmentScheduler() {
   const router = useRouter()
@@ -469,6 +470,7 @@ export default function AppointmentScheduler() {
           appointmentData={createdAppointment}
         />
       )}
+      <Footer />
     </div>
   )
 }

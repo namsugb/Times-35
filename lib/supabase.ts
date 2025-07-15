@@ -26,6 +26,7 @@ export type Database = {
           is_public: boolean
           created_at: string
           updated_at: string
+          creator_phone: string | null
         }
         Insert: {
           id?: string
@@ -41,6 +42,7 @@ export type Database = {
           status?: "active" | "completed" | "cancelled"
           share_token?: string
           is_public?: boolean
+          creator_phone?: string | null
         }
         Update: {
           id?: string
