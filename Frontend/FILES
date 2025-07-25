@@ -1,0 +1,104 @@
+// app/layout.tsx
+// Assuming this is a basic layout file, here's how it might look with the update:
+
+import React from 'react';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <head>
+        <title>My App</title>
+      </head>
+      <body>
+        {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.KAKAO_JS_KEY="${process.env.KAKAO_JS_KEY ?? ""}";`,
+          }}
+        />
+      </body>
+    </html>
+  );
+}
+
+// lib/kakao.ts
+// Assuming this is a module for Kakao integration, here's how it might look with the updates:
+
+interface Window {
+  Kakao: any
+  KAKAO_JS_KEY?: string
+}
+
+export const KakaoShare = {
+  initialized: false,
+
+  initialize: () => {
+    if (KakaoShare.initialized) return;
+
+    const jsKey = window.KAKAO_JS_KEY;
+
+    if (!jsKey) {
+      console.error("Kakao JavaScript key is missing.");
+      return;
+    }
+
+    if (!window.Kakao) {
+      console.error("Kakao SDK not found. Make sure it's loaded.");
+      return;
+    }
+
+    window.Kakao.init(jsKey);
+    KakaoShare.initialized = true;
+  },
+
+  shareToKakao: async (title: string, description: string, imageUrl: string, link: string) => {
+    if (!window.Kakao) {
+      console.error("Kakao SDK not found. Make sure it's loaded.");
+      return;
+    }
+
+    const kakaoKey = window.KAKAO_JS_KEY;
+
+    if (!kakaoKey) {
+      console.error("Kakao JavaScript key is missing.");
+      return;
+    }
+
+    window.Kakao.cleanup();
+    window.Kakao.init(kakaoKey);
+
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: title,
+        description: description,
+        imageUrl: imageUrl,
+        link: {
+          mobileWebUrl: link,
+          webUrl: link,
+        },
+      },
+      buttons: [
+        {
+          title: 'View',
+          link: {
+            mobileWebUrl: link,
+            webUrl: link,
+          },
+        },
+      ],
+    });
+  },
+};
+
+// .env.local
+// This file should contain the following:
+
+// NEXT_PUBLIC_SUPABASE_URL=https://oekqgmfaybkfkghvgtpw.supabase.co
+// NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9la3FnbWZheWJrZmtnaHZndHB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA5NDM0MTYsImV4cCI6MjA2NjUxOTQxNn0.cZ7qZh1mZGHIC_-M1RzS_rCKj8UwYzLeBipPOapbXqk
+
+// KAKAO_JS_KEY=b3189b0e2886a0099c5db4b9fb70d4e4
