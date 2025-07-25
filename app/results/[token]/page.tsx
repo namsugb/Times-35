@@ -688,21 +688,25 @@ export default function ResultsPage() {
                     <Users className="h-4 w-4" />
                     {appointment.required_participants}명 이상 가능한 날
                   </h4>
-                  <div className="space-y-2">
-                    {optimalDates.requiredAvailable.map((date) => (
-                      <div
-                        key={date.date}
-                        className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-200"
-                      >
-                        <span className="truncate font-medium">
-                          {format(parseISO(date.date), "M월 d일 (E)", { locale: ko })}
-                        </span>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 flex-shrink-0">
-                          {date.count}명
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
+                  {!optimalDates.requiredAvailable || optimalDates.requiredAvailable.length === 0 ? <div className="text-center text-red text-sm text-muted-foreground py-4 bg-gray-50 rounded-lg">
+                    아직 없음
+                  </div> :
+                    <div className="space-y-2">
+                      {optimalDates.requiredAvailable.map((date) => (
+                        <div
+                          key={date.date}
+                          className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-200"
+                        >
+                          <span className="truncate font-medium">
+                            {format(parseISO(date.date), "M월 d일 (E)", { locale: ko })}
+                          </span>
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800 flex-shrink-0">
+                            {date.count}명
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  }
                 </div>
               )}
 

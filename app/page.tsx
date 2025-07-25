@@ -163,9 +163,6 @@ export default function AppointmentScheduler() {
 
       console.log("약속 생성 완료:", appointment)
 
-      toast.success("🎉 약속이 생성되었습니다!", {
-        description: "모든 인원이 투표 완료 시 카카오 알림톡을 보내드립니다.",
-      })
 
       // 생성된 약속 정보 저장 및 공유 모달 열기
       setCreatedAppointment(appointment)
@@ -346,7 +343,6 @@ export default function AppointmentScheduler() {
               </Label>
               <Input
                 id="appointment-name"
-                placeholder="예: 팀 프로젝트 미팅"
                 className="w-full"
                 value={appointmentName}
                 onChange={(e) => setAppointmentName(e.target.value)}
@@ -361,7 +357,6 @@ export default function AppointmentScheduler() {
                 id="participant-count"
                 type="number"
                 min="2"
-                placeholder="예: 5"
                 className="w-full"
                 value={participantCount}
                 onChange={(e) => setParticipantCount(e.target.value)}
@@ -376,7 +371,6 @@ export default function AppointmentScheduler() {
               <Input
                 id="creator-phone"
                 type="tel"
-                placeholder="예: 010-1234-5678"
                 className="w-full"
                 value={creatorPhone}
                 onChange={(e) => setCreatorPhone(e.target.value)}

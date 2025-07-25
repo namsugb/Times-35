@@ -324,6 +324,7 @@ export default function VotePage() {
       //투표후 다시 투표 완료 상태 확인
       const isVotingComplete_after = await checkVotingCompletion(appointment.id)
 
+
       // 6단계 투표 완료시 알림 큐에 추가
       if (isVotingComplete_after.isComplete) {
         console.log("6단계 알림큐 추가 완료")
@@ -358,8 +359,6 @@ export default function VotePage() {
         description: err.message || "투표 제출에 실패했습니다.",
         variant: "destructive",
       })
-    } finally {
-      setSubmitting(false)
     }
   }
 
