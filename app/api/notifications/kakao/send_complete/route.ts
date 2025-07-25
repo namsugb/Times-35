@@ -69,9 +69,13 @@ async function sendKakaoNotification(phoneNumber: string, appointmentTitle: stri
 
 
 
-
 export async function POST(request: NextRequest) {
   try {
+
+    const body = await request.json()
+    const { phoneNumber, appointmentTitle, resultsUrl, appointmentId } = body
+
+
     // 대기 중인 알림 조회
     const { data: notifications, error } = await supabase
       .from("notification_queue")
@@ -80,7 +84,7 @@ export async function POST(request: NextRequest) {
         appointments!inner(title, share_token)
       `)
       .eq("status", "pending")
-      .limit(10)
+      .eq("appointments.id", appointmentId)
 
     if (error) {
       console.error("알림 큐 조회 오류:", error)
@@ -89,6 +93,7 @@ export async function POST(request: NextRequest) {
 
     const results = []
 
+    // 알림톡 발송
     for (const notification of notifications) {
       try {
         const resultsUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/results/${notification.appointments.share_token}`

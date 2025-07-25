@@ -339,6 +339,12 @@ export default function VotePage() {
         console.log("7단계 알림톡 전송 시작")
         await fetch(`/api/notifications/kakao/send_complete`, {
           method: "POST",
+          body: JSON.stringify({
+            appointmentId: appointment.id,
+            phoneNumber: appointment.creator_phone,
+            appointmentTitle: appointment.title,
+            resultsUrl: `/results/${token}`,
+          }),
         })
       }
 
