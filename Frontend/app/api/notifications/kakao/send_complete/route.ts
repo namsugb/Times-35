@@ -22,9 +22,8 @@ async function sendKakaoNotification(phoneNumber: string, appointmentTitle: stri
           no: "1",
           tel_num: phoneNumber,
           use_sms: "0",
-          sms_content: `${appointmentTitle} 약속에 대한 투표가 완료되었습니다. 아래 링크에 접속하여 결과를 확인해주세요.`,
-          msg_content: `${appointmentTitle} 약속에 대한 투표가 완료되었습니다. 아래 링크에 접속하여 결과를 확인해주세요.`,
-          title: "약속 결과가 완료되었습니다.",
+          sms_content: `님 등록하신 ${appointmentTitle} 약속에 대한 투표가 완료되었습니다! 결과를 확인해보세요!`,
+          msg_content: `님 등록하신 ${appointmentTitle} 약속에 대한 투표가 완료되었습니다! 결과를 확인해보세요!`,
           btn_url: [{
             url_pc: resultsUrl,
             url_mobile: resultsUrl
