@@ -24,8 +24,10 @@ import {
   updateDateVotes,
   updateTimeVotes,
   updateWeekdayVotes,
+  addNotificationToQueue,
 } from "@/lib/database"
-
+import { checkVotingCompletion } from "@/lib/vote/checkcomplete"
+import { VotingCompletionResult } from "@/lib/vote/checkcomplete"
 
 interface DateTimeSelection {
   date: string
@@ -33,13 +35,13 @@ interface DateTimeSelection {
 }
 
 const weekdays = [
-  { id: 0, name: "일요일", short: "일" },
   { id: 1, name: "월요일", short: "월" },
   { id: 2, name: "화요일", short: "화" },
   { id: 3, name: "수요일", short: "수" },
   { id: 4, name: "목요일", short: "목" },
   { id: 5, name: "금요일", short: "금" },
   { id: 6, name: "토요일", short: "토" },
+  { id: 0, name: "일요일", short: "일" },
 ]
 
 export default function VotePage() {
@@ -63,6 +65,7 @@ export default function VotePage() {
   const [currentSelectedDate, setCurrentSelectedDate] = useState<Date | null>(null)
   const [tempSelectedTimes, setTempSelectedTimes] = useState<number[]>([])
   const [showVotingCompleteModal, setShowVotingCompleteModal] = useState(false)
+  const [isVotingComplete, setIsVotingComplete] = useState<VotingCompletionResult | null>(null)
 
   useEffect(() => {
     if (token) {
@@ -70,6 +73,25 @@ export default function VotePage() {
     }
   }, [token])
 
+  // 투표 완료 상태 확인
+  useEffect(() => {
+    const checkVotingStatus = async () => {
+      if (appointment && !loading) {
+        try {
+          const isVotingComplete: VotingCompletionResult = await checkVotingCompletion(appointment.id)
+          setIsVotingComplete(isVotingComplete)
+          // 기준인원 모드에서는 투표 완료 모달을 표시하지 않음
+          if (isVotingComplete.isComplete && appointment.method !== "minimum-required") {
+            setShowVotingCompleteModal(true)
+          }
+        } catch (err) {
+          console.error("투표 완료 상태 확인 오류:", err)
+        }
+      }
+    }
+
+    checkVotingStatus()
+  }, [appointment, loading])
 
 
   const loadAppointment = async () => {
@@ -200,33 +222,23 @@ export default function VotePage() {
 
 
 
-  // 투표 완료 체크
-  const checkVotingCompletion = async () => {
-    try {
-      const response = await fetch(`/api/check-completion/${appointment.id}`, {
-        method: "POST",
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        if (result.isComplete) {
-          setShowVotingCompleteModal(true)
-          return true // 완료됨을 나타내는 플래그 반환
-        }
-      }
-      return false // 완료되지 않음
-    } catch (error) {
-      console.error("투표 완료 체크 실패:", error)
-      return false
-    }
-  }
-
   // 첫 투표인지 확인 (기존 투표자 목록에서 이름 검색)
   const isFirstVote = (voterName: string) => {
     return !voters.some(voter => voter.name === voterName)
   }
 
-  // 투표 제출
+
+  /**
+   * 투표제출 로직
+   * 1단계: 투표 완료 상태 확인
+   * 2단계: 현재 투표자가 첫 투표인지 수정 투표인지 확인
+   * 3단계: 투표 완료 상태에서의 처리
+   * 4단계: 투표자 생성 (기존 투표자는 upsert로 수정됨)
+   * 5단계: 투표 방법에 따라 투표 데이터 생성
+   * 6단계: 투표 완료시 알림 큐에 추가
+   * 7단계: 투표 완료시 알림톡 전송
+   * 8단계: 결과 페이지로 이동 (수정 투표인 경우 새로고침 파라미터 추가)
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -238,23 +250,20 @@ export default function VotePage() {
     setSubmitting(true)
 
     try {
-      // 1단계: 투표 완료 상태 확인
-      const isVotingComplete = await checkVotingCompletion()
 
-      // 2단계: 현재 투표자가 첫 투표인지 수정 투표인지 확인
+
+      // 1단계: 현재 투표자가 첫 투표인지 수정 투표인지 확인
       const isNewVoter = isFirstVote(name.trim())
+      console.log("1단계 투표자 첫 투표 여부 확인")
+      console.log(isNewVoter)
 
-      // 3단계: 투표 완료 상태에서의 처리
-      if (isVotingComplete) {
+      // 2단계: 투표 완료 상태에서의 처리
+      if (isVotingComplete?.isComplete) {
         // 기준인원 모드가 아닌 경우에만 새로운 투표 제한
         if (appointment.method !== "minimum-required") {
           // 투표가 완료된 상태에서 새로운 투표자는 차단
           if (isNewVoter) {
-            toast({
-              title: "투표 종료",
-              description: "모든 인원이 투표를 완료하여 새로운 투표는 불가능합니다. 기존 투표자만 수정할 수 있습니다.",
-              variant: "destructive",
-            })
+            setShowVotingCompleteModal(true)
             setSubmitting(false)
             return
           }
@@ -263,11 +272,18 @@ export default function VotePage() {
         setShowVotingCompleteModal(false)
       }
 
+
       // 4단계: 투표자 생성 (기존 투표자는 upsert로 수정됨)
-      const voter = await createVoter({
-        appointment_id: appointment.id,
-        name: name.trim(),
-      })
+      console.log("4단계 투표자 생성 시작")
+      const voter = await createVoter(appointment.id, name.trim())
+      console.log("4단계 투표자 생성 완료:", voter)
+
+
+      // 기존 투표자인 경우 기존 ID 사용
+      const existingVoter = voters.find(v => v.name === name.trim())
+      const actualVoterId = existingVoter ? existingVoter.id : voter.id
+      console.log("실제 사용할 투표자 ID:", actualVoterId)
+
 
       if (!voter) {
         throw new Error("투표자 생성 실패")
@@ -278,38 +294,55 @@ export default function VotePage() {
         // 반복 일정 투표
         if (isNewVoter) {
           // 첫 투표: 새로운 요일 투표 생성
-          await createWeekdayVotes(voter.id, appointment.id, selectedWeekdays)
+          await createWeekdayVotes(actualVoterId, appointment.id, selectedWeekdays)
         } else {
           // 수정 투표: 기존 요일 투표 삭제 후 새로 생성
-          await updateWeekdayVotes(voter.id, appointment.id, selectedWeekdays)
+          await updateWeekdayVotes(actualVoterId, appointment.id, selectedWeekdays)
         }
       } else if (appointment.method === "time-scheduling") {
         // 시간 스케줄링 투표
         if (isNewVoter) {
           // 첫 투표: 새로운 시간 투표 생성
-          await createTimeVotes(voter.id, appointment.id, selectedDateTimes)
+          await createTimeVotes(actualVoterId, appointment.id, selectedDateTimes)
         } else {
           // 수정 투표: 기존 시간 투표 삭제 후 새로 생성
-          await updateTimeVotes(voter.id, appointment.id, selectedDateTimes)
+          await updateTimeVotes(actualVoterId, appointment.id, selectedDateTimes)
         }
       } else {
         // 일반 날짜 투표
         const dateStrings = selectedDates.map((date) => format(date, "yyyy-MM-dd"))
         if (isNewVoter) {
           // 첫 투표: 새로운 날짜 투표 생성
-          await createDateVotes(voter.id, appointment.id, dateStrings)
+          await createDateVotes(actualVoterId, appointment.id, dateStrings)
         } else {
           // 수정 투표: 기존 날짜 투표 삭제 후 새로 생성
-          await updateDateVotes(voter.id, appointment.id, dateStrings)
+          await updateDateVotes(actualVoterId, appointment.id, dateStrings)
         }
       }
+      console.log("5단계 투표 완료")
 
-      // 6단계: 투표 완료 상태 체크
-      await fetch(`/api/check-completion/${appointment.id}`, {
-        method: "POST",
-      })
+      //투표후 다시 투표 완료 상태 확인
+      const isVotingComplete_after = await checkVotingCompletion(appointment.id)
 
-      // 7단계: 결과 페이지로 이동 (수정 투표인 경우 새로고침 파라미터 추가)
+      // 6단계 투표 완료시 알림 큐에 추가
+      if (isVotingComplete_after.isComplete) {
+        console.log("6단계 알림큐 추가 완료")
+        const result = await addNotificationToQueue(appointment.id, appointment.creator_phone)
+        console.log(result)
+      }
+
+
+
+      // 7단계: 투표 완료 시  알림톡 전송
+
+      if (isVotingComplete_after.isComplete) {
+        console.log("7단계 알림톡 전송 시작")
+        await fetch(`/api/notifications/kakao/send_complete`, {
+          method: "POST",
+        })
+      }
+
+      // 8단계: 결과 페이지로 이동 (수정 투표인 경우 새로고침 파라미터 추가)
       const resultUrl = `/results/${token}?refresh=${Date.now()}`
       router.push(resultUrl)
     } catch (err: any) {
@@ -382,7 +415,7 @@ export default function VotePage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name" className={nameError ? "text-red-500" : ""}>
-                  이름을 입력해주세요 *
+                  이름을 입력해주세요
                 </Label>
                 <Input
                   id="name"
@@ -392,7 +425,7 @@ export default function VotePage() {
                     setNameError(false)
                   }}
                   className={nameError ? "border-red-500 focus-visible:ring-red-500" : ""}
-                  placeholder="남승수"
+                  placeholder="이름"
                 />
                 {nameError && <p className="text-red-500 text-sm">이름을 입력해주세요.</p>}
               </div>
@@ -525,7 +558,7 @@ export default function VotePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name" className={nameError ? "text-red-500" : ""}>
-                이름을 입력해주세요 *
+                이름을 입력해주세요
               </Label>
               <Input
                 id="name"
@@ -535,7 +568,7 @@ export default function VotePage() {
                   setNameError(false)
                 }}
                 className={nameError ? "border-red-500 focus-visible:ring-red-500" : ""}
-                placeholder="남승수"
+                placeholder="이름"
               />
               {nameError && <p className="text-red-500 text-sm">이름을 입력해주세요.</p>}
             </div>

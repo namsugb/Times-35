@@ -7,6 +7,7 @@ async function sendKakaoNotification(phoneNumber: string, appointmentTitle: stri
     // Lunasoft API 설정 확인
     const LUNA_USERID = process.env.LUNA_USERID;
     const LUNA_API_KEY = process.env.LUNA_API_KEY;
+    const name = "친구"
 
     if (!LUNA_USERID || !LUNA_API_KEY) {
       console.warn("Lunasoft 알림톡 설정이 되어있지 않습니다.");
@@ -17,13 +18,14 @@ async function sendKakaoNotification(phoneNumber: string, appointmentTitle: stri
       userid: LUNA_USERID,
       api_key: LUNA_API_KEY,
       template_id: 50078,
+
       messages: [
         {
           no: "1",
           tel_num: phoneNumber,
           use_sms: "0",
-          sms_content: `님 등록하신 ${appointmentTitle} 약속에 대한 투표가 완료되었습니다! 결과를 확인해보세요!`,
-          msg_content: `님 등록하신 ${appointmentTitle} 약속에 대한 투표가 완료되었습니다! 결과를 확인해보세요!`,
+          sms_content: `${name}님 등록하신 ${appointmentTitle} 약속에 대한 투표가 완료되었습니다!\n결과를 확인해보세요!`,
+          msg_content: `${name}님 등록하신 ${appointmentTitle} 약속에 대한 투표가 완료되었습니다!\n결과를 확인해보세요!`,
           btn_url: [{
             url_pc: resultsUrl,
             url_mobile: resultsUrl

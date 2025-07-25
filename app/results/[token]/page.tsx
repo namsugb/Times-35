@@ -49,7 +49,7 @@ export default function ResultsPage() {
   const [selectedWeekday, setSelectedWeekday] = useState<number | null>(null)
   const [showWeekdayDetail, setShowWeekdayDetail] = useState(false)
 
-  // 요일 이름 배열
+  // 요일 이름 배열 (투표 페이지와 일치하도록 ID 기반으로 수정)
   const weekdayNames = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
   const weekdayShorts = ["일", "월", "화", "수", "목", "금", "토"]
 
@@ -190,7 +190,9 @@ export default function ResultsPage() {
         date,
         count: result.count,
         voters: result.voters,
-        percentage: Math.round((result.count / voters.length) * 100),
+        percentage: appointment.method === "minimum-required"
+          ? Math.round((result.count / appointment.required_participants) * 100)
+          : Math.round((result.count / voters.length) * 100),
       }))
       .sort((a, b) => b.count - a.count)
 
@@ -214,10 +216,13 @@ export default function ResultsPage() {
     if (!result) return null
 
     if (appointment.method === "all-available" && optimalDates.allAvailable.some((d) => d.date === dateStr)) {
-      return <CheckCircle2 className="absolute -top-1 -right-1 h-3 w-3 text-emerald-500 bg-white rounded-full" />
+      return <CheckCircle2 className="absolute -top-1 -right-1 h-4 w-4 text-emerald-500 bg-white rounded-full" />
     }
     if (appointment.method === "max-available" && optimalDates.maxAvailable.some((d) => d.date === dateStr)) {
-      return <Crown className="absolute -top-1 -right-1 h-3 w-3 text-yellow-500 bg-white rounded-full" />
+      return <Crown className="absolute -top-1 -right-1 h-4 w-4 text-yellow-500 bg-white rounded-full" />
+    }
+    if (appointment.method === "minimum-required" && optimalDates.requiredAvailable.some((d) => d.date === dateStr)) {
+      return <Users className="absolute -top-1 -right-1 h-4 w-4 text-blue-500 bg-white rounded-full" />
     }
     return null
   }
@@ -250,7 +255,7 @@ export default function ResultsPage() {
     )
   }
 
-  // 반복 일정 전용 UI
+  // 반복 일정  UI
   if (appointment.method === "recurring") {
     // 요일별 결과를 투표수 순으로 정렬
     console.log("weekdayResults", weekdayResults)
@@ -263,8 +268,9 @@ export default function ResultsPage() {
       }))
       .sort((a, b) => b.count - a.count)
 
-    // 상위 요일들 (주간 모임 횟수만큼)
-    const selectedWeekdays = sortedWeekdays.slice(0, appointment.weekly_meetings)
+    // 동률인 요일들을 모두 선택 (최소 요구 투표수와 같거나 많은 모든 요일)
+    const minRequiredCount = sortedWeekdays.length > 0 ? sortedWeekdays[appointment.weekly_meetings - 1]?.count || 0 : 0
+    const selectedWeekdays = sortedWeekdays.filter(weekday => weekday.count >= minRequiredCount)
 
     return (
       <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -292,7 +298,7 @@ export default function ResultsPage() {
               <CardHeader>
                 <CardTitle className="text-lg sm:text-xl">요일별 투표 현황</CardTitle>
                 <CardDescription className="text-sm">
-                  투표수가 많은 순으로 정렬되었습니다. 상위 {appointment.weekly_meetings}개 요일이 선택됩니다.
+                  투표수가 많은 순으로 정렬되었습니다. 동률인 요일들은 모두 선택됩니다.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -328,7 +334,10 @@ export default function ResultsPage() {
                           {result.count}
                         </div>
                         <div className={`text-xs ${isSelected ? "text-blue-100" : "text-gray-500"}`}>
-                          {result.count > 0 ? `${Math.round((result.count / voters.length) * 100)}%` : "0%"}
+                          {appointment.method === "minimum-required"
+                            ? `${result.count > 0 ? Math.round((result.count / appointment.required_participants) * 100) : 0}%`
+                            : `${result.count > 0 ? Math.round((result.count / voters.length) * 100) : 0}%`
+                          }
                         </div>
                       </div>
                     )
@@ -339,7 +348,7 @@ export default function ResultsPage() {
                 {selectedWeekdays.length > 0 && (
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
                     <h3 className="font-semibold text-blue-800 mb-2">
-                      선택된 모임 요일 (주 {appointment.weekly_meetings}회)
+                      선택된 모임 요일 ({selectedWeekdays.length}개)
                     </h3>
                     <div className="space-y-2">
                       {selectedWeekdays.map((weekday, index) => (
@@ -371,8 +380,8 @@ export default function ResultsPage() {
             <Card>
               <CardContent className="p-6">
                 <div className="text-center space-y-3">
-                  <div className="text-3xl font-bold text-primary">{voters.length}</div>
-                  <div className="text-lg font-medium">총 참여자</div>
+                  <div className="text-3xl font-bold text-primary">{voters.length}/{appointment.required_participants}</div>
+                  <div className="text-lg font-medium">참여 인원</div>
                   {voters.length > 0 && (
                     <div className="text-sm text-muted-foreground break-words">
                       {voters.map((voter) => voter.name).join(", ")}
@@ -449,8 +458,7 @@ export default function ResultsPage() {
   }
 
 
-
-  // 기본 투표 방식 처리
+  // all, max, min 투표 방식 ui
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -555,7 +563,10 @@ export default function ResultsPage() {
                             <div className="text-center">
                               <div className="text-xs font-medium leading-none">{result.count}</div>
                               <div className="text-xs opacity-75 leading-none mt-0.5 hidden sm:block">
-                                {Math.round((result.count / voters.length) * 100)}%
+                                {appointment.method === "minimum-required"
+                                  ? `${Math.round((result.count / appointment.required_participants) * 100)}%`
+                                  : `${Math.round((result.count / voters.length) * 100)}%`
+                                }
                               </div>
                             </div>
                           )}

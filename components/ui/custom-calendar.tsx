@@ -91,6 +91,7 @@ export function CustomCalendar({
             {/* 월 네비게이션 */}
             <div className="flex items-center justify-between mb-4">
                 <Button
+                    type="button"
                     variant="ghost"
                     size="sm"
                     onClick={goToPreviousMonth}
@@ -102,6 +103,7 @@ export function CustomCalendar({
                     {format(currentMonth, "yyyy년 M월", { locale: ko })}
                 </div>
                 <Button
+                    type="button"
                     variant="ghost"
                     size="sm"
                     onClick={goToNextMonth}

@@ -14,7 +14,7 @@ export function generateSessionId(): string {
   return "session_" + Math.random().toString(36).substring(2) + Date.now().toString(36)
 }
 
-// 약속 생성 (연락처 필드 추가)
+// 약속 생성 
 export async function createAppointment(data: AppointmentInsert) {
   try {
     // ➜ 1) 필수값 & 기본값 채우기
@@ -90,13 +90,14 @@ export async function getAppointmentByToken(shareToken: string | undefined) {
 }
 
 // 투표자 생성 
-export async function createVoter(data: VoterInsert) {
+export async function createVoter(appointmentId: string, name: string) {
   try {
+    console.log("투표자 생성 시작")
     const { data: voter, error } = await supabase
       .from("voters")
       .upsert({
-        ...data,
-        name: data.name.trim(),
+        appointment_id: appointmentId,
+        name: name.trim(),
       }, { onConflict: "appointment_id,name" })
       .select()
       .single()
@@ -260,27 +261,49 @@ export async function createWeekdayVotes(voterId: string, appointmentId: string,
 // 요일 투표 수정
 export async function updateWeekdayVotes(voterId: string, appointmentId: string, weekdays: number[]) {
   try {
-    // 기존 투표 삭제 후 새로 생성 (수정을 위해)
-    await supabase
+    console.log("updateWeekdayVotes 시작:", { voterId, appointmentId, weekdays })
+
+    // 기존 투표 삭제
+    const { data: deletedData, error: deleteError } = await supabase
       .from("weekday_votes")
       .delete()
       .eq("voter_id", voterId)
       .eq("appointment_id", appointmentId)
+      .select()
 
-    const votes = weekdays.map((weekday) => ({
-      voter_id: voterId,
-      appointment_id: appointmentId,
-      weekday,
-    }))
+    console.log("삭제 결과:", { deletedData, deleteError })
 
-    const { data, error } = await supabase.from("weekday_votes").insert(votes).select()
-
-    if (error) {
-      console.error("요일 투표 수정 오류:", error)
-      throw new Error(`요일 투표 수정에 실패했습니다: ${error.message}`)
+    if (deleteError) {
+      console.error("기존 요일 투표 삭제 오류:", deleteError)
+      throw new Error(`기존 요일 투표 삭제에 실패했습니다: ${deleteError.message}`)
     }
 
-    return data
+    // 새로운 투표 생성 (빈 배열이면 아무것도 삽입하지 않음)
+    if (weekdays.length > 0) {
+      const votes = weekdays.map((weekday) => ({
+        voter_id: voterId,
+        appointment_id: appointmentId,
+        weekday,
+      }))
+
+      console.log("삽입할 투표:", votes)
+
+      const { data, error } = await supabase
+        .from("weekday_votes")
+        .insert(votes)
+        .select()
+
+      console.log("삽입 결과:", { data, error })
+
+      if (error) {
+        console.error("새 요일 투표 생성 오류:", error)
+        throw new Error(`새 요일 투표 생성에 실패했습니다: ${error.message}`)
+      }
+
+      return data
+    }
+
+    return []
   } catch (error: any) {
     console.error("updateWeekdayVotes 오류:", error)
     throw error
@@ -449,4 +472,20 @@ export async function testDatabaseConnection() {
   } catch (error: any) {
     return { success: false, message: error.message }
   }
+}
+
+
+
+// 알림큐 추가
+export async function addNotificationToQueue(appointmentId: string, phone: string) {
+  const { data, error } = await supabase.from("notification_queue").insert({
+    appointment_id: appointmentId,
+    phone_number: phone,
+    message_type: "voting_complete",
+    status: "pending",
+  })
+
+  if (error) throw error
+
+  return { success: true, message: "알림큐에 추가되었습니다." }
 }

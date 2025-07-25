@@ -19,7 +19,7 @@ import { Footer } from "@/components/footer"
 export default function AppointmentScheduler() {
   const router = useRouter()
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)  // 약속 생성 모달
   const [isComingSoonModalOpen, setIsComingSoonModalOpen] = useState(false)
   const [appointmentName, setAppointmentName] = useState("")
   const [participantCount, setParticipantCount] = useState<string>("5")
@@ -29,7 +29,7 @@ export default function AppointmentScheduler() {
   const [deadline, setDeadline] = useState<string>("")
   const [isCreating, setIsCreating] = useState(false)
   const [createdAppointment, setCreatedAppointment] = useState<any>(null)
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)  // 약속 공유 모달
   const [isClient, setIsClient] = useState(false)
 
   // 클라이언트 사이드에서만 날짜 초기화
@@ -47,23 +47,30 @@ export default function AppointmentScheduler() {
   const methods = [
     {
       id: "all-available",
-      title: "모두 가능한 날",
+      title: "모두",
       description: "모두가 가능한 날짜를 찾습니다.",
       icon: <Calendar className="h-8 w-8 mb-2 text-primary" />,
       category: "기본",
     },
     {
       id: "max-available",
-      title: "최대 다수 가능",
+      title: "최대",
       description: "가장 많은 사람이 가능한 날짜를 제안합니다.",
       icon: <Users className="h-8 w-8 mb-2 text-primary" />,
       category: "기본",
     },
     {
       id: "minimum-required",
-      title: "기준 인원 이상 가능",
+      title: "기준",
       description: "입력한 인원 이상이 가능한 날짜를 찾습니다.",
       icon: <Clock className="h-8 w-8 mb-2 text-primary" />,
+      category: "기본",
+    },
+    {
+      id: "recurring",
+      title: "반복 요일",
+      description: "매주 반복해서 만날 요일을 정합니다.",
+      icon: <Repeat className="h-8 w-8 mb-2 text-primary" />,
       category: "기본",
     },
     {
@@ -73,13 +80,6 @@ export default function AppointmentScheduler() {
       icon: <Timer className="h-8 w-8 mb-2 text-primary" />,
       category: "기본",
       comingSoon: true,
-    },
-    {
-      id: "recurring",
-      title: "반복 일정 선택",
-      description: "매주 반복해서 만날 요일을 정합니다.",
-      icon: <Repeat className="h-8 w-8 mb-2 text-primary" />,
-      category: "기본",
     },
     // 새로운 약속 종류들
     {
@@ -111,21 +111,24 @@ export default function AppointmentScheduler() {
     },
   ]
 
+  // 메서드 선택시 모달 열기
   const handleMethodSelect = (methodId: string) => {
+
+    // 준비중 모달 열기
     if (comingSoonMethods.includes(methodId)) {
       setIsComingSoonModalOpen(true)
       return
     }
 
+    // 모달 열기
     setSelectedMethod(methodId)
     setIsModalOpen(true)
   }
 
+
   const handleCreateAppointment = async () => {
     if (!selectedMethod || !appointmentName || !participantCount || !creatorPhone) {
-      toast.error("입력 정보를 확인해주세요", {
-        description: "모든 필수 정보를 입력해주세요.",
-      })
+      toast.error("입력 정보를 확인해주세요", { description: "모든 필수 정보를 입력해주세요." })
       return
     }
 
@@ -161,9 +164,7 @@ export default function AppointmentScheduler() {
       console.log("약속 생성 완료:", appointment)
 
       toast.success("🎉 약속이 생성되었습니다!", {
-        description: creatorPhone.trim()
-          ? "모든 인원이 투표 완료 시 카카오 알림톡을 보내드립니다."
-          : "이제 친구들을 초대해보세요.",
+        description: "모든 인원이 투표 완료 시 카카오 알림톡을 보내드립니다.",
       })
 
       // 생성된 약속 정보 저장 및 공유 모달 열기
@@ -181,9 +182,7 @@ export default function AppointmentScheduler() {
         errorMessage = error.message
       }
 
-      toast.error("❌ 오류가 발생했습니다", {
-        description: errorMessage,
-      })
+      toast.error("❌ 오류가 발생했습니다", { description: errorMessage })
     } finally {
       setIsCreating(false)
     }
@@ -415,7 +414,7 @@ export default function AppointmentScheduler() {
             )}
 
             {/* 새로운 방식들에 대한 추가 설정 */}
-            {isNewMethod && (
+            {/* {isNewMethod && (
               <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-sm font-medium text-green-800">🚀 새로운 기능</span>
@@ -427,7 +426,7 @@ export default function AppointmentScheduler() {
                   {selectedMethod === "budget-consideration" && "날짜와 함께 예산 범위도 고려하여 투표할 수 있어요."}
                 </p>
               </div>
-            )}
+            )} */}
 
             {/* 마감 시간 설정 (선택사항) */}
             {/* <div className="space-y-2">
