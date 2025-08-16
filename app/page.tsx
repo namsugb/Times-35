@@ -16,6 +16,7 @@ import { ShareModal } from "@/components/share-modal"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Footer } from "@/components/footer"
 
+
 export default function AppointmentScheduler() {
   const router = useRouter()
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
@@ -125,7 +126,6 @@ export default function AppointmentScheduler() {
     setIsModalOpen(true)
   }
 
-
   const handleCreateAppointment = async () => {
     if (!selectedMethod || !appointmentName || !participantCount || !creatorPhone) {
       toast.error("입력 정보를 확인해주세요", { description: "모든 필수 정보를 입력해주세요." })
@@ -215,12 +215,6 @@ export default function AppointmentScheduler() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold mb-2 md:text-4xl">만날래말래</h1>
-        <p className="text-muted-foreground text-lg mobile-break">
-          여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.
-        </p>
-      </div>
 
       {/* 기본 방식들 */}
       <div className="mb-8">
@@ -321,9 +315,9 @@ export default function AppointmentScheduler() {
 
       {/* 약속 생성 모달 */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="space-y-3">
-            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+        <DialogContent className="max-w-[400px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-3 px-6">
+            <DialogTitle className="text-xl font-semibold flex justify-center items-center gap-2">
               {selectedMethod && methods.find((m) => m.id === selectedMethod)?.title}
               {isNewMethod && (
                 <span className="text-sm bg-gradient-to-r from-green-500 to-blue-500 text-white px-2 py-1 rounded-full">
