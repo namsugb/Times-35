@@ -8,47 +8,45 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MessageSquare, Send, CheckCircle, Mailbox } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
+import { submitFeedback } from "@/lib/feedback"
 
 export default function FeedbackPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isSubmitted, setIsSubmitted] = useState(false)
-    const { toast } = useToast()
+    const [name, setName] = useState("")
+    const [email, setEmail] = useState("")
+    const [category, setCategory] = useState("")
+    const [content, setContent] = useState("")
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setIsSubmitting(true)
 
-        // 실제 구현에서는 여기서 API 호출을 할 것입니다.
-        // 지금은 시뮬레이션을 위해 setTimeout을 사용합니다.
-        setTimeout(() => {
-            setIsSubmitting(false)
-            setIsSubmitted(true)
-            toast({
-                title: "건의사항이 전송되었습니다",
-                description: "소중한 의견 감사합니다. 검토 후 반영하도록 하겠습니다.",
+        try {
+            const response = await submitFeedback(name, email, category, content)
+            if (response.success) {
+                setName("")
+                setEmail("")
+                setCategory("")
+                setContent("")
+                toast.success("건의사항이 전송되었습니다", {
+                    description: "소중한 의견 감사합니다. 검토 후 반영하도록 하겠습니다.",
+                })
+            } else {
+                toast.error("건의사항 전송 실패", {
+                    description: "잠시 후 다시 시도해주세요.",
+                })
+            }
+        } catch (error) {
+            toast.error("건의사항 전송 실패", {
+                description: "잠시 후 다시 시도해주세요.",
             })
-        }, 1000)
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
-    if (isSubmitted) {
-        return (
-            <div className="max-w-2xl mx-auto">
-                <Card>
-                    <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-4">
-                        <CheckCircle className="h-16 w-16 text-green-500" />
-                        <h2 className="text-2xl font-bold">건의사항이 전송되었습니다</h2>
-                        <p className="text-muted-foreground">
-                            소중한 의견 감사합니다. 검토 후 서비스 개선에 반영하도록 하겠습니다.
-                        </p>
-                        <Button onClick={() => setIsSubmitted(false)} variant="outline">
-                            새 건의사항 작성하기
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
-        )
-    }
+
 
     return (
         <div className="max-w-2xl mx-auto">
@@ -78,20 +76,27 @@ export default function FeedbackPage() {
                                     <Input
                                         id="name"
                                         placeholder="익명으로 제출하려면 비워두세요"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="contact">연락처 (선택)</Label>
+                                    <Label htmlFor="email">이메일 (선택)</Label>
                                     <Input
-                                        id="contact"
+                                        id="email"
                                         placeholder="답변을 받고 싶다면 입력해주세요"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="category">카테고리</Label>
-                                <Select>
+                                <Select
+                                    value={category}
+                                    onValueChange={(value) => setCategory(value)}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="건의사항 유형을 선택해주세요" />
                                     </SelectTrigger>
@@ -112,6 +117,8 @@ export default function FeedbackPage() {
                                     placeholder="자세한 내용을 작성해주세요. 버그의 경우 언제, 어떤 상황에서 발생했는지 구체적으로 적어주시면 도움이 됩니다."
                                     rows={6}
                                     required
+                                    value={content}
+                                    onChange={(e) => setContent(e.target.value)}
                                 />
                             </div>
 

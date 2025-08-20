@@ -11,7 +11,7 @@ export default function GuidePage() {
                     만날래말래 설명서
                 </h1>
                 <p className="text-sm mt-2 text-muted-foreground">
-                    여러 사람과 약속을 잡을 때 가장 적합한 날짜와 시간을 찾는 서비스입니다.
+                    만날래 말래는 약속 종류에 따라 다양한 계산 방식과 ui를 제공합니다.
                 </p>
             </div>
             <div className="space-y-6">
@@ -20,29 +20,24 @@ export default function GuidePage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <CalendarDays className="h-5 w-5 text-blue-500" />
-                                약속 만들기
+                                모두
                             </CardTitle>
                             <CardDescription>
-                                새로운 약속을 생성하는 방법을 알아보세요.
+                                모두가 가능한 날을 찾을 때 사용하는 방식입니다.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="space-y-2">
-                                <h4 className="font-medium">1. 약속 정보 입력</h4>
+                                <h4 className="font-medium">투표완료</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    약속 제목, 설명, 기간을 입력합니다.
+                                    • 약속 생성시 설정한 인원 수 만큼의 인원이 투표에 참여하면 투표가 완료됩니다.
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <h4 className="font-medium">2. 가능한 날짜 선택</h4>
+                                <h4 className="font-medium">추천 상황</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    참여자들이 투표할 수 있는 날짜들을 선택합니다.
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <h4 className="font-medium">3. 연락처 정보 입력</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    카카오톡 알림을 받을 연락처를 입력합니다.
+                                    • 모두가 참여 해야하는 약속<br />
+                                    • 동아리 모임<br />
                                 </p>
                             </div>
                         </CardContent>
@@ -52,29 +47,23 @@ export default function GuidePage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Users className="h-5 w-5 text-green-500" />
-                                참여하기
+                                최대
                             </CardTitle>
                             <CardDescription>
-                                다른 사람이 만든 약속에 참여하는 방법입니다.
+                                가장 많은 인원이 가능한 날을 찾을 때 사용하는 방식입니다.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="space-y-2">
-                                <h4 className="font-medium">1. 링크 접속</h4>
+                                <h4 className="font-medium">투표완료</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    약속 생성자가 공유한 링크로 접속합니다.
+                                    • 약속 생성시 설정한 인원 수 만큼의 인원이 투표에 참여하면 투표가 완료됩니다.
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <h4 className="font-medium">2. 이름 입력</h4>
+                                <h4 className="font-medium">추천 상황</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    본인의 이름을 입력합니다.
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <h4 className="font-medium">3. 가능한 날짜 선택</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    본인이 가능한 날짜들을 선택하여 투표합니다.
+                                    • 모두가 참석해야하는건 아니지만 최대한 많으면 좋은 약속<br />
                                 </p>
                             </div>
                         </CardContent>
@@ -84,29 +73,23 @@ export default function GuidePage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Clock className="h-5 w-5 text-orange-500" />
-                                결과 확인
+                                기준
                             </CardTitle>
                             <CardDescription>
-                                모든 투표가 완료된 후 결과를 확인하는 방법입니다.
+                                특정 인원이 모일 수 있는 날을 찾을 때 사용하는 방식입니다.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="space-y-2">
-                                <h4 className="font-medium">1. 자동 알림</h4>
+                                <h4 className="font-medium">투표완료</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    모든 참여자가 투표를 완료하면 카카오톡으로 알림이 갑니다.
+                                    • 약속 생성시 설정한 인원 수 만큼이 모일 수 있는 날이 생기면 투표가 완료됩니다.
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <h4 className="font-medium">2. 결과 페이지</h4>
+                                <h4 className="font-medium">추천 상황</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    가장 많은 표를 받은 날짜가 최종 약속 날짜로 제안됩니다.
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <h4 className="font-medium">3. 참여자 현황</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    누가 어떤 날짜에 투표했는지 확인할 수 있습니다.
+                                    • 풋살 약속(12명이 모일 수 있는 날 찾기)<br />
                                 </p>
                             </div>
                         </CardContent>
@@ -116,29 +99,23 @@ export default function GuidePage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Share2 className="h-5 w-5 text-purple-500" />
-                                공유하기
+                                반복 요일
                             </CardTitle>
                             <CardDescription>
-                                약속을 다른 사람들과 공유하는 방법입니다.
+                                반복 적으로 만날 요일을 정할 때 사용하는 방식입니다.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="space-y-2">
-                                <h4 className="font-medium">1. 링크 복사</h4>
+                                <h4 className="font-medium">투표완료</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    약속 생성 후 나오는 링크를 복사합니다.
+                                    • 약속 생성시 설정한 인원 수 만큼의 인원이 투표에 참여하면 투표가 완료됩니다.
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <h4 className="font-medium">2. 카카오톡 공유</h4>
+                                <h4 className="font-medium">추천 상황</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    카카오톡 버튼을 눌러 직접 공유할 수 있습니다.
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <h4 className="font-medium">3. QR 코드</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    QR 코드를 통해서도 약속을 공유할 수 있습니다.
+                                    • 정기모임 약속
                                 </p>
                             </div>
                         </CardContent>
@@ -168,12 +145,6 @@ export default function GuidePage() {
                             <h4 className="font-medium">Q. 카카오톡 알림은 필수인가요?</h4>
                             <p className="text-sm text-muted-foreground">
                                 A. 아니요, 선택사항입니다. 하지만 알림을 받으시면 결과를 더 빠르게 확인할 수 있습니다.
-                            </p>
-                        </div>
-                        <div className="space-y-2">
-                            <h4 className="font-medium">Q. 약속 기간이 지나면 어떻게 되나요?</h4>
-                            <p className="text-sm text-muted-foreground">
-                                A. 약속 기간이 지나면 자동으로 투표가 마감되고 결과가 확정됩니다.
                             </p>
                         </div>
                     </CardContent>

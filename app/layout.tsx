@@ -4,9 +4,11 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { CustomSidebarTrigger } from "@/components/custom-sidebar-trigger"
 import Link from "next/link"
+import Image from "next/image"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -33,11 +35,11 @@ export default function RootLayout({
             <AppSidebar />
             <SidebarInset>
               <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger className="-ml-1" />
+                <CustomSidebarTrigger />
 
                 <div className="h-4 border-l border-sidebar-border" />
                 <Link href="/">
-                  <h1 className="text-lg font-semibold">만날래말래</h1>
+                  <h1 className="text-xl font-semibold">만날래말래</h1>
                 </Link>
               </header>
               <main className="flex-1 p-4">
