@@ -329,14 +329,14 @@ export async function getDateVoteResults(appointmentId: string) {
     (acc, vote) => {
       const date = vote.vote_date
       if (!acc[date]) {
-        acc[date] = { count: 0, voterss: [] }
+        acc[date] = { count: 0, voters: [] }
       }
       acc[date].count += 1
-      acc[date].voterss.push(vote.voters.name)
+      acc[date].voters.push((vote.voters as any).name)
 
       return acc
     },
-    {} as Record<string, { count: number; voterss: string[] }>,
+    {} as Record<string, { count: number; voters: string[] }>,
   )
   console.log("날짜 투표 결과임:", results)
   return results
@@ -401,7 +401,7 @@ export async function getWeekdayVoteResults(appointmentId: string) {
         acc[weekday] = { count: 0, voters: [] }
       }
       acc[weekday].count += 1
-      acc[weekday].voters.push(vote.voters.name)
+      acc[weekday].voters.push((vote.voters as any).name)
 
       return acc
     },
