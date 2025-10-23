@@ -59,8 +59,6 @@ export async function shareToKakao({ title, description = "", imageUrl, voteUrl,
     const defaultImageUrl = "https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png"
     const finalImageUrl = imageUrl || defaultImageUrl
 
-    console.log("카카오 공유 이미지 URL:", finalImageUrl)
-
     // 카카오 공식 JS SDK의 Share.sendDefault 사용
     window.Kakao.Share.sendDefault({
       objectType: 'feed',

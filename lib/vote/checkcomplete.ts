@@ -125,7 +125,6 @@ async function checkMinimumRequiredCompletion(
         dateVoteCounts.set(date, (dateVoteCounts.get(date) || 0) + 1)
     })
 
-    console.log("dateVoteCounts", dateVoteCounts)
     // 기준인원 이상 투표받은 날 찾기
     for (const [date, count] of dateVoteCounts) {
         if (count >= requiredParticipants) {

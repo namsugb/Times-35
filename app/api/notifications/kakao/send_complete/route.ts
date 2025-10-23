@@ -34,8 +34,6 @@ async function sendKakaoNotification(phoneNumber: string, appointmentTitle: stri
       ],
     }
 
-    console.log("API 요청 데이터:", JSON.stringify(requestBody, null, 2));
-
     // Lunasoft API 요청
     const response = await fetch("https://jupiter.lunasoft.co.kr/api/AlimTalk/message/send", {
       method: "POST",
@@ -50,7 +48,6 @@ async function sendKakaoNotification(phoneNumber: string, appointmentTitle: stri
     }
 
     const result = await response.json();
-    console.log("API 응답 데이터:", JSON.stringify(result, null, 2));
 
     // Lunasoft API 응답 처리
     if (result.code !== 0) {
@@ -98,7 +95,6 @@ export async function POST(request: NextRequest) {
       try {
         const resultsUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/results/${notification.appointments.share_token}`
 
-        console.log("알림톡 발송 시작")
         const result = await sendKakaoNotification(
           notification.phone_number,
           notification.appointments.title,

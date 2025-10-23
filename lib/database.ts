@@ -80,7 +80,6 @@ export async function getAppointmentByToken(shareToken: string | undefined) {
       console.error("약속 조회 오류:", error)
       throw new Error(`약속을 찾을 수 없습니다: ${error.message}`)
     }
-    console.log("약속 조회 결과:", appointment)
     return appointment
 
   } catch (error: any) {
@@ -92,7 +91,6 @@ export async function getAppointmentByToken(shareToken: string | undefined) {
 // 투표자 생성 
 export async function createVoter(appointmentId: string, name: string) {
   try {
-    console.log("투표자 생성 시작")
     const { data: voter, error } = await supabase
       .from("voters")
       .upsert({
@@ -261,17 +259,12 @@ export async function createWeekdayVotes(voterId: string, appointmentId: string,
 // 요일 투표 수정
 export async function updateWeekdayVotes(voterId: string, appointmentId: string, weekdays: number[]) {
   try {
-    console.log("updateWeekdayVotes 시작:", { voterId, appointmentId, weekdays })
-
     // 기존 투표 삭제
-    const { data: deletedData, error: deleteError } = await supabase
+    const { error: deleteError } = await supabase
       .from("weekday_votes")
       .delete()
       .eq("voter_id", voterId)
       .eq("appointment_id", appointmentId)
-      .select()
-
-    console.log("삭제 결과:", { deletedData, deleteError })
 
     if (deleteError) {
       console.error("기존 요일 투표 삭제 오류:", deleteError)
@@ -286,14 +279,10 @@ export async function updateWeekdayVotes(voterId: string, appointmentId: string,
         weekday,
       }))
 
-      console.log("삽입할 투표:", votes)
-
       const { data, error } = await supabase
         .from("weekday_votes")
         .insert(votes)
         .select()
-
-      console.log("삽입 결과:", { data, error })
 
       if (error) {
         console.error("새 요일 투표 생성 오류:", error)
@@ -322,7 +311,6 @@ export async function getDateVoteResults(appointmentId: string) {
     .eq("appointment_id", appointmentId)
 
   if (error) throw error
-  console.log("날짜 투표 결과 원본:", data)
 
   // 날짜별로 그룹화
   const results = data.reduce(
@@ -338,7 +326,6 @@ export async function getDateVoteResults(appointmentId: string) {
     },
     {} as Record<string, { count: number; voterss: string[] }>,
   )
-  console.log("날짜 투표 결과임:", results)
   return results
 }
 
@@ -419,7 +406,6 @@ export async function getVoters(appointmentId: string) {
     .eq("appointment_id", appointmentId)
     .order("voted_at", { ascending: true })
 
-  console.log("투표자 목록 조회 결과:", data)
   if (error) throw error
   return data
 }

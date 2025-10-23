@@ -1,39 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import {
-  getAppointmentByToken,
-  getDateVoteResults,
-  getTimeVoteResults,
-  getWeekdayVoteResults,
-  getVoters,
-} from "@/lib/database"
-import { format, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns"
-import { ko } from "date-fns/locale"
-import {
-  Calendar,
-  Clock,
-  Users,
-  Repeat,
-  Timer,
-  AlertCircle,
-  ChevronLeft,
-  ChevronRight,
-  Crown,
-  CheckCircle2,
-} from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { getAppointmentByToken, getDateVoteResults, getTimeVoteResults, getWeekdayVoteResults, getVoters } from "@/lib/database"
+import { Calendar, Clock, Users, Repeat, Timer, AlertCircle } from "lucide-react"
+import { ResultsRecurring } from "./components/ResultsRecurring"
+import { ResultsTimeScheduling } from "./components/ResultsTimeScheduling"
+import { ResultsDateBased } from "./components/ResultsDateBased"
 
 export default function ResultsPage() {
   const params = useParams()
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const { toast } = useToast()
   const token = params.token as string
 
   const [appointment, setAppointment] = useState<any>(null)
@@ -43,26 +23,10 @@ export default function ResultsPage() {
   const [voters, setVoters] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [showDateDetail, setShowDateDetail] = useState(false)
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [selectedWeekday, setSelectedWeekday] = useState<number | null>(null)
-  const [showWeekdayDetail, setShowWeekdayDetail] = useState(false)
-
-  // 요일 이름 배열 (투표 페이지와 일치하도록 ID 기반으로 수정)
-  const weekdayNames = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
-  const weekdayShorts = ["일", "월", "화", "수", "목", "금", "토"]
 
   useEffect(() => {
     loadResults()
   }, [token])
-
-  useEffect(() => {
-    // 약속 시작 날짜로 초기 월 설정
-    if (appointment?.start_date) {
-      setCurrentMonth(parseISO(appointment.start_date))
-    }
-  }, [appointment])
 
   const loadResults = async () => {
     try {
@@ -89,10 +53,8 @@ export default function ResultsPage() {
         setTimeResults(timeData)
       } else {
         const dateData = await getDateVoteResults(appointmentData.id)
-        console.log("날짜 투표 결과:", dateData)
         setDateResults(dateData)
       }
-
     } catch (err: any) {
       console.error("결과 로딩 오류:", err)
       setError(err.message || "결과를 불러오는데 실패했습니다.")
@@ -129,104 +91,6 @@ export default function ResultsPage() {
     return methodNames[method] || method
   }
 
-  // 투표 수에 따른 색상 강도 계산 (개선된 버전)
-  const getColorIntensity = (count: number, totalVoters: number) => {
-    if (count === 0) return "bg-gray-50 text-gray-400 border-gray-100"
-
-    const percentage = totalVoters > 0 ? (count / totalVoters) * 100 : 0
-
-    if (percentage === 100) return "bg-emerald-500 text-white border-emerald-600 shadow-sm"
-    if (percentage >= 80) return "bg-green-500 text-white border-green-600 shadow-sm"
-    if (percentage >= 60) return "bg-green-400 text-white border-green-500"
-    if (percentage >= 40) return "bg-green-300 text-gray-900 border-green-400"
-    if (percentage >= 20) return "bg-green-200 text-gray-800 border-green-300"
-    return "bg-green-100 text-gray-700 border-green-200"
-  }
-
-  // 날짜 클릭 핸들러
-  const handleDateClick = (date: Date) => {
-    const dateStr = format(date, "yyyy-MM-dd")
-    if (dateResults[dateStr] && dateResults[dateStr].count > 0) {
-      console.log("선택된 날짜 데이터:", dateStr, dateResults[dateStr])
-      console.log("전체 투표자 목록:", voters)
-      setSelectedDate(dateStr)
-      setShowDateDetail(true)
-    }
-  }
-
-  // 요일 클릭 핸들러
-  const handleWeekdayClick = (weekdayIndex: number) => {
-    const result = weekdayResults[weekdayIndex]
-    if (result && result.count > 0) {
-      setSelectedWeekday(weekdayIndex)
-      setShowWeekdayDetail(true)
-    }
-  }
-
-  // 월 네비게이션
-  const goToPreviousMonth = () => {
-    setCurrentMonth((prev) => subMonths(prev, 1))
-  }
-  const goToNextMonth = () => {
-    setCurrentMonth((prev) => addMonths(prev, 1))
-  }
-
-  // 현재 월에 투표 가능한 날짜가 있는지 확인
-  const hasVotesInCurrentMonth = () => {
-    if (!appointment?.start_date || !appointment?.end_date) return false
-
-    const monthStart = startOfMonth(currentMonth)
-    const monthEnd = endOfMonth(currentMonth)
-    const appointmentStart = parseISO(appointment.start_date)
-    const appointmentEnd = parseISO(appointment.end_date)
-
-    return appointmentStart <= monthEnd && appointmentEnd >= monthStart
-  }
-
-  // 최적의 날짜 계산
-  const getOptimalDates = () => {
-    const sortedDates = Object.entries(dateResults)
-      .map(([date, result]: [string, any]) => ({
-        date,
-        count: result.count,
-        voters: result.voters,
-        percentage: appointment.method === "minimum-required"
-          ? Math.round((result.count / appointment.required_participants) * 100)
-          : Math.round((result.count / voters.length) * 100),
-      }))
-      .sort((a, b) => b.count - a.count)
-
-    const allAvailable = sortedDates.filter((d) => d.count === appointment.required_participants)
-    const maxCount = sortedDates.length > 0 ? sortedDates[0].count : 0
-    const maxAvailable = sortedDates.filter((d) => d.count === maxCount)
-    const requiredAvailable = sortedDates.filter((d) => d.count >= appointment.required_participants)
-
-    return {
-      allAvailable,
-      maxAvailable,
-      requiredAvailable,
-    }
-  }
-
-  const optimalDates = getOptimalDates()
-
-  // 특별한 날짜인지 확인 (최적의 날짜들) 아이콘 추가
-  const getDateBadge = (dateStr: string) => {
-    const result = dateResults[dateStr]
-    if (!result) return null
-
-    if (appointment.method === "all-available" && optimalDates.allAvailable.some((d) => d.date === dateStr)) {
-      return <CheckCircle2 className="absolute -top-1 -right-1 h-4 w-4 text-emerald-500 bg-white rounded-full" />
-    }
-    if (appointment.method === "max-available" && optimalDates.maxAvailable.some((d) => d.date === dateStr)) {
-      return <Crown className="absolute -top-1 -right-1 h-4 w-4 text-yellow-500 bg-white rounded-full" />
-    }
-    if (appointment.method === "minimum-required" && optimalDates.requiredAvailable.some((d) => d.date === dateStr)) {
-      return <Users className="absolute -top-1 -right-1 h-4 w-4 text-blue-500 bg-white rounded-full" />
-    }
-    return null
-  }
-
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -255,535 +119,69 @@ export default function ResultsPage() {
     )
   }
 
-  // 반복 일정  UI
-  if (appointment.method === "recurring") {
-    // 요일별 결과를 투표수 순으로 정렬
-    console.log("weekdayResults", weekdayResults)
-    const sortedWeekdays = Object.entries(weekdayResults)
-      .map(([weekday, result]: [string, any]) => ({
-        weekday: Number.parseInt(weekday),
-        count: result.count,
-        voters: result.voters,
-        percentage: Math.round((result.count / voters.length) * 100),
-      }))
-      .sort((a, b) => b.count - a.count)
-
-    // 동률인 요일들을 모두 선택 (최소 요구 투표수와 같거나 많은 모든 요일)
-    const minRequiredCount = sortedWeekdays.length > 0 ? sortedWeekdays[appointment.weekly_meetings - 1]?.count || 0 : 0
-    const selectedWeekdays = sortedWeekdays.filter(weekday => weekday.count >= minRequiredCount)
-
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 메인 콘텐츠 영역 */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 약속 정보 헤더 */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  {getMethodIcon(appointment.method)}
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-xl sm:text-2xl truncate">{appointment.title}</CardTitle>
-                    <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
-                      <Badge variant="secondary">{getMethodName(appointment.method)}</Badge>
-                      <span className="text-sm">주 {appointment.weekly_meetings}회 모임</span>
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* 요일별 투표 결과 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">요일별 투표 현황</CardTitle>
-                <CardDescription className="text-sm">
-                  투표수가 많은 순으로 정렬되었습니다. 동률인 요일들은 모두 선택됩니다.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-7 gap-2 sm:gap-3 mb-6">
-                  {weekdayShorts.map((day, weekdayIndex) => {
-                    const result = weekdayResults[weekdayIndex] || { count: 0, voters: [] }
-                    const isSelected = selectedWeekdays.some((w) => w.weekday === weekdayIndex)
-
-                    return (
-                      <div
-                        key={weekdayIndex}
-                        className={`relative p-2 sm:p-4 rounded-lg border-2 text-center transition-all duration-200 ${isSelected
-                          ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-700 shadow-lg transform scale-105"
-                          : result.count > 0
-                            ? "bg-blue-50 border-blue-200 hover:border-blue-300 cursor-pointer hover:scale-105"
-                            : "bg-gray-50 border-gray-200"
-                          }`}
-                        onClick={() => handleWeekdayClick(weekdayIndex)}
-                      >
-                        <div
-                          className={`font-medium text-xs sm:text-sm mb-1 ${isSelected ? "text-white" : "text-gray-700"}`}
-                        >
-                          {day}
-                        </div>
-                        <div
-                          className={`text-xs mb-1 sm:mb-2 hidden sm:block ${isSelected ? "text-blue-100" : "text-gray-500"}`}
-                        >
-                          {weekdayNames[weekdayIndex]}
-                        </div>
-                        <div
-                          className={`text-lg sm:text-2xl font-bold mb-1 ${isSelected ? "text-white" : result.count > 0 ? "text-blue-600" : "text-gray-400"}`}
-                        >
-                          {result.count}
-                        </div>
-                        <div className={`text-xs ${isSelected ? "text-blue-100" : "text-gray-500"}`}>
-                          {appointment.method === "minimum-required"
-                            ? `${result.count > 0 ? Math.round((result.count / appointment.required_participants) * 100) : 0}%`
-                            : `${result.count > 0 ? Math.round((result.count / voters.length) * 100) : 0}%`
-                          }
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* 선택된 요일 요약 */}
-                {selectedWeekdays.length > 0 && (
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-blue-800 mb-2">
-                      선택된 모임 요일 ({selectedWeekdays.length}개)
-                    </h3>
-                    <div className="space-y-2">
-                      {selectedWeekdays.map((weekday, index) => (
-                        <div key={weekday.weekday} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                              {index + 1}
-                            </div>
-                            <span className="font-medium text-blue-900">{weekdayNames[weekday.weekday]}</span>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-blue-700">{weekday.count}명</div>
-                            <div className="text-sm text-blue-600">{weekday.percentage}%</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 사이드바 */}
-          <div className="space-y-6">
-            {/* 통계 정보 */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center space-y-3">
-                  <div className="text-3xl font-bold text-primary">{voters.length}/{appointment.required_participants}</div>
-                  <div className="text-lg font-medium">참여 인원</div>
-                  {voters.length > 0 && (
-                    <div className="text-sm text-muted-foreground break-words">
-                      {voters.map((voter) => voter.name).join(", ")}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 추가 액션 버튼들 */}
-            <div className="space-y-3">
-              <Button onClick={() => router.push(`/vote/${token}`)} className="w-full">
-                투표 페이지로 이동
-              </Button>
-              <Button onClick={() => router.push("/")} variant="outline" className="w-full">
-                새 약속 만들기
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* 요일 상세 정보 모달 */}
-        <Dialog open={showWeekdayDetail} onOpenChange={setShowWeekdayDetail}>
-          <DialogContent
-            className="
-           max-w-[300px] mx-auto 
-           p-2 sm:p-6
-           rounded-xl
-           max-h-[75vh] 
-         "
-          >
-            <DialogHeader>
-              <DialogTitle>요일별 상세 투표 결과</DialogTitle>
-              <DialogDescription>
-                {selectedWeekday !== null && weekdayNames[selectedWeekday]}의 투표 상세 정보
-              </DialogDescription>
-            </DialogHeader>
-
-            {selectedWeekday !== null && weekdayResults[selectedWeekday] && (
-              <div className="py-2">
-                <div className="space-y-2">
-                  <div>
-                    <h4 className="font-medium mb-2 text-blue-700">
-                      참여 가능 ({weekdayResults[selectedWeekday].count}명)
-                    </h4>
-                    <div className="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto">
-                      {weekdayResults[selectedWeekday].voters.map((voter: any, index: number) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-1 p-1 bg-blue-50 rounded border border-blue-200"
-                        >
-                          <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                          <span className="text-sm font-medium truncate">{voter}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2 text-gray-700">참여 불가능</h4>
-                    <div className="text-sm text-muted-foreground bg-gray-50 p-2 rounded">
-                      {voters
-                        .filter((voter) => !weekdayResults[selectedWeekday].voters.includes(voter.name))
-                        .map((voter) => voter.name)
-                        .join(", ") || "없음"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
-    )
+  if (!appointment) {
+    return null
   }
 
+  // 공통 헤더 컴포넌트
+  const ResultsHeader = () => (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          {getMethodIcon(appointment.method)}
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-xl sm:text-2xl truncate">{appointment.title}</CardTitle>
+            <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
+              <Badge variant="secondary">{getMethodName(appointment.method)}</Badge>
+              {appointment.method === "recurring" && (
+                <span className="text-sm">주 {appointment.weekly_meetings}회 모임</span>
+              )}
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
+  )
 
-  // all, max, min 투표 방식 ui
+  // 방식별 컴포넌트 렌더링
+  const renderResultsComponent = () => {
+    switch (appointment.method) {
+      case "recurring":
+        return (
+          <ResultsRecurring
+            appointment={appointment}
+            weekdayResults={weekdayResults}
+            voters={voters}
+            token={token}
+          />
+        )
+      case "time-scheduling":
+        return (
+          <ResultsTimeScheduling
+            appointment={appointment}
+            timeResults={timeResults}
+            voters={voters}
+            token={token}
+          />
+        )
+      default:
+        return (
+          <ResultsDateBased
+            appointment={appointment}
+            dateResults={dateResults}
+            voters={voters}
+            token={token}
+          />
+        )
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 메인 콘텐츠 영역 */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* 약속 정보 헤더 */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                {getMethodIcon(appointment.method)}
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-xl sm:text-2xl truncate">{appointment.title}</CardTitle>
-                  <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
-                    <Badge variant="secondary">{getMethodName(appointment.method)}</Badge>
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-
-          {/* 달력 투표 결과 */}
-          <Card>
-            <CardHeader>
-              <div className="space-y-4">
-                <div>
-                  <CardTitle className="text-lg sm:text-xl">투표 결과 달력</CardTitle>
-                  <CardDescription className="text-sm mt-2">
-                    색이 진할수록 더 많은 사람이 선택한 날짜입니다. 날짜를 클릭하면 상세 정보를 볼 수 있습니다.
-                  </CardDescription>
-                </div>
-                <div className="flex items-center justify-center gap-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={goToPreviousMonth}
-                    className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <div className="text-lg font-semibold min-w-[140px] text-center">
-                    {format(currentMonth, "yyyy년 M월", { locale: ko })}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={goToNextMonth}
-                    className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {hasVotesInCurrentMonth() ? (
-                <>
-                  {/* 요일 헤더 */}
-                  <div className="grid grid-cols-7 gap-1 mb-3">
-                    {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
-                      <div
-                        key={day}
-                        className={`text-center py-2 text-sm font-medium ${index === 0 ? "text-red-500" : index === 6 ? "text-blue-500" : "text-gray-600"
-                          }`}
-                      >
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* 달력 그리드 - 모바일 최적화 */}
-                  <div className="grid grid-cols-7 gap-1">
-                    {/* 월 시작 전 빈 칸 */}
-                    {Array.from({ length: startOfMonth(currentMonth).getDay() }).map((_, i) => (
-                      <div key={`empty-start-${i}`} className="aspect-square"></div>
-                    ))}
-
-                    {/* 실제 날짜들 */}
-                    {eachDayOfInterval({
-                      start: startOfMonth(currentMonth),
-                      end: endOfMonth(currentMonth),
-                    }).map((day) => {
-                      const dateStr = format(day, "yyyy-MM-dd")
-                      const result = dateResults[dateStr] || { count: 0, voters: [] }
-                      const isInRange =
-                        appointment.start_date &&
-                        appointment.end_date &&
-                        day >= parseISO(appointment.start_date) &&
-                        day <= parseISO(appointment.end_date)
-                      const colorClasses = isInRange
-                        ? getColorIntensity(result.count, voters.length)
-                        : "bg-gray-50 text-gray-300 border-gray-100"
-
-                      return (
-                        <div
-                          key={dateStr}
-                          className={`aspect-square rounded-lg flex flex-col items-center justify-center relative cursor-pointer border transition-all duration-200 ${colorClasses} ${result.count > 0 && isInRange ? "hover:scale-105 hover:shadow-md active:scale-95" : ""
-                            } ${!isInRange ? "cursor-default" : ""}`}
-                          onClick={() => isInRange && result.count > 0 && handleDateClick(day)}
-                        >
-                          <span className="text-sm font-semibold mb-0.5">{format(day, "d")}</span>
-                          {isInRange && result.count > 0 && (
-                            <div className="text-center">
-                              <div className="text-xs font-medium leading-none">{result.count}</div>
-                              <div className="text-xs opacity-75 leading-none mt-0.5 hidden sm:block">
-                                {appointment.method === "minimum-required"
-                                  ? `${Math.round((result.count / appointment.required_participants) * 100)}%`
-                                  : `${Math.round((result.count / voters.length) * 100)}%`
-                                }
-                              </div>
-                            </div>
-                          )}
-                          {getDateBadge(dateStr)}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>이 달에는 투표 가능한 날짜가 없습니다.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 사이드바 */}
-        <div className="space-y-6">
-          {/* 통계 정보 */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center space-y-3">
-                {appointment.method === "minimum-required" && (
-                  <div className="text-3xl font-bold text-primary">
-                    {voters.length}
-                  </div>
-                )}
-                {appointment.method !== "minimum-required" && (
-
-                  <div className="text-3xl font-bold text-primary">
-                    {voters.length}/{appointment.required_participants}
-                  </div>
-                )}
-                <div className="text-lg font-medium">참여 인원</div>
-                {voters.length > 0 && (
-                  <div className="text-sm text-muted-foreground break-words">
-                    {voters.map((voter) => voter.name).join(", ")}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 최적의 날짜 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">투표 결과</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* 전원 참여 가능 */}
-              {appointment.method === "all-available" && (
-                <div>
-                  {optimalDates.allAvailable.length > 0 ? (
-                    <>
-                      <h4 className="font-medium text-emerald-700 mb-2 flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4" />
-                        전원 참여 가능
-                      </h4>
-                      <div className="space-y-2">
-                        {optimalDates.allAvailable.map((date) => (
-                          <div
-                            key={date.date}
-                            className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg border border-emerald-200"
-                          >
-                            <span className="truncate font-medium">
-                              {format(parseISO(date.date), "M월 d일 (E)", { locale: ko })}
-                            </span>
-                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 flex-shrink-0">
-                              {date.count}명
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center text-red text-sm text-muted-foreground py-4 bg-gray-50 rounded-lg">
-                      전원이 참여 가능한 날이 없습니다
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* 최다 참여 */}
-              {appointment.method === "max-available" && (
-                <div>
-                  {optimalDates.maxAvailable.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-yellow-700 mb-2 flex items-center gap-2">
-                        <Crown className="h-4 w-4" />
-                        최다 참여
-                      </h4>
-                      <div className="space-y-2">
-                        {optimalDates.maxAvailable.map((date) => (
-                          <div
-                            key={date.date}
-                            className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200"
-                          >
-                            <span className="truncate font-medium">
-                              {format(parseISO(date.date), "M월 d일 (E)", { locale: ko })}
-                            </span>
-                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 flex-shrink-0">
-                              {date.count}명
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* 기준 인원 이상 */}
-              {appointment.method === "minimum-required" && (
-                <div>
-                  <h4 className="font-medium text-blue-700 mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    {appointment.required_participants}명 이상 가능한 날
-                  </h4>
-                  {!optimalDates.requiredAvailable || optimalDates.requiredAvailable.length === 0 ? <div className="text-center text-red text-sm text-muted-foreground py-4 bg-gray-50 rounded-lg">
-                    아직 없음
-                  </div> :
-                    <div className="space-y-2">
-                      {optimalDates.requiredAvailable.map((date) => (
-                        <div
-                          key={date.date}
-                          className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-200"
-                        >
-                          <span className="truncate font-medium">
-                            {format(parseISO(date.date), "M월 d일 (E)", { locale: ko })}
-                          </span>
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-800 flex-shrink-0">
-                            {date.count}명
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  }
-                </div>
-              )}
-
-              {optimalDates.allAvailable.length === 0 &&
-                optimalDates.maxAvailable.length === 0 &&
-                optimalDates.requiredAvailable.length === 0 && (
-                  <div className="text-center py-6 text-muted-foreground text-sm bg-gray-50 rounded-lg">
-                    <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>아직 투표 결과가 없습니다</p>
-                  </div>
-                )}
-            </CardContent>
-          </Card>
-
-          {/* 추가 액션 버튼들 */}
-          <div className="space-y-3">
-            <Button onClick={() => router.push(`/vote/${token}`)} className="w-full">
-              투표 페이지로 이동
-            </Button>
-            <Button onClick={() => router.push("/")} variant="outline" className="w-full">
-              새 약속 만들기
-            </Button>
-          </div>
-
-        </div>
+      <div className="space-y-6">
+        <ResultsHeader />
+        {renderResultsComponent()}
       </div>
-
-      {/* 날짜 상세 정보 모달 */}
-      <Dialog open={showDateDetail} onOpenChange={setShowDateDetail}>
-        <DialogContent
-          className="
-            max-w-[300px] mx-auto 
-            p-2 sm:p-6
-            rounded-xl
-            max-h-[75vh] 
-          "
-        >
-          <DialogHeader>
-            <DialogTitle>날짜별 상세 투표 결과</DialogTitle>
-            <DialogDescription>
-              {selectedDate && format(parseISO(selectedDate), "M월 d일 (E)", { locale: ko })}의 투표 상세 정보
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedDate && dateResults[selectedDate] && (
-            <div className="py-2">
-              <div className="space-y-2">
-                <div>
-                  <h4 className="font-medium mb-2 text-green-700">
-                    참여 가능 ({dateResults[selectedDate].count}명)
-                  </h4>
-                  <div className="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto">
-                    {dateResults[selectedDate].voterss.map((voter: any, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-1 p-1 bg-green-50 rounded border border-green-200"
-                      >
-                        <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                        <span className="text-sm font-medium truncate">{voter}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2 text-gray-700">참여 불가능</h4>
-                  <div className="text-sm text-muted-foreground bg-gray-50 p-2 rounded">
-                    {voters
-                      .filter((voter) => !dateResults[selectedDate].voterss.includes(voter.name))
-                      .map((voter) => voter.name)
-                      .join(", ") || "없음"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

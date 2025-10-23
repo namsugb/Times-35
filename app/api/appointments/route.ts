@@ -5,11 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const appointmentData = await request.json()
 
-    console.log("API Route - 약속 생성 요청:", appointmentData)
-
     const appointment = await createAppointment(appointmentData)
-
-    console.log("API Route - 약속 생성 완료:", appointment)
 
     return NextResponse.json(appointment)
   } catch (error: any) {
