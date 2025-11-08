@@ -34,12 +34,12 @@ export const methods = [
     category: "기본",
     comingSoon: false,
   },
-  {
-    id: "time-scheduling",
-    title: "약속 시간정하기",
-    description: "날짜와 시간을 함께 선택하여 약속을 정합니다.",
-    icon: TimerIcon,
-    category: "기본",
-    comingSoon: false,
-  },
+  // {
+  //   id: "time-scheduling",
+  //   title: "약속 시간정하기",
+  //   description: "날짜와 시간을 함께 선택하여 약속을 정합니다.",
+  //   icon: TimerIcon,
+  //   category: "기본",
+  //   comingSoon: false,
+  // },
 ]
