@@ -25,7 +25,6 @@ import {
 } from "@/lib/database"
 import { checkVotingCompletion } from "@/lib/vote/checkcomplete"
 import { VotingCompletionResult } from "@/lib/vote/checkcomplete"
-import { VoteRecurring } from "./components/VoteRecurring"
 import { VoteDateBased } from "./components/VoteDateBased"
 import { VoteTimeScheduling } from "./components/VoteTimeScheduling"
 
@@ -191,15 +190,7 @@ export default function VotePage() {
       }
 
       // 5단계: 투표 방법에 따라 투표 데이터 생성
-      if (appointment.method === "recurring") {
-        // 반복 일정 투표
-        const selectedWeekdays = data as number[]
-        if (isNewVoter) {
-          await createWeekdayVotes(actualVoterId, appointment.id, selectedWeekdays)
-        } else {
-          await updateWeekdayVotes(actualVoterId, appointment.id, selectedWeekdays)
-        }
-      } else if (appointment.method === "time-scheduling") {
+      if (appointment.method === "time-scheduling") {
         // 시간 스케줄링 투표
         const selectedDateTimes = data as DateTimeSelection[]
         if (isNewVoter) {
@@ -298,15 +289,7 @@ export default function VotePage() {
           {getMethodName(appointment.method)}
         </Badge>
         <br />
-        {appointment.method === "recurring" ? (
-          <>
-            참석 가능한 요일을 모두 선택해주세요.
-            <br />
-            <span className="text-sm text-primary mt-1 block">
-              일주일에 {appointment.weekly_meetings}번 만날 예정입니다.
-            </span>
-          </>
-        ) : appointment.method === "time-scheduling" ? (
+        {appointment.method === "time-scheduling" ? (
           <>
             가능한 날짜와 시간을 모두 선택해주세요.
             <br />
@@ -368,17 +351,6 @@ export default function VotePage() {
   // 방식별 컴포넌트 렌더링
   const renderVoteComponent = () => {
     switch (appointment.method) {
-      case "recurring":
-        return (
-          <VoteRecurring
-            appointment={appointment}
-            name={name}
-            nameError={nameError}
-            submitting={submitting}
-            onNameChange={handleNameChange}
-            onSubmit={handleSubmit}
-          />
-        )
       case "time-scheduling":
         return (
           <VoteTimeScheduling

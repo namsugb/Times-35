@@ -1,4 +1,4 @@
-import { Calendar, Users, Clock, Repeat, Timer, TrendingUp, Sunrise, DollarSign, CalendarIcon, UsersIcon, ClockIcon, RepeatIcon, TimerIcon, TrendingUpIcon, SunriseIcon, DollarSignIcon } from "lucide-react"
+import { CalendarIcon, UsersIcon, ClockIcon } from "lucide-react"
 
 
 export const methods = [
@@ -23,14 +23,6 @@ export const methods = [
     title: "기준",
     description: "입력한 인원 이상이 가능한 날짜를 찾습니다.",
     icon: ClockIcon,
-    category: "기본",
-    comingSoon: false,
-  },
-  {
-    id: "recurring",
-    title: "반복 요일",
-    description: "매주 반복해서 만날 요일을 정합니다.",
-    icon: RepeatIcon,
     category: "기본",
     comingSoon: false,
   },

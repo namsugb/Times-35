@@ -5,9 +5,8 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { getAppointmentByToken, getDateVoteResults, getTimeVoteResults, getWeekdayVoteResults, getVoters } from "@/lib/database"
-import { Calendar, Clock, Users, Repeat, Timer, AlertCircle } from "lucide-react"
-import { ResultsRecurring } from "./components/ResultsRecurring"
+import { getAppointmentByToken, getDateVoteResults, getTimeVoteResults, getVoters } from "@/lib/database"
+import { Calendar, Clock, Users, Timer, AlertCircle } from "lucide-react"
 import { ResultsTimeScheduling } from "./components/ResultsTimeScheduling"
 import { ResultsDateBased } from "./components/ResultsDateBased"
 
@@ -19,7 +18,6 @@ export default function ResultsPage() {
   const [appointment, setAppointment] = useState<any>(null)
   const [dateResults, setDateResults] = useState<any>({})
   const [timeResults, setTimeResults] = useState<any[]>([])
-  const [weekdayResults, setWeekdayResults] = useState<any>({})
   const [voters, setVoters] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,10 +43,7 @@ export default function ResultsPage() {
       setVoters(votersData)
 
       // 투표 결과 조회
-      if (appointmentData.method === "recurring") {
-        const weekdayData = await getWeekdayVoteResults(appointmentData.id)
-        setWeekdayResults(weekdayData)
-      } else if (appointmentData.method === "time-scheduling") {
+      if (appointmentData.method === "time-scheduling") {
         const timeData = await getTimeVoteResults(appointmentData.id)
         setTimeResults(timeData)
       } else {
@@ -73,8 +68,6 @@ export default function ResultsPage() {
         return <Clock className="h-5 w-5" />
       case "time-scheduling":
         return <Timer className="h-5 w-5" />
-      case "recurring":
-        return <Repeat className="h-5 w-5" />
       default:
         return <Calendar className="h-5 w-5" />
     }
@@ -86,7 +79,6 @@ export default function ResultsPage() {
       "max-available": "최대 다수 가능",
       "minimum-required": "기준 인원 이상 가능",
       "time-scheduling": "약속 시간정하기",
-      recurring: "반복 일정 선택",
     }
     return methodNames[method] || method
   }
@@ -133,9 +125,6 @@ export default function ResultsPage() {
             <CardTitle className="text-xl sm:text-2xl truncate">{appointment.title}</CardTitle>
             <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
               <Badge variant="secondary">{getMethodName(appointment.method)}</Badge>
-              {appointment.method === "recurring" && (
-                <span className="text-sm">주 {appointment.weekly_meetings}회 모임</span>
-              )}
             </CardDescription>
           </div>
         </div>
@@ -146,15 +135,6 @@ export default function ResultsPage() {
   // 방식별 컴포넌트 렌더링
   const renderResultsComponent = () => {
     switch (appointment.method) {
-      case "recurring":
-        return (
-          <ResultsRecurring
-            appointment={appointment}
-            weekdayResults={weekdayResults}
-            voters={voters}
-            token={token}
-          />
-        )
       case "time-scheduling":
         return (
           <ResultsTimeScheduling

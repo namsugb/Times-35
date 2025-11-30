@@ -7,29 +7,21 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { DateRangePicker } from "@/components/date-range-picker"
-import { useRouter } from "next/navigation"
 import { addDays, format } from "date-fns"
 import { createAppointment } from "@/lib/database"
 import { toast } from "sonner"
 import { ShareModal } from "@/components/share-modal"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Footer } from "@/components/footer"
 import { methods } from "@/lib/type/appointmentMethods"
-import { CalendarIcon } from "lucide-react"
-import { LockIcon } from "lucide-react"
-import { TrendingUpIcon } from "lucide-react"
-import { PhoneIcon } from "lucide-react"
+import { CalendarIcon, Loader2, LockIcon, PhoneIcon } from "lucide-react"
 
 export default function AppointmentScheduler() {
-  const router = useRouter()
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)  // 약속 생성 모달
-  const [isComingSoonModalOpen, setIsComingSoonModalOpen] = useState(false)
   const [appointmentName, setAppointmentName] = useState("")
   const [participantCount, setParticipantCount] = useState<string>("5")
   const [creatorPhone, setCreatorPhone] = useState("")
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | null>(null)
-  const [weeklyMeetings, setWeeklyMeetings] = useState<string>("1")
   const [deadline, setDeadline] = useState<string>("")
   const [isCreating, setIsCreating] = useState(false)
   const [createdAppointment, setCreatedAppointment] = useState<any>(null)
@@ -48,21 +40,15 @@ export default function AppointmentScheduler() {
 
 
 
-
   // 메서드 선택시 모달 열기
   const handleMethodSelect = (methodId: string) => {
-
-    // 준비중 모달 열기
-    if (methods.find((m) => m.id === methodId)?.comingSoon) {
-      setIsComingSoonModalOpen(true)
-      return
-    }
 
     // 모달 열기
     setSelectedMethod(methodId)
     setIsCreateModalOpen(true)
   }
 
+  // 약속 생성
   const handleCreateAppointment = async () => {
     if (!selectedMethod || !appointmentName || !participantCount || !creatorPhone) {
       toast.error("입력 정보를 확인해주세요", { description: "모든 필수 정보를 입력해주세요." })
@@ -72,17 +58,13 @@ export default function AppointmentScheduler() {
     setIsCreating(true)
 
     try {
-      const isRecurring = selectedMethod === "recurring"
-
-
-
       const appointmentData = {
         title: appointmentName.trim(),
         method: selectedMethod as any,
         required_participants: Number.parseInt(participantCount) || 1,
-        weekly_meetings: isRecurring ? Number.parseInt(weeklyMeetings) || 1 : 1,
-        start_date: isRecurring || !dateRange ? null : format(dateRange.from, "yyyy-MM-dd"),
-        end_date: isRecurring || !dateRange ? null : format(dateRange.to, "yyyy-MM-dd"),
+        weekly_meetings: 1,
+        start_date: dateRange ? format(dateRange.from, "yyyy-MM-dd") : null,
+        end_date: dateRange ? format(dateRange.to, "yyyy-MM-dd") : null,
         deadline: deadline ? format(new Date(deadline), "yyyy-MM-dd HH:mm:ss") : null,
         is_public: true,
         status: "active" as const,
@@ -117,11 +99,12 @@ export default function AppointmentScheduler() {
     }
   }
 
+  // 투표 가능한 날짜 범위 변경
   const handleDateRangeChange = (newRange: { from: Date; to: Date }) => {
     setDateRange(newRange)
   }
 
-  const isRecurring = selectedMethod === "recurring"
+
 
 
 
@@ -234,32 +217,14 @@ export default function AppointmentScheduler() {
               </p>
             </div>
 
-            {isRecurring ? (
-              <div className="space-y-2">
-                <Label htmlFor="weekly-meetings" className="text-sm font-medium">
-                  일주일에 만날 횟수
-                </Label>
-                <Input
-                  id="weekly-meetings"
-                  type="number"
-                  min="1"
-                  max="7"
-                  placeholder="예: 2"
-                  className="w-full"
-                  value={weeklyMeetings}
-                  onChange={(e) => setWeeklyMeetings(e.target.value)}
-                />
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">투표 가능한 날짜 범위</Label>
+              <div className="flex items-center justify-center">
+                {dateRange && (
+                  <DateRangePicker value={dateRange} onChange={handleDateRangeChange} className="w-full" />
+                )}
               </div>
-            ) : (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">투표 가능한 날짜 범위</Label>
-                <div className="flex items-center justify-center">
-                  {dateRange && (
-                    <DateRangePicker value={dateRange} onChange={handleDateRangeChange} className="w-full" />
-                  )}
-                </div>
-              </div>
-            )}
+            </div>
 
 
 
@@ -272,35 +237,14 @@ export default function AppointmentScheduler() {
                   isCreating ||
                   !appointmentName ||
                   !participantCount ||
-                  (isRecurring ? !weeklyMeetings : !dateRange?.from || !dateRange?.to)
+                  !dateRange?.from ||
+                  !dateRange?.to
                 }
               >
+                {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {isCreating ? "생성 중..." : "만들기"}
               </Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* 준비중 모달 */}
-      <Dialog open={isComingSoonModalOpen} onOpenChange={setIsComingSoonModalOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader className="text-center space-y-3">
-            <div className="flex justify-center">
-              <div className="bg-blue-100 rounded-full p-4">
-                <LockIcon className="h-8 w-8 text-blue-600" />
-              </div>
-            </div>
-            <DialogTitle className="text-xl font-semibold text-center">준비중입니다</DialogTitle>
-            <DialogDescription className="text-center">
-              해당 기능은 현재 개발 중입니다.
-              <br />곧 만나보실 수 있어요! 🚀
-            </DialogDescription>
-          </DialogHeader>
-          <div className="pt-4">
-            <Button className="w-full" onClick={() => setIsComingSoonModalOpen(false)}>
-              확인
-            </Button>
           </div>
         </DialogContent>
       </Dialog>

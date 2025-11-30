@@ -75,7 +75,6 @@ export function VoteDateBased({
                         showOutsideDays={false}
                     />
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">참석 가능한 날짜를 모두 클릭하여 선택해주세요.</p>
             </div>
 
             <div className="pt-4">
@@ -86,7 +85,7 @@ export function VoteDateBased({
                 >
                     {submitting
                         ? "투표 중..."
-                        : `투표 완료하기 ${selectedDates.length > 0 ? `(${selectedDates.length}개)` : "선택된 날짜 없음"}`}
+                        : "투표 완료하기"}
                 </Button>
             </div>
         </form>
