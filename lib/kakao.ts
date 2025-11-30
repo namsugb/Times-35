@@ -60,43 +60,44 @@ export async function shareToKakao({ title, description = "", imageUrl, voteUrl,
     const finalImageUrl = imageUrl || defaultImageUrl
 
     // 카카오 공식 JS SDK의 Share.sendDefault 사용
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: title,
-        description: description,
-        imageUrl: finalImageUrl,
-        link: {
-          mobileWebUrl: voteUrl,
-          webUrl: voteUrl,
-        },
-      },
-      buttons: [
-        {
-          title: '투표하기',
-          link: {
-            mobileWebUrl: voteUrl,
-            webUrl: voteUrl,
-          },
-        },
-        {
-          title: '결과보기',
-          link: {
-            mobileWebUrl: resultsUrl,
-            webUrl: resultsUrl,
-          },
-        },
-      ],
-    })
+    // window.Kakao.Share.sendDefault({
+    //   objectType: 'feed',
+    //   content: {
+    //     title: title,
+    //     description: description,
+    //     imageUrl: finalImageUrl,
+    //     link: {
+    //       mobileWebUrl: voteUrl,
+    //       webUrl: voteUrl,
+    //     },
+    //   },
+    //   buttons: [
+    //     {
+    //       title: '투표하기',
+    //       link: {
+    //         mobileWebUrl: voteUrl,
+    //         webUrl: voteUrl,
+    //       },
+    //     },
+    //     {
+    //       title: '결과보기',
+    //       link: {
+    //         mobileWebUrl: resultsUrl,
+    //         webUrl: resultsUrl,
+    //       },
+    //     },
+    //   ],
+    // })
 
     // 카카오 공식 JS SDK의 Share.sendCustom 사용
-    // window.Kakao.Share.sendCustom({
-    //   templateId: 126420,
-    //   templateArgs: {
-    //     title: '제목 영역입니다.',
-    //     description: '설명 영역입니다.',
-    //   },
-    // });
+    window.Kakao.Share.sendCustom({
+      templateId: 126420,
+      templateArgs: {
+        title: title,
+        voteUrl: voteUrl,
+        resultsUrl: resultsUrl,
+      },
+    });
   } catch (error) {
     console.error("카카오 공유 실패:", error)
 
