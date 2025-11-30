@@ -88,6 +88,15 @@ export async function shareToKakao({ title, description = "", imageUrl, voteUrl,
         },
       ],
     })
+
+    // 카카오 공식 JS SDK의 Share.sendCustom 사용
+    window.Kakao.Share.sendCustom({
+      templateId: 126420,
+      templateArgs: {
+        title: '제목 영역입니다.',
+        description: '설명 영역입니다.',
+      },
+    });
   } catch (error) {
     console.error("카카오 공유 실패:", error)
 
