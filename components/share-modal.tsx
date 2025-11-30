@@ -57,20 +57,20 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
 
   const choseAdd = (appointment: Appointment) => {
     const baseUrl = window.location.origin
-    const imageMap: Record<string, string> = {
-      "회식": "food.jpg",
-      "쇼핑": "shopping.jpg",
-      "영화": "movie.jpg",
-      "음악": "music.jpg",
-      "책": "book.jpg",
-    }
+    // const imageMap: Record<string, string> = {
+    //   "회식": "food.jpg",
+    //   "쇼핑": "shopping.jpg",
+    //   "영화": "movie.jpg",
+    //   "음악": "music.jpg",
+    //   "책": "book.jpg",
+    // }
 
-    // 키워드 매칭
-    for (const [keyword, filename] of Object.entries(imageMap)) {
-      if (appointment.title.includes(keyword)) {
-        return `${baseUrl}/add/${filename}`
-      }
-    }
+    // // 키워드 매칭
+    // for (const [keyword, filename] of Object.entries(imageMap)) {
+    //   if (appointment.title.includes(keyword)) {
+    //     return `${baseUrl}/add/${filename}`
+    //   }
+    // }
 
     // 기본 이미지
     return `${baseUrl}/logo.png`
