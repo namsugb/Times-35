@@ -26,12 +26,12 @@ export const methods = [
     category: "기본",
     comingSoon: false,
   },
-  {
-    id: "time-scheduling",
-    title: "시간",
-    description: "날짜와 시간을 30분 단위로 선택합니다.",
-    icon: TimerIcon,
-    category: "기본",
-    comingSoon: false,
-  },
+  // {
+  //   id: "time-scheduling",
+  //   title: "시간",
+  //   description: "날짜와 시간을 30분 단위로 선택합니다.",
+  //   icon: TimerIcon,
+  //   category: "기본",
+  //   comingSoon: false,
+  // },
 ]
