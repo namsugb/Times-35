@@ -4,6 +4,7 @@ export interface VoteResult {
   date?: string
   weekday?: number
   hour?: number
+  time?: string
   count: number
   voters: string[]
   percentage: number
@@ -64,37 +65,39 @@ export function calculateDateResults(
   }
 }
 
-// 시간별 투표 결과 계산
+// 시간별 투표 결과 계산 (30분 단위)
 export function calculateTimeResults(
-  timeVotes: Array<{ date: string; hour: number; count: number; voters: string[] }>,
+  timeVotes: Array<{ date: string; time: string; count: number; voters: string[] }>,
   totalVoters: number,
   requiredParticipants: number,
 ): CalculatedResults {
   const results: VoteResult[] = timeVotes.map((vote) => ({
     date: vote.date,
-    hour: vote.hour,
+    time: vote.time,
     count: vote.count,
     voters: vote.voters,
     percentage: totalVoters > 0 ? Math.round((vote.count / totalVoters) * 100) : 0,
   }))
 
-  // 투표 수 기준으로 정렬
+  // 투표 수 기준으로 정렬 (날짜 > 시간 순)
   results.sort((a, b) => {
     if (b.count !== a.count) return b.count - a.count
     if (a.date !== b.date) return a.date!.localeCompare(b.date!)
-    return (a.hour || 0) - (b.hour || 0)
+    return (a.time || "").localeCompare(b.time || "")
   })
 
   const allAvailable = results.filter((r) => r.count === totalVoters)
   const requiredAvailable = results.filter((r) => r.count >= requiredParticipants)
   const maxAvailable = results.length > 0 ? [results[0]] : []
-  const optimalSlots = results.slice(0, 10)
+  
+  // 최적의 연속된 시간 슬롯 찾기
+  const optimalSlots = findOptimalContinuousSlots(results, totalVoters)
 
   // 통계 계산
   const totalVotes = results.reduce((sum, r) => sum + r.count, 0)
   const avgVotesPerVoter = totalVoters > 0 ? totalVotes / totalVoters : 0
   const completionRate = totalVoters > 0 ? (results.length > 0 ? 100 : 0) : 0
-  const mostPopularOption = results.length > 0 ? `${results[0].date} ${results[0].hour}시` : "없음"
+  const mostPopularOption = results.length > 0 ? `${results[0].date} ${results[0].time}` : "없음"
 
   return {
     allAvailable,
@@ -109,6 +112,91 @@ export function calculateTimeResults(
       mostPopularOption,
     },
   }
+}
+
+// 연속된 시간대 중 최적의 슬롯 찾기
+function findOptimalContinuousSlots(
+  results: VoteResult[],
+  totalVoters: number
+): VoteResult[] {
+  if (results.length === 0) return []
+
+  // 날짜별로 그룹화
+  const byDate: Record<string, VoteResult[]> = {}
+  results.forEach(result => {
+    if (result.date) {
+      if (!byDate[result.date]) {
+        byDate[result.date] = []
+      }
+      byDate[result.date].push(result)
+    }
+  })
+
+  // 각 날짜에서 연속된 시간대 찾기
+  const continuousRanges: Array<{
+    date: string
+    startTime: string
+    endTime: string
+    minCount: number
+    avgCount: number
+  }> = []
+
+  Object.entries(byDate).forEach(([date, slots]) => {
+    // 시간순 정렬
+    slots.sort((a, b) => (a.time || "").localeCompare(b.time || ""))
+
+    let i = 0
+    while (i < slots.length) {
+      let j = i
+      let minCount = slots[i].count
+      let totalCount = slots[i].count
+
+      // 연속된 시간대 찾기 (30분 간격)
+      while (j < slots.length - 1) {
+        const currentTime = slots[j].time || ""
+        const nextTime = slots[j + 1].time || ""
+        
+        const [currH, currM] = currentTime.split(':').map(Number)
+        const [nextH, nextM] = nextTime.split(':').map(Number)
+        
+        const currMinutes = currH * 60 + currM
+        const nextMinutes = nextH * 60 + nextM
+        
+        if (nextMinutes - currMinutes === 30) {
+          j++
+          minCount = Math.min(minCount, slots[j].count)
+          totalCount += slots[j].count
+        } else {
+          break
+        }
+      }
+
+      // 연속된 범위가 2개 이상의 슬롯으로 구성되어 있으면 추가
+      if (j > i) {
+        continuousRanges.push({
+          date,
+          startTime: slots[i].time || "",
+          endTime: slots[j].time || "",
+          minCount,
+          avgCount: totalCount / (j - i + 1)
+        })
+      }
+
+      i = j + 1
+    }
+  })
+
+  // 최소 참여자 수 기준으로 정렬
+  continuousRanges.sort((a, b) => b.minCount - a.minCount || b.avgCount - a.avgCount)
+
+  // 상위 10개 반환 (VoteResult 형식으로 변환)
+  return continuousRanges.slice(0, 10).map(range => ({
+    date: range.date,
+    time: `${range.startTime} ~ ${range.endTime}`,
+    count: range.minCount,
+    voters: [],
+    percentage: totalVoters > 0 ? Math.round((range.minCount / totalVoters) * 100) : 0,
+  }))
 }
 
 // 요일별 투표 결과 계산
@@ -157,7 +245,7 @@ export function calculateWeekdayResults(
 // 날짜별 달력 표시용 데이터 계산
 export function calculateCalendarData(
   dateVotes: Record<string, { count: number; voters: string[] }>,
-  timeVotes: Array<{ date: string; hour: number; count: number; voters: string[] }>,
+  timeVotes: Array<{ date: string; time: string; count: number; voters: string[] }>,
   method: string,
 ): Record<string, { count: number; voters: string[]; maxTimeCount?: number }> {
   if (method === "time-scheduling") {

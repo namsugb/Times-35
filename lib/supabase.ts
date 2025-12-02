@@ -117,7 +117,7 @@ export type Database = {
           voter_id: string
           appointment_id: string
           vote_date: string
-          vote_hour: number
+          vote_time: string
           created_at: string
         }
         Insert: {
@@ -125,14 +125,14 @@ export type Database = {
           voter_id: string
           appointment_id: string
           vote_date: string
-          vote_hour: number
+          vote_time: string
         }
         Update: {
           id?: string
           voter_id?: string
           appointment_id?: string
           vote_date?: string
-          vote_hour?: number
+          vote_time?: string
         }
       }
       weekday_votes: {

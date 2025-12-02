@@ -16,11 +16,9 @@ import {
   createVoter,
   createDateVotes,
   createTimeVotes,
-  createWeekdayVotes,
   getVoters,
   updateDateVotes,
   updateTimeVotes,
-  updateWeekdayVotes,
   addNotificationToQueue,
 } from "@/lib/database"
 import { checkVotingCompletion } from "@/lib/vote/checkcomplete"
@@ -30,7 +28,7 @@ import { VoteTimeScheduling } from "./components/VoteTimeScheduling"
 
 interface DateTimeSelection {
   date: string
-  times: number[]
+  times: string[]
 }
 
 export default function VotePage() {
@@ -148,7 +146,7 @@ export default function VotePage() {
    */
   const handleSubmit = async (
     e: React.FormEvent,
-    data: Date[] | number[] | DateTimeSelection[]
+    data: Date[] | string[] | DateTimeSelection[]
   ) => {
     e.preventDefault()
 

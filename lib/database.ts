@@ -170,15 +170,15 @@ export async function updateDateVotes(voterId: string, appointmentId: string, da
 export async function createTimeVotes(
   voterId: string,
   appointmentId: string,
-  timeVotes: { date: string; times: number[] }[],
+  timeVotes: { date: string; times: string[] }[],
 ) {
   try {
     const votes = timeVotes.flatMap(({ date, times }) =>
-      times.map((hour) => ({
+      times.map((time) => ({
         voter_id: voterId,
         appointment_id: appointmentId,
         vote_date: date,
-        vote_hour: hour,
+        vote_time: time,
       })),
     )
 
@@ -200,7 +200,7 @@ export async function createTimeVotes(
 export async function updateTimeVotes(
   voterId: string,
   appointmentId: string,
-  timeVotes: { date: string; times: number[] }[],
+  timeVotes: { date: string; times: string[] }[],
 ) {
   try {
     // 기존 투표 삭제 후 새로 생성 (수정을 위해)
@@ -211,11 +211,11 @@ export async function updateTimeVotes(
       .eq("appointment_id", appointmentId)
 
     const votes = timeVotes.flatMap(({ date, times }) =>
-      times.map((hour) => ({
+      times.map((time) => ({
         voter_id: voterId,
         appointment_id: appointmentId,
         vote_date: date,
-        vote_hour: hour,
+        vote_time: time,
       })),
     )
 
@@ -233,71 +233,6 @@ export async function updateTimeVotes(
   }
 }
 
-// 요일 투표 생성
-export async function createWeekdayVotes(voterId: string, appointmentId: string, weekdays: number[]) {
-  try {
-    const votes = weekdays.map((weekday) => ({
-      voter_id: voterId,
-      appointment_id: appointmentId,
-      weekday,
-    }))
-
-    const { data, error } = await supabase.from("weekday_votes").insert(votes).select()
-
-    if (error) {
-      console.error("요일 투표 생성 오류:", error)
-      throw new Error(`요일 투표 저장에 실패했습니다: ${error.message}`)
-    }
-
-    return data
-  } catch (error: any) {
-    console.error("createWeekdayVotes 오류:", error)
-    throw error
-  }
-}
-
-// 요일 투표 수정
-export async function updateWeekdayVotes(voterId: string, appointmentId: string, weekdays: number[]) {
-  try {
-    // 기존 투표 삭제
-    const { error: deleteError } = await supabase
-      .from("weekday_votes")
-      .delete()
-      .eq("voter_id", voterId)
-      .eq("appointment_id", appointmentId)
-
-    if (deleteError) {
-      console.error("기존 요일 투표 삭제 오류:", deleteError)
-      throw new Error(`기존 요일 투표 삭제에 실패했습니다: ${deleteError.message}`)
-    }
-
-    // 새로운 투표 생성 (빈 배열이면 아무것도 삽입하지 않음)
-    if (weekdays.length > 0) {
-      const votes = weekdays.map((weekday) => ({
-        voter_id: voterId,
-        appointment_id: appointmentId,
-        weekday,
-      }))
-
-      const { data, error } = await supabase
-        .from("weekday_votes")
-        .insert(votes)
-        .select()
-
-      if (error) {
-        console.error("새 요일 투표 생성 오류:", error)
-        throw new Error(`새 요일 투표 생성에 실패했습니다: ${error.message}`)
-      }
-
-      return data
-    }
-
-    return []
-  } catch (error: any) {
-    console.error("updateWeekdayVotes 오류:", error)
-    throw error
-  }
-}
 
 // 날짜별 투표 현황 조회
 export async function getDateVoteResults(appointmentId: string) {
@@ -320,7 +255,14 @@ export async function getDateVoteResults(appointmentId: string) {
         acc[date] = { count: 0, voterss: [] }
       }
       acc[date].count += 1
-      acc[date].voterss.push(vote.voters.name)
+      // Supabase JOIN 결과 처리
+      const voters = vote.voters as any
+      const voterName = Array.isArray(voters)
+        ? voters[0]?.name
+        : voters?.name
+      if (voterName) {
+        acc[date].voterss.push(voterName)
+      }
 
       return acc
     },
@@ -335,7 +277,7 @@ export async function getTimeVoteResults(appointmentId: string) {
     .from("time_votes")
     .select(`
       vote_date,
-      vote_hour,
+      vote_time,
       voter_id,
       voters(name)
     `)
@@ -346,22 +288,29 @@ export async function getTimeVoteResults(appointmentId: string) {
   // 날짜-시간별로 그룹화
   const results = data.reduce(
     (acc, vote) => {
-      const key = `${vote.vote_date}-${vote.vote_hour}`
+      const key = `${vote.vote_date}-${vote.vote_time}`
       if (!acc[key]) {
         acc[key] = {
           date: vote.vote_date,
-          hour: vote.vote_hour,
+          time: vote.vote_time,
           count: 0,
           voters: [],
         }
       }
       acc[key].count += 1
-      if (vote.voters && Array.isArray(vote.voters) && vote.voters.length > 0) {
-        acc[key].voters.push(vote.voters[0].name)
+      // Supabase JOIN 결과 처리 (단일 객체 또는 배열 모두 처리)
+      if (vote.voters) {
+        const voters = vote.voters as any
+        const voterName = Array.isArray(voters)
+          ? voters[0]?.name
+          : voters?.name
+        if (voterName) {
+          acc[key].voters.push(voterName)
+        }
       }
       return acc
     },
-    {} as Record<string, { date: string; hour: number; count: number; voters: string[] }>,
+    {} as Record<string, { date: string; time: string; count: number; voters: string[] }>,
   )
 
   return Object.values(results)
@@ -388,7 +337,14 @@ export async function getWeekdayVoteResults(appointmentId: string) {
         acc[weekday] = { count: 0, voters: [] }
       }
       acc[weekday].count += 1
-      acc[weekday].voters.push(vote.voters.name)
+      // Supabase JOIN 결과 처리
+      const voters = vote.voters as any
+      const voterName = Array.isArray(voters)
+        ? voters[0]?.name
+        : voters?.name
+      if (voterName) {
+        acc[weekday].voters.push(voterName)
+      }
 
       return acc
     },

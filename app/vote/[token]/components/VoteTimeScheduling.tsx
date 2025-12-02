@@ -10,10 +10,22 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { CustomCalendar } from "@/components/ui/custom-calendar"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { TimeSlotSelector } from "@/components/time-slot-selector"
+import { Loader2 } from "lucide-react"
 
 interface DateTimeSelection {
     date: string
-    times: number[]
+    times: string[]
+}
+
+// 07:00 ~ 23:30까지 30분 간격으로 모든 시간 생성
+const generateAllTimeSlots = (): string[] => {
+    const slots: string[] = []
+    for (let hour = 7; hour < 24; hour++) {
+        slots.push(`${hour.toString().padStart(2, '0')}:00`)
+        slots.push(`${hour.toString().padStart(2, '0')}:30`)
+    }
+    return slots
 }
 
 interface VoteTimeSchedulingProps {
@@ -37,38 +49,22 @@ export function VoteTimeScheduling({
     const [selectedDateTimes, setSelectedDateTimes] = useState<DateTimeSelection[]>([])
     const [isTimeModalOpen, setIsTimeModalOpen] = useState(false)
     const [currentSelectedDate, setCurrentSelectedDate] = useState<Date | null>(null)
-    const [tempSelectedTimes, setTempSelectedTimes] = useState<number[]>([])
+    const [tempSelectedTimes, setTempSelectedTimes] = useState<string[]>([])
 
     const handleDateSelect = (dates: Date[] | undefined) => {
         setSelectedDates(dates ?? [])
     }
 
     const handleDateClick = (date: Date) => {
-        const isAlreadySelected = selectedDates.some(
-            (d) => format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
-        )
-
-        if (isAlreadySelected) {
-            // 이미 선택된 날짜면 모달 열지 않음 (선택은 자동 해제됨)
-            return
-        }
-
         const dateStr = format(date, "yyyy-MM-dd")
         const existingSelection = selectedDateTimes.find((dt) => dt.date === dateStr)
 
-        setCurrentSelectedDate(date)
-        setTempSelectedTimes(existingSelection?.times || [])
-        setIsTimeModalOpen(true)
-    }
+        // 기본값: 모든 시간 선택 (07:00 ~ 23:30)
+        const allTimes = generateAllTimeSlots()
 
-    const handleTimeToggle = (hour: number) => {
-        setTempSelectedTimes((prev) => {
-            if (prev.includes(hour)) {
-                return prev.filter((h) => h !== hour)
-            } else {
-                return [...prev, hour].sort((a, b) => a - b)
-            }
-        })
+        setCurrentSelectedDate(date)
+        setTempSelectedTimes(existingSelection?.times || allTimes)
+        setIsTimeModalOpen(true)
     }
 
     const handleTimeConfirm = () => {
@@ -97,6 +93,7 @@ export function VoteTimeScheduling({
     }
 
     const handleFormSubmit = (e: React.FormEvent) => {
+        console.log(selectedDateTimes)
         onSubmit(e, selectedDateTimes)
     }
 
@@ -119,7 +116,7 @@ export function VoteTimeScheduling({
 
                 <div className="space-y-2">
                     <Label className="block mb-2">
-                        참석 가능한 날짜와 시간 {selectedDates.length > 0 && `(${selectedDates.length}개 선택됨)`}
+                        참석 가능한 날짜와 시간
                     </Label>
                     <div className="w-full border rounded-md p-2 bg-background">
                         <CustomCalendar
@@ -137,7 +134,7 @@ export function VoteTimeScheduling({
                         />
                     </div>
 
-                    <p className="text-sm text-muted-foreground mt-2">
+                    {/* <p className="text-sm text-muted-foreground mt-2">
                         참석 가능한 날짜를 클릭하여 시간을 선택해주세요.
                     </p>
 
@@ -150,14 +147,14 @@ export function VoteTimeScheduling({
                                         <span>{format(parseISO(dt.date), "M월 d일 (eee)", { locale: ko })}</span>
                                         <Badge variant="outline">
                                             {dt.times.length === 1
-                                                ? `${dt.times[0]}시`
-                                                : `${dt.times[0]}시~${dt.times[dt.times.length - 1]}시 외 ${dt.times.length}개`}
+                                                ? dt.times[0]
+                                                : `${dt.times[0]}~${dt.times[dt.times.length - 1]} 외 ${dt.times.length}개`}
                                         </Badge>
                                     </div>
                                 ))}
                             </div>
                         </div>
-                    )}
+                    )} */}
                 </div>
 
                 <div className="pt-4">
@@ -167,49 +164,35 @@ export function VoteTimeScheduling({
                         disabled={selectedDateTimes.length === 0 || !name.trim() || submitting}
                     >
                         {submitting
-                            ? "투표 중..."
-                            : `투표 완료하기 ${selectedDateTimes.length > 0 ? `(${selectedDateTimes.length}개)` : "선택된 시간 없음"
-                            }`}
+                            ? <><Loader2 className="w-4 h-4 animate-spin" /><span className="animate-pulse">투표 중...</span></>
+                            : <span className="font-bold">투표 완료하기</span>}
                     </Button>
                 </div>
             </form>
 
             {/* 시간 선택 모달 */}
             <Dialog open={isTimeModalOpen} onOpenChange={setIsTimeModalOpen}>
-                <DialogContent className="w-[90vw] max-w-[400px] mx-auto">
-                    <DialogHeader>
-                        <DialogTitle>시간 선택</DialogTitle>
-                        <DialogDescription>
-                            {currentSelectedDate && format(currentSelectedDate, "M월 d일 (eee)", { locale: ko })}에 참석 가능한
-                            시간을 선택해주세요.
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="text-center">
+                        <DialogTitle className="text-center">시간 선택</DialogTitle>
+                        <DialogDescription className="text-center">
+                            {currentSelectedDate && format(currentSelectedDate, "M월 d일 (eee)", { locale: ko })} <br />
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="py-4">
-                        <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
-                            {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
-                                <Button
-                                    key={hour}
-                                    variant={tempSelectedTimes.includes(hour) ? "default" : "outline"}
-                                    size="sm"
-                                    className="h-10 text-xs"
-                                    onClick={() => handleTimeToggle(hour)}
-                                >
-                                    {hour}시
-                                </Button>
-                            ))}
-                        </div>
+                        <TimeSlotSelector
+                            selectedTimes={tempSelectedTimes}
+                            onChange={setTempSelectedTimes}
+                        />
 
-                        <div className="flex justify-between items-center mt-6">
-                            <div className="text-sm text-muted-foreground">
-                                {tempSelectedTimes.length > 0 && `${tempSelectedTimes.length}개 시간 선택됨`}
-                            </div>
-                            <div className="flex gap-2">
-                                <Button variant="outline" onClick={() => setIsTimeModalOpen(false)}>
-                                    취소
-                                </Button>
-                                <Button onClick={handleTimeConfirm}>확인</Button>
-                            </div>
+                        <div className="flex justify-center gap-2 mt-6">
+                            <Button variant="outline" onClick={() => setIsTimeModalOpen(false)}>
+                                취소
+                            </Button>
+                            <Button onClick={handleTimeConfirm}>
+                                완료
+                            </Button>
                         </div>
                     </div>
                 </DialogContent>

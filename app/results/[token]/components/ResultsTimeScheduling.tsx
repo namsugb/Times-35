@@ -1,25 +1,32 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { CustomCalendar } from "@/components/ui/custom-calendar"
+import { TimeResultViewer } from "@/components/time-result-viewer"
 import { format, parseISO } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Calendar, Clock, Crown } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface ResultsTimeSchedulingProps {
     appointment: any
-    timeResults: any[]
+    timeResults: Array<{ date: string; time: string; count: number; voters: string[] }>
     voters: any[]
     token: string
 }
 
 export function ResultsTimeScheduling({ appointment, timeResults, voters, token }: ResultsTimeSchedulingProps) {
     const router = useRouter()
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+    const [isTimeResultModalOpen, setIsTimeResultModalOpen] = useState(false)
 
-    // 시간 투표 결과 처리
-    const timeResultsByDate = timeResults.reduce((acc: any, result: any) => {
+    // 날짜별로 그룹화
+    const timeResultsByDate = timeResults.reduce((acc: Record<string, any[]>, result) => {
         if (!acc[result.date]) {
             acc[result.date] = []
         }
@@ -27,44 +34,246 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
         return acc
     }, {})
 
-    // 최적의 시간대 계산
-    const getOptimalTimeSlots = () => {
-        const timeSlotMap = new Map()
+    // 날짜에 투표가 있는지 확인
+    const datesWithVotes = Object.keys(timeResultsByDate).map(dateStr => parseISO(dateStr))
 
-        Object.entries(timeResultsByDate).forEach(([date, slots]: [string, any]) => {
-            slots.forEach((slot: any) => {
-                const key = `${date}-${slot.hour}`
-                if (!timeSlotMap.has(key)) {
-                    timeSlotMap.set(key, {
-                        date,
-                        hour: slot.hour,
-                        voters: new Set(),
-                        count: 0,
-                    })
+    // 날짜 클릭 핸들러
+    const handleDateClick = (date: Date) => {
+        const dateStr = format(date, "yyyy-MM-dd")
+        if (timeResultsByDate[dateStr]) {
+            setSelectedDate(date)
+            setIsTimeResultModalOpen(true)
+        }
+    }
+
+    // 선택된 날짜의 시간별 결과
+    const selectedDateResults = selectedDate
+        ? timeResultsByDate[format(selectedDate, "yyyy-MM-dd")] || []
+        : []
+
+    // 최적의 시간 범위 계산
+    const calculateOptimalTimeRange = () => {
+        if (timeResults.length === 0) return null
+
+        // 날짜-시간별로 정렬
+        const sortedResults = [...timeResults].sort((a, b) => {
+            if (a.date !== b.date) {
+                return a.date.localeCompare(b.date)
+            }
+            return a.time.localeCompare(b.time)
+        })
+
+        // 가장 많은 사람이 참여 가능한 시간대 찾기
+        let bestRange = {
+            date: sortedResults[0].date,
+            startTime: sortedResults[0].time,
+            endTime: sortedResults[0].time,
+            count: sortedResults[0].count,
+            voters: sortedResults[0].voters
+        }
+
+        // 연속된 시간 슬롯 중에서 평균 참여자가 많은 범위 찾기
+        for (let i = 0; i < sortedResults.length; i++) {
+            const current = sortedResults[i]
+
+            // 더 많은 참여자가 있는 단일 시간대 발견
+            if (current.count > bestRange.count) {
+                bestRange = {
+                    date: current.date,
+                    startTime: current.time,
+                    endTime: current.time,
+                    count: current.count,
+                    voters: current.voters
                 }
-                timeSlotMap.get(key).voters.add(slot.voter_name)
-                timeSlotMap.get(key).count = timeSlotMap.get(key).voters.size
+            }
+
+            // 연속된 시간대 체크 (같은 날짜)
+            let j = i
+            let minCount = current.count
+            while (j < sortedResults.length - 1) {
+                const next = sortedResults[j + 1]
+
+                // 다른 날짜이거나 연속되지 않으면 중단
+                if (next.date !== current.date) break
+
+                const currentMinutes = parseInt(sortedResults[j].time.split(':')[0]) * 60 +
+                    parseInt(sortedResults[j].time.split(':')[1])
+                const nextMinutes = parseInt(next.time.split(':')[0]) * 60 +
+                    parseInt(next.time.split(':')[1])
+
+                if (nextMinutes - currentMinutes !== 30) break
+
+                minCount = Math.min(minCount, next.count)
+
+                // 연속된 범위가 더 나은 경우 (최소 참여자가 많은 경우)
+                if (minCount > bestRange.count) {
+                    bestRange = {
+                        date: current.date,
+                        startTime: current.time,
+                        endTime: next.time,
+                        count: minCount,
+                        voters: current.voters // 대표 투표자 목록
+                    }
+                }
+
+                j++
+            }
+        }
+
+        return bestRange
+    }
+
+    const optimalTimeRange = calculateOptimalTimeRange()
+
+    // Top 5 연속 시간대 계산 함수
+    const calculateTopTimeRanges = () => {
+        if (timeResults.length === 0) return []
+
+        // 1. 날짜별로 그룹화하고 시간순 정렬
+        const groupedByDate: Record<string, Array<{ time: string; count: number; voters: string[] }>> = {}
+
+        timeResults.forEach(result => {
+            if (!groupedByDate[result.date]) {
+                groupedByDate[result.date] = []
+            }
+            groupedByDate[result.date].push({
+                time: result.time,
+                count: result.count,
+                voters: result.voters
             })
         })
 
-        return Array.from(timeSlotMap.values())
-            .sort((a, b) => b.count - a.count)
-            .map((slot) => ({
-                ...slot,
-                voters: Array.from(slot.voters),
-                percentage: Math.round((slot.count / voters.length) * 100),
-            }))
+        // 각 날짜의 시간을 시간순으로 정렬
+        Object.keys(groupedByDate).forEach(date => {
+            groupedByDate[date].sort((a, b) => a.time.localeCompare(b.time))
+        })
+
+        // 2. 같은 참여자 수를 가진 연속 시간대를 찾아서 범위로 만들기
+        const timeRanges: Array<{
+            date: string
+            startTime: string
+            endTime: string
+            count: number
+            voters: Set<string>
+        }> = []
+
+        Object.entries(groupedByDate).forEach(([date, times]) => {
+            if (times.length === 0) return
+
+            let currentRange = {
+                date,
+                startTime: times[0].time,
+                endTime: times[0].time,
+                count: times[0].count,
+                voters: new Set(times[0].voters)
+            }
+
+            for (let i = 1; i < times.length; i++) {
+                const prevTime = times[i - 1].time
+                const currTime = times[i].time
+                const prevCount = times[i - 1].count
+                const currCount = times[i].count
+
+                // 30분 간격인지 확인
+                const [prevHour, prevMin] = prevTime.split(':').map(Number)
+                const [currHour, currMin] = currTime.split(':').map(Number)
+                const prevMinutes = prevHour * 60 + prevMin
+                const currMinutes = currHour * 60 + currMin
+
+                // 연속되고 같은 참여자 수인 경우에만 범위 확장
+                if (currMinutes - prevMinutes === 30 && currCount === prevCount) {
+                    currentRange.endTime = currTime
+                    times[i].voters.forEach(voter => currentRange.voters.add(voter))
+                } else {
+                    // 참여자 수가 변하거나 연속 끊김 -> 현재 범위 저장하고 새 범위 시작
+                    timeRanges.push({
+                        date: currentRange.date,
+                        startTime: currentRange.startTime,
+                        endTime: currentRange.endTime,
+                        count: currentRange.count,
+                        voters: currentRange.voters
+                    })
+
+                    currentRange = {
+                        date,
+                        startTime: times[i].time,
+                        endTime: times[i].time,
+                        count: times[i].count,
+                        voters: new Set(times[i].voters)
+                    }
+                }
+            }
+
+            // 마지막 범위 추가
+            timeRanges.push({
+                date: currentRange.date,
+                startTime: currentRange.startTime,
+                endTime: currentRange.endTime,
+                count: currentRange.count,
+                voters: currentRange.voters
+            })
+        })
+
+        // 시간 범위의 길이 계산 (분 단위)
+        const getTimeRangeDuration = (startTime: string, endTime: string) => {
+            const [startHour, startMin] = startTime.split(':').map(Number)
+            const [endHour, endMin] = endTime.split(':').map(Number)
+            const startMinutes = startHour * 60 + startMin
+            const endMinutes = endHour * 60 + endMin
+            return endMinutes - startMinutes + 30 // 30분 추가 (마지막 슬롯 포함)
+        }
+
+        // 3. 참여자 수로 정렬하고 상위 5개 선택
+        const top5 = timeRanges
+            .sort((a, b) => {
+                // 1순위: 참여자 수
+                if (b.count !== a.count) return b.count - a.count
+                // 2순위: 시간 범위 길이 (더 긴 범위 우선)
+                const aDuration = getTimeRangeDuration(a.startTime, a.endTime)
+                const bDuration = getTimeRangeDuration(b.startTime, b.endTime)
+                if (bDuration !== aDuration) return bDuration - aDuration
+                // 3순위: 날짜
+                if (a.date !== b.date) return a.date.localeCompare(b.date)
+                // 4순위: 시작 시간
+                return a.startTime.localeCompare(b.startTime)
+            })
+            .slice(0, 5)
+
+        return top5
     }
 
-    const optimalTimeSlots = getOptimalTimeSlots()
-    const bestTimeSlot = optimalTimeSlots[0]
+    const topTimeRanges = calculateTopTimeRanges()
+
+    // 종료 시간 계산 (30분 추가)
+    const getEndTime = (time: string) => {
+        const [hour, minute] = time.split(':').map(Number)
+        const totalMinutes = hour * 60 + minute + 30
+        const endHour = Math.floor(totalMinutes / 60)
+        const endMinute = totalMinutes % 60
+        return `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`
+    }
+
+    // 진행 바 생성 (최대 10칸)
+    const getProgressBar = (count: number, maxCount: number) => {
+        const barLength = Math.max(1, Math.round((count / maxCount) * 10))
+        return '█'.repeat(barLength)
+    }
+
+    const maxVoterCount = Math.max(...topTimeRanges.map(r => r.count), voters.length > 0 ? voters.length : 1)
+
+    const isDateDisabled = (date: Date) => {
+        if (!appointment?.start_date || !appointment?.end_date) return false
+        const startDate = parseISO(appointment.start_date)
+        const endDate = parseISO(appointment.end_date)
+        return date < startDate || date > endDate
+    }
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 메인 콘텐츠 영역 */}
             <div className="lg:col-span-2 space-y-6">
                 {/* 최적 시간대 추천 */}
-                {bestTimeSlot && (
+                {/* {optimalTimeRange && (
                     <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
                         <CardHeader>
                             <CardTitle className="text-lg sm:text-xl flex items-center gap-2 text-emerald-800">
@@ -75,114 +284,142 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                         <CardContent>
                             <div className="space-y-4">
                                 <div className="bg-white rounded-lg p-4 border border-emerald-200">
-                                    <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center gap-2">
                                             <Calendar className="h-4 w-4 text-emerald-600" />
                                             <span className="font-semibold text-emerald-800">
-                                                {format(parseISO(bestTimeSlot.date), "M월 d일 (E)", { locale: ko })}
+                                                {format(parseISO(optimalTimeRange.date), "M월 d일 (E)", { locale: ko })}
                                             </span>
                                         </div>
-                                        <Badge className="bg-emerald-100 text-emerald-800">{bestTimeSlot.count}명 참여</Badge>
+                                        <Badge className="bg-emerald-100 text-emerald-800">
+                                            {optimalTimeRange.count}명 참여
+                                        </Badge>
                                     </div>
                                     <div className="flex items-center gap-2 mb-3">
                                         <Clock className="h-4 w-4 text-emerald-600" />
-                                        <span className="text-lg font-bold text-emerald-700">{bestTimeSlot.hour}시</span>
-                                        <span className="text-sm text-emerald-600">({bestTimeSlot.percentage}% 참여율)</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1">
-                                        {bestTimeSlot.voters.map((voter: string, index: number) => (
-                                            <Badge
-                                                key={index}
-                                                variant="outline"
-                                                className="text-xs bg-emerald-50 border-emerald-200 text-emerald-700"
-                                            >
-                                                {voter}
-                                            </Badge>
-                                        ))}
+                                        <span className="text-lg font-bold text-emerald-700">
+                                            {optimalTimeRange.startTime} ~ {getEndTime(optimalTimeRange.endTime)}
+                                        </span>
+                                        <span className="text-sm text-emerald-600">
+                                            ({Math.round((optimalTimeRange.count / voters.length) * 100)}% 참여율)
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
+                )} */}
+
+                {/* Top 5 투표 결과 카드 */}
+                {topTimeRanges.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Crown className="h-5 w-5 text-yellow-500" />
+                                투표 결과
+                            </CardTitle>
+                            <CardDescription>
+                                가장 많은 사람이 참여 가능한 시간대
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                {topTimeRanges.map((range, index) => {
+                                    const dateObj = parseISO(range.date)
+                                    const dateLabel = format(dateObj, "M/d(eee)", { locale: ko })
+                                    const startTime = range.startTime
+                                    const endTime = getEndTime(range.endTime)
+                                    const timeLabel = startTime === range.endTime
+                                        ? startTime
+                                        : `${startTime}-${endTime}`
+
+                                    return (
+                                        <div key={index} className="flex items-center gap-3">
+                                            {/* 순위 */}
+                                            <div className={cn(
+                                                "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm",
+                                                index === 0 && "bg-yellow-500 text-white",
+                                                index === 1 && "bg-gray-400 text-white",
+                                                index === 2 && "bg-amber-700 text-white",
+                                                index > 2 && "bg-gray-200 text-gray-700"
+                                            )}>
+                                                {index + 1}
+                                            </div>
+
+                                            {/* 날짜와 시간 */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="font-semibold text-sm">
+                                                        {dateLabel}
+                                                    </span>
+                                                    <span className="text-sm text-muted-foreground">
+                                                        {timeLabel}
+                                                    </span>
+                                                </div>
+
+                                                {/* 프로그레스 바 */}
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <div className="text-green-600 text-xs font-mono">
+                                                        {getProgressBar(range.count, maxVoterCount)}
+                                                    </div>
+                                                    <span className="text-xs font-semibold text-gray-700">
+                                                        {range.count}명
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* 참여율 */}
+                                            <div className="flex-shrink-0 text-right">
+                                                <div className="text-sm font-bold text-green-600">
+                                                    {voters.length > 0 ? Math.round((range.count / voters.length) * 100) : 0}%
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    {range.count}/{voters.length}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t">
+                                <p className="text-xs text-muted-foreground">
+                                    💡 같은 참여자 수를 가진 연속된 시간대를 하나의 범위로 표시합니다.
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
                 )}
 
-                {/* 날짜별 시간대 히트맵 */}
+                {/* 달력 표시 */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                        <CardTitle className="text-lg sm:text-xl flex justify-center items-center gap-2">
                             <Calendar className="h-5 w-5" />
-                            📅 날짜별 시간대 가용성
+                            투표결과 달력
                         </CardTitle>
-                        <CardDescription className="text-sm">각 날짜와 시간대별 참여 가능한 인원을 확인할 수 있습니다.</CardDescription>
+                        <CardDescription className="text-sm text-center">
+                            날짜를 클릭하면 해당 날짜의 시간대별 <br />
+                            참여 인원 현황을 확인할 수 있습니다.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-6">
-                            {Object.entries(timeResultsByDate).map(([date, slots]: [string, any]) => {
-                                const hourMap = slots.reduce((acc: any, slot: any) => {
-                                    if (!acc[slot.hour]) {
-                                        acc[slot.hour] = new Set()
-                                    }
-                                    acc[slot.hour].add(slot.voter_name)
-                                    return acc
-                                }, {})
-
-                                return (
-                                    <div key={date} className="border rounded-lg p-4 bg-gray-50">
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <Calendar className="h-4 w-4 text-gray-600" />
-                                            <span className="font-semibold text-gray-800">
-                                                {format(parseISO(date), "M월 d일 (E)", { locale: ko })}
-                                            </span>
-                                        </div>
-
-                                        {/* 시간대 그리드 */}
-                                        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2">
-                                            {Array.from({ length: 24 }, (_, i) => i).map((hour) => {
-                                                const votersSet = hourMap[hour] || new Set()
-                                                const count = votersSet.size
-                                                const percentage = votersSet.size > 0 ? Math.round((count / voters.length) * 100) : 0
-
-                                                const getHeatColor = () => {
-                                                    if (count === 0) return "bg-gray-100 text-gray-400 border-gray-200"
-                                                    if (count === voters.length) return "bg-emerald-500 text-white border-emerald-600"
-                                                    if (percentage >= 80) return "bg-green-400 text-white border-green-500"
-                                                    if (percentage >= 60) return "bg-green-300 text-gray-900 border-green-400"
-                                                    if (percentage >= 40) return "bg-green-200 text-gray-800 border-green-300"
-                                                    return "bg-green-100 text-gray-700 border-green-200"
-                                                }
-
-                                                return (
-                                                    <div
-                                                        key={hour}
-                                                        className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center text-xs font-medium transition-all duration-200 hover:scale-105 cursor-pointer ${getHeatColor()}`}
-                                                        title={`${hour}시: ${count}명 참여 가능`}
-                                                    >
-                                                        <span className="text-xs">{hour}</span>
-                                                        {count > 0 && <span className="text-xs font-bold">{count}</span>}
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-
-                                        {/* 범례 */}
-                                        <div className="flex items-center gap-4 mt-4 text-xs text-gray-600">
-                                            <div className="flex items-center gap-1">
-                                                <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded"></div>
-                                                <span>불가능</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
-                                                <span>일부 가능</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <div className="w-3 h-3 bg-emerald-500 border border-emerald-600 rounded"></div>
-                                                <span>전원 가능</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )
-                            })}
+                        <div className="w-full border rounded-md p-2 bg-background">
+                            <CustomCalendar
+                                selected={datesWithVotes}
+                                onDayClick={handleDateClick}
+                                className="mx-auto p-3"
+                                disabled={isDateDisabled}
+                                defaultMonth={parseISO(appointment.start_date)}
+                                fromDate={parseISO(appointment.start_date)}
+                                toDate={parseISO(appointment.end_date)}
+                                showOutsideDays={false}
+                                isTimeScheduling={true}
+                            />
                         </div>
+                        <p className="text-sm text-muted-foreground mt-4">
+
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -204,7 +441,6 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                     </CardContent>
                 </Card>
 
-
                 {/* 추가 액션 버튼들 */}
                 <div className="space-y-3">
                     <Button onClick={() => router.push(`/vote/${token}`)} className="w-full">
@@ -215,7 +451,26 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                     </Button>
                 </div>
             </div>
+
+            {/* 시간대별 투표 결과 모달 */}
+            <Dialog open={isTimeResultModalOpen} onOpenChange={setIsTimeResultModalOpen}>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {selectedDate && format(selectedDate, "M월 d일 (E)", { locale: ko })} 시간대별 투표 현황
+                        </DialogTitle>
+                        <DialogDescription>
+                            각 시간대를 클릭하면 참여 가능한 사람들을 확인할 수 있습니다.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <TimeResultViewer
+                            dateResults={selectedDateResults}
+                            totalVoters={voters.length}
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
-

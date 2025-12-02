@@ -95,31 +95,7 @@ export default function GuidePage() {
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Share2 className="h-5 w-5 text-purple-500" />
-                                반복 요일
-                            </CardTitle>
-                            <CardDescription>
-                                반복 적으로 만날 요일을 정할 때 사용하는 방식입니다.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="space-y-2">
-                                <h4 className="font-medium">투표완료</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    • 약속 생성시 설정한 인원 수 만큼의 인원이 투표에 참여하면 투표가 완료됩니다.
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <h4 className="font-medium">추천 상황</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    • 정기모임 약속
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
+
                 </div>
 
                 <Separator />

@@ -121,11 +121,11 @@ export default function ResultsPage() {
       <CardHeader>
         <div className="flex items-center gap-3">
           {getMethodIcon(appointment.method)}
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-xl sm:text-2xl truncate">{appointment.title}</CardTitle>
-            <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
-              <Badge variant="secondary">{getMethodName(appointment.method)}</Badge>
-            </CardDescription>
+          <div className="flex min-w-0">
+            <CardTitle className="text-xl sm:text-2xl truncate mr-3">{appointment.title}</CardTitle>
+            {/* <CardDescription className="flex  sm:flex-row sm:items-center gap-2 mt-1"> */}
+            <Badge variant="secondary">{getMethodName(appointment.method)}</Badge>
+            {/* </CardDescription> */}
           </div>
         </div>
       </CardHeader>
