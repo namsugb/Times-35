@@ -2,14 +2,14 @@ import { CalendarIcon, UsersIcon, ClockIcon, TimerIcon } from "lucide-react"
 
 
 export const methods = [
-  {
-    id: "time-scheduling",
-    title: "시간",
-    description: "최적의 시간을 찾습니다.",
-    icon: TimerIcon,
-    category: "기본",
-    comingSoon: false,
-  },
+  // {
+  //   id: "time-scheduling",
+  //   title: "시간",
+  //   description: "최적의 시간을 찾습니다.",
+  //   icon: TimerIcon,
+  //   category: "기본",
+  //   comingSoon: false,
+  // },
   {
     id: "all-available",
     title: "모두",
