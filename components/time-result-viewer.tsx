@@ -19,10 +19,11 @@ interface TimeSlotResult {
 interface TimeResultViewerProps {
     dateResults: TimeSlotResult[]
     totalVoters: number
+    allVoterNames: string[]  // 전체 투표자 이름 목록
     className?: string
 }
 
-export function TimeResultViewer({ dateResults, totalVoters, className }: TimeResultViewerProps) {
+export function TimeResultViewer({ dateResults, totalVoters, allVoterNames, className }: TimeResultViewerProps) {
     const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotResult | null>(null)
     const [isVoterModalOpen, setIsVoterModalOpen] = useState(false)
 
@@ -186,25 +187,50 @@ export function TimeResultViewer({ dateResults, totalVoters, className }: TimeRe
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {selectedTimeSlot?.time} 참석 가능한 사람
+                            {selectedTimeSlot?.time} 참석 현황
                         </DialogTitle>
                     </DialogHeader>
-                    <div className="mb-4">
-                        <p className="text-sm text-gray-700 font-medium">
-                            {selectedTimeSlot?.voters.join(", ")}
-                        </p>
-                    </div>
-                    <div className="py-4">
-                        <div className="flex flex-wrap gap-2">
-                            {selectedTimeSlot?.voters.map((voter, index) => (
-                                <div
-                                    key={index}
-                                    className="px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-medium"
-                                >
-                                    {voter}
-                                </div>
-                            ))}
+                    <div className="py-4 space-y-4">
+                        {/* 참석 가능 */}
+                        <div>
+                            <h4 className="font-medium mb-2 text-green-700">
+                                참석 가능 ({selectedTimeSlot?.voters.length || 0}명)
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                                {selectedTimeSlot?.voters.map((voter, index) => (
+                                    <div
+                                        key={index}
+                                        className="px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-medium"
+                                    >
+                                        {voter}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+
+                        {/* 참석 불가능 */}
+                        {(() => {
+                            const unavailableVoters = allVoterNames.filter(
+                                name => !selectedTimeSlot?.voters.includes(name)
+                            )
+                            return unavailableVoters.length > 0 && (
+                                <div>
+                                    <h4 className="font-medium mb-2 text-gray-500">
+                                        참석 불가능 ({unavailableVoters.length}명)
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {unavailableVoters.map((voter, index) => (
+                                            <div
+                                                key={index}
+                                                className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm font-medium"
+                                            >
+                                                {voter}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                        })()}
                     </div>
                 </DialogContent>
             </Dialog>

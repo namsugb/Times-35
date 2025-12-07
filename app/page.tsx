@@ -130,10 +130,6 @@ export default function AppointmentScheduler() {
 
       {/* 약속 방식 선택 */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5" />
-          기본 방식
-        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {methods.map((method) => (
             <Card

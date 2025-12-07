@@ -117,22 +117,23 @@ export type Database = {
           voter_id: string
           appointment_id: string
           vote_date: string
-          vote_time: string
+          vote_times: string[]  // ['09:00', '09:30', '10:00'] 배열 형태
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
           voter_id: string
           appointment_id: string
           vote_date: string
-          vote_time: string
+          vote_times: string[]
         }
         Update: {
           id?: string
           voter_id?: string
           appointment_id?: string
           vote_date?: string
-          vote_time?: string
+          vote_times?: string[]
         }
       }
       weekday_votes: {

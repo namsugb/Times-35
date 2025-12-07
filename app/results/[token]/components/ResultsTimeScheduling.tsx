@@ -467,6 +467,7 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                         <TimeResultViewer
                             dateResults={selectedDateResults}
                             totalVoters={voters.length}
+                            allVoterNames={voters.map(v => v.name)}
                         />
                     </div>
                 </DialogContent>

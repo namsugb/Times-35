@@ -166,23 +166,25 @@ export async function updateDateVotes(voterId: string, appointmentId: string, da
   }
 }
 
-// 시간 투표 생성
+// 시간 투표 생성 (날짜별 시간 배열로 저장)
 export async function createTimeVotes(
   voterId: string,
   appointmentId: string,
   timeVotes: { date: string; times: string[] }[],
 ) {
   try {
-    const votes = timeVotes.flatMap(({ date, times }) =>
-      times.map((time) => ({
-        voter_id: voterId,
-        appointment_id: appointmentId,
-        vote_date: date,
-        vote_time: time,
-      })),
-    )
+    // 날짜별로 시간 배열 형태로 저장 (UPSERT)
+    const votes = timeVotes.map(({ date, times }) => ({
+      voter_id: voterId,
+      appointment_id: appointmentId,
+      vote_date: date,
+      vote_times: times.sort(), // 시간 정렬하여 저장
+    }))
 
-    const { data, error } = await supabase.from("time_votes").insert(votes).select()
+    const { data, error } = await supabase
+      .from("time_votes")
+      .upsert(votes, { onConflict: "voter_id,appointment_id,vote_date" })
+      .select()
 
     if (error) {
       console.error("시간 투표 생성 오류:", error)
@@ -196,30 +198,36 @@ export async function createTimeVotes(
   }
 }
 
-// 시간 투표 수정
+// 시간 투표 수정 (날짜별 시간 배열로 저장)
 export async function updateTimeVotes(
   voterId: string,
   appointmentId: string,
   timeVotes: { date: string; times: string[] }[],
 ) {
   try {
-    // 기존 투표 삭제 후 새로 생성 (수정을 위해)
+    // 기존 해당 약속의 투표 삭제
     await supabase
       .from("time_votes")
       .delete()
       .eq("voter_id", voterId)
       .eq("appointment_id", appointmentId)
 
-    const votes = timeVotes.flatMap(({ date, times }) =>
-      times.map((time) => ({
-        voter_id: voterId,
-        appointment_id: appointmentId,
-        vote_date: date,
-        vote_time: time,
-      })),
-    )
+    // 새로운 투표 데이터가 있으면 삽입
+    if (timeVotes.length === 0) {
+      return []
+    }
 
-    const { data, error } = await supabase.from("time_votes").insert(votes).select()
+    const votes = timeVotes.map(({ date, times }) => ({
+      voter_id: voterId,
+      appointment_id: appointmentId,
+      vote_date: date,
+      vote_times: times.sort(), // 시간 정렬하여 저장
+    }))
+
+    const { data, error } = await supabase
+      .from("time_votes")
+      .insert(votes)
+      .select()
 
     if (error) {
       console.error("시간 투표 수정 오류:", error)
@@ -271,13 +279,13 @@ export async function getDateVoteResults(appointmentId: string) {
   return results
 }
 
-// 시간별 투표 현황 조회
+// 시간별 투표 현황 조회 (배열 형태 데이터 처리)
 export async function getTimeVoteResults(appointmentId: string) {
   const { data, error } = await supabase
     .from("time_votes")
     .select(`
       vote_date,
-      vote_time,
+      vote_times,
       voter_id,
       voters(name)
     `)
@@ -285,33 +293,32 @@ export async function getTimeVoteResults(appointmentId: string) {
 
   if (error) throw error
 
-  // 날짜-시간별로 그룹화
-  const results = data.reduce(
-    (acc, vote) => {
-      const key = `${vote.vote_date}-${vote.vote_time}`
-      if (!acc[key]) {
-        acc[key] = {
+  // 날짜-시간별로 그룹화 (배열 데이터 펼치기)
+  const results: Record<string, { date: string; time: string; count: number; voters: string[] }> = {}
+
+  for (const vote of data) {
+    const voterData = vote.voters as any
+    const voterName = Array.isArray(voterData)
+      ? voterData[0]?.name
+      : voterData?.name
+
+    // 각 시간에 대해 결과 추가
+    for (const time of vote.vote_times) {
+      const key = `${vote.vote_date}-${time}`
+      if (!results[key]) {
+        results[key] = {
           date: vote.vote_date,
-          time: vote.vote_time,
+          time: time,
           count: 0,
           voters: [],
         }
       }
-      acc[key].count += 1
-      // Supabase JOIN 결과 처리 (단일 객체 또는 배열 모두 처리)
-      if (vote.voters) {
-        const voters = vote.voters as any
-        const voterName = Array.isArray(voters)
-          ? voters[0]?.name
-          : voters?.name
-        if (voterName) {
-          acc[key].voters.push(voterName)
-        }
+      results[key].count += 1
+      if (voterName) {
+        results[key].voters.push(voterName)
       }
-      return acc
-    },
-    {} as Record<string, { date: string; time: string; count: number; voters: string[] }>,
-  )
+    }
+  }
 
   return Object.values(results)
 }
