@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { CalendarDays, Users, Clock, Share2, BookOpen } from "lucide-react"
+import { CalendarDays, Users, Clock, Timer, BookOpen } from "lucide-react"
 
 export default function GuidePage() {
     return (
@@ -95,6 +95,41 @@ export default function GuidePage() {
                         </CardContent>
                     </Card>
 
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Timer className="h-5 w-5 text-purple-500" />
+                                시간
+                            </CardTitle>
+                            <CardDescription>
+                                날짜뿐만 아니라 시간대까지 정할 때 사용하는 방식입니다.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="space-y-2">
+                                <h4 className="font-medium">투표완료</h4>
+                                <p className="text-sm text-muted-foreground">
+                                    • 약속 생성시 설정한 인원 수 만큼의 인원이 투표에 참여하면 투표가 완료됩니다.
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <h4 className="font-medium">특징</h4>
+                                <p className="text-sm text-muted-foreground">
+                                    • 30분 단위로 가능한 시간대를 선택<br />
+                                    • 같은 사람들이 연속해서 가능한 시간대를 범위로 표시<br />
+                                    • 날짜별 히트맵으로 시간대 참여 현황 확인 가능
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <h4 className="font-medium">추천 상황</h4>
+                                <p className="text-sm text-muted-foreground">
+                                    • 정확한 시간 약속이 필요한 경우<br />
+                                    • 회의 시간 정하기<br />
+                                    • 스터디 시간 조율
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
 
                 </div>
 

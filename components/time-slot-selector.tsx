@@ -131,6 +131,14 @@ export function TimeSlotSelector({
             onTouchMove={handleTouchMove}
             onTouchEnd={handleEnd}
         >
+            <div className="mb-5 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm font-medium text-blue-800 text-center">
+                    💡 드래그하여 시간을 선택해주세요
+                </p>
+                <p className="text-xs text-blue-600 text-center mt-1">
+                    모바일: 클릭 후 좌우로 드래그한 뒤 손을 떼주세요
+                </p>
+            </div>
             {/* 전체선택/전체해제 토글 버튼 */}
             <div className="flex gap-2 mb-4 justify-center">
                 <Button

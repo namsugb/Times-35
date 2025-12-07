@@ -133,28 +133,6 @@ export function VoteTimeScheduling({
                             selectedDateTimes={selectedDateTimes}
                         />
                     </div>
-
-                    {/* <p className="text-sm text-muted-foreground mt-2">
-                        참석 가능한 날짜를 클릭하여 시간을 선택해주세요.
-                    </p>
-
-                    {selectedDateTimes.length > 0 && (
-                        <div className="mt-4 space-y-2">
-                            <Label className="text-sm font-medium">선택된 날짜와 시간:</Label>
-                            <div className="space-y-1">
-                                {selectedDateTimes.map((dt) => (
-                                    <div key={dt.date} className="flex items-center justify-between text-sm">
-                                        <span>{format(parseISO(dt.date), "M월 d일 (eee)", { locale: ko })}</span>
-                                        <Badge variant="outline">
-                                            {dt.times.length === 1
-                                                ? dt.times[0]
-                                                : `${dt.times[0]}~${dt.times[dt.times.length - 1]} 외 ${dt.times.length}개`}
-                                        </Badge>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )} */}
                 </div>
 
                 <div className="pt-4">

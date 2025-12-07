@@ -118,8 +118,9 @@ export default function AppointmentScheduler() {
             여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.
           </p>
         </div>
-        <div className="flex justify-center">
-          <div className="animate-pulse">로딩 중...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">결과를 불러오는 중...</p>
         </div>
       </div>
     )

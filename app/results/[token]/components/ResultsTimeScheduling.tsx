@@ -24,6 +24,8 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
     const router = useRouter()
     const [selectedDate, setSelectedDate] = useState<Date | null>(null)
     const [isTimeResultModalOpen, setIsTimeResultModalOpen] = useState(false)
+    const [selectedRangeVoters, setSelectedRangeVoters] = useState<{ date: string; time: string; voters: string[] } | null>(null)
+    const [isVoterModalOpen, setIsVoterModalOpen] = useState(false)
 
     // 날짜별로 그룹화
     const timeResultsByDate = timeResults.reduce((acc: Record<string, any[]>, result) => {
@@ -148,13 +150,20 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
             groupedByDate[date].sort((a, b) => a.time.localeCompare(b.time))
         })
 
-        // 2. 같은 참여자 수를 가진 연속 시간대를 찾아서 범위로 만들기
+        // 구성원이 완전히 같은지 확인하는 함수
+        const isSameVoters = (voters1: string[], voters2: string[]) => {
+            if (voters1.length !== voters2.length) return false
+            const set1 = new Set(voters1)
+            return voters2.every(v => set1.has(v))
+        }
+
+        // 2. 같은 구성원을 가진 연속 시간대를 찾아서 범위로 만들기
         const timeRanges: Array<{
             date: string
             startTime: string
             endTime: string
             count: number
-            voters: Set<string>
+            voters: string[]
         }> = []
 
         Object.entries(groupedByDate).forEach(([date, times]) => {
@@ -165,14 +174,12 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                 startTime: times[0].time,
                 endTime: times[0].time,
                 count: times[0].count,
-                voters: new Set(times[0].voters)
+                voters: [...times[0].voters]
             }
 
             for (let i = 1; i < times.length; i++) {
                 const prevTime = times[i - 1].time
                 const currTime = times[i].time
-                const prevCount = times[i - 1].count
-                const currCount = times[i].count
 
                 // 30분 간격인지 확인
                 const [prevHour, prevMin] = prevTime.split(':').map(Number)
@@ -180,12 +187,11 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                 const prevMinutes = prevHour * 60 + prevMin
                 const currMinutes = currHour * 60 + currMin
 
-                // 연속되고 같은 참여자 수인 경우에만 범위 확장
-                if (currMinutes - prevMinutes === 30 && currCount === prevCount) {
+                // 연속되고 같은 구성원인 경우에만 범위 확장
+                if (currMinutes - prevMinutes === 30 && isSameVoters(times[i - 1].voters, times[i].voters)) {
                     currentRange.endTime = currTime
-                    times[i].voters.forEach(voter => currentRange.voters.add(voter))
                 } else {
-                    // 참여자 수가 변하거나 연속 끊김 -> 현재 범위 저장하고 새 범위 시작
+                    // 구성원이 다르거나 연속 끊김 -> 현재 범위 저장하고 새 범위 시작
                     timeRanges.push({
                         date: currentRange.date,
                         startTime: currentRange.startTime,
@@ -199,7 +205,7 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                         startTime: times[i].time,
                         endTime: times[i].time,
                         count: times[i].count,
-                        voters: new Set(times[i].voters)
+                        voters: [...times[i].voters]
                     }
                 }
             }
@@ -272,44 +278,6 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 메인 콘텐츠 영역 */}
             <div className="lg:col-span-2 space-y-6">
-                {/* 최적 시간대 추천 */}
-                {/* {optimalTimeRange && (
-                    <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
-                        <CardHeader>
-                            <CardTitle className="text-lg sm:text-xl flex items-center gap-2 text-emerald-800">
-                                <Crown className="h-5 w-5" />
-                                🏆 최적의 약속 시간
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                <div className="bg-white rounded-lg p-4 border border-emerald-200">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="h-4 w-4 text-emerald-600" />
-                                            <span className="font-semibold text-emerald-800">
-                                                {format(parseISO(optimalTimeRange.date), "M월 d일 (E)", { locale: ko })}
-                                            </span>
-                                        </div>
-                                        <Badge className="bg-emerald-100 text-emerald-800">
-                                            {optimalTimeRange.count}명 참여
-                                        </Badge>
-                                    </div>
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <Clock className="h-4 w-4 text-emerald-600" />
-                                        <span className="text-lg font-bold text-emerald-700">
-                                            {optimalTimeRange.startTime} ~ {getEndTime(optimalTimeRange.endTime)}
-                                        </span>
-                                        <span className="text-sm text-emerald-600">
-                                            ({Math.round((optimalTimeRange.count / voters.length) * 100)}% 참여율)
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )} */}
-
                 {/* Top 5 투표 결과 카드 */}
                 {topTimeRanges.length > 0 && (
                     <Card>
@@ -334,7 +302,19 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                                         : `${startTime}-${endTime}`
 
                                     return (
-                                        <div key={index} className="flex items-center gap-3">
+                                        <button
+                                            key={index}
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedRangeVoters({
+                                                    date: format(dateObj, "M월 d일 (E)", { locale: ko }),
+                                                    time: timeLabel,
+                                                    voters: range.voters
+                                                })
+                                                setIsVoterModalOpen(true)
+                                            }}
+                                            className="w-full flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                                        >
                                             {/* 순위 */}
                                             <div className={cn(
                                                 "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm",
@@ -347,7 +327,7 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                                             </div>
 
                                             {/* 날짜와 시간 */}
-                                            <div className="flex-1 min-w-0">
+                                            <div className="flex-1 min-w-0 text-left">
                                                 <div className="flex items-baseline gap-2">
                                                     <span className="font-semibold text-sm">
                                                         {dateLabel}
@@ -377,15 +357,9 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                                                     {range.count}/{voters.length}
                                                 </div>
                                             </div>
-                                        </div>
+                                        </button>
                                     )
                                 })}
-                            </div>
-
-                            <div className="mt-4 pt-4 border-t">
-                                <p className="text-xs text-muted-foreground">
-                                    💡 같은 참여자 수를 가진 연속된 시간대를 하나의 범위로 표시합니다.
-                                </p>
                             </div>
                         </CardContent>
                     </Card>
@@ -469,6 +443,32 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                             totalVoters={voters.length}
                             allVoterNames={voters.map(v => v.name)}
                         />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* 시간대별 참여 가능 인원 모달 */}
+            <Dialog open={isVoterModalOpen} onOpenChange={setIsVoterModalOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {selectedRangeVoters?.date} {selectedRangeVoters?.time}
+                        </DialogTitle>
+                        <DialogDescription>
+                            참석 가능한 사람 ({selectedRangeVoters?.voters.length || 0}명)
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <div className="flex flex-wrap gap-2">
+                            {selectedRangeVoters?.voters.map((voter, index) => (
+                                <div
+                                    key={index}
+                                    className="px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-medium"
+                                >
+                                    {voter}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
