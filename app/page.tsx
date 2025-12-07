@@ -185,7 +185,7 @@ export default function AppointmentScheduler() {
 
             <div className="space-y-2">
               <Label htmlFor="participant-count" className="text-sm font-medium">
-                {selectedMethod === "minimum-required" ? "기준 인원 수" : "참여 인원 수"}
+                {selectedMethod === "minimum-required" ? "기준 인원수" : "참여 인원수"}
               </Label>
               <Input
                 id="participant-count"
