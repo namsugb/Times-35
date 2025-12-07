@@ -173,14 +173,11 @@ export function TimeSlotSelector({
                                     data-time={time}
                                     onMouseDown={() => handleStart(time)}
                                     onMouseEnter={() => handleMove(time)}
-                                    onTouchStart={(e) => {
-                                        e.preventDefault()
-                                        handleStart(time)
-                                    }}
+                                    onTouchStart={() => handleStart(time)}
                                     className={cn(
                                         "flex-1 h-10 transition-colors duration-150",
                                         "border-l border-r border-gray-300",
-                                        "cursor-pointer touch-none",
+                                        "cursor-pointer touch-manipulation",
                                         isSelected(time)
                                             ? "bg-green-500 hover:bg-green-600 active:bg-green-700"
                                             : "bg-white hover:bg-gray-50 active:bg-gray-100"
@@ -222,14 +219,11 @@ export function TimeSlotSelector({
                                     data-time={time}
                                     onMouseDown={() => handleStart(time)}
                                     onMouseEnter={() => handleMove(time)}
-                                    onTouchStart={(e) => {
-                                        e.preventDefault()
-                                        handleStart(time)
-                                    }}
+                                    onTouchStart={() => handleStart(time)}
                                     className={cn(
                                         "flex-1 h-10 transition-colors duration-150",
                                         "border-l border-r border-gray-300",
-                                        "cursor-pointer touch-none",
+                                        "cursor-pointer touch-manipulation",
                                         isSelected(time)
                                             ? "bg-green-500 hover:bg-green-600 active:bg-green-700"
                                             : "bg-white hover:bg-gray-50 active:bg-gray-100"
