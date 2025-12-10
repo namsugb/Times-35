@@ -17,6 +17,12 @@ export function generateSessionId(): string {
 // 약속 생성 
 export async function createAppointment(data: AppointmentInsert) {
   try {
+    // 환경 변수 디버깅
+    console.log("🔧 환경 변수 확인:")
+    console.log("  - SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log("  - SUPABASE_KEY 존재:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    console.log("  - Supabase 클라이언트:", supabase ? "초기화됨" : "없음")
+
     // ➜ 1) 필수값 & 기본값 채우기
     const prepared: AppointmentInsert = {
       title: data.title.trim(),
@@ -37,11 +43,20 @@ export async function createAppointment(data: AppointmentInsert) {
     ) as AppointmentInsert
 
     // ➜ 3) INSERT
+    console.log("🔵 Supabase INSERT 시작...")
+    console.log("🔵 Payload:", payload)
+
+    const startTime = Date.now()
     const { data: appointment, error } = await supabase.from("appointments").insert(payload).select().single()
+    const endTime = Date.now()
+
+    console.log(`🔵 Supabase 응답 시간: ${endTime - startTime}ms`)
+    console.log("🔵 응답 data:", appointment)
+    console.log("🔵 응답 error:", error)
 
     // ➜ 4) 에러 처리
     if (error) {
-      console.error("약속 생성 오류:", {
+      console.error("❌ 약속 생성 오류:", {
         message: error.message,
         details: error.details,
         hint: error.hint,
@@ -50,6 +65,7 @@ export async function createAppointment(data: AppointmentInsert) {
       throw new Error(`약속 생성 실패: ${error.message || "Unknown error"}`)
     }
 
+    console.log("✅ 약속 생성 성공!")
     return appointment
   } catch (err) {
     console.error("createAppointment 실패:", err)
@@ -88,15 +104,30 @@ export async function getAppointmentByToken(shareToken: string | undefined) {
   }
 }
 
-// 투표자 생성 
-export async function createVoter(appointmentId: string, name: string) {
+// 투표자 생성 (로그인한 사용자는 user_id도 저장)
+export async function createVoter(appointmentId: string, name: string, authUserId?: string | null) {
   try {
+    const voterData: any = {
+      appointment_id: appointmentId,
+      name: name.trim(),
+    }
+
+    // 로그인한 사용자인 경우 auth_id로 users 테이블에서 user_id 조회
+    if (authUserId) {
+      const { data: userData } = await supabase
+        .from("users")
+        .select("id")
+        .eq("auth_id", authUserId)
+        .single()
+
+      if (userData) {
+        voterData.user_id = userData.id
+      }
+    }
+
     const { data: voter, error } = await supabase
       .from("voters")
-      .upsert({
-        appointment_id: appointmentId,
-        name: name.trim(),
-      }, { onConflict: "appointment_id,name" })
+      .upsert(voterData, { onConflict: "appointment_id,name" })
       .select()
       .single()
 
@@ -361,16 +392,31 @@ export async function getWeekdayVoteResults(appointmentId: string) {
   return results
 }
 
-// 투표자 목록 조회
+// 투표자 목록 조회 (users 테이블 JOIN하여 phone 정보 포함)
 export async function getVoters(appointmentId: string) {
   const { data, error } = await supabase
     .from("voters")
-    .select("*")
+    .select(`
+      *,
+      users:user_id (
+        id,
+        name,
+        phone
+      )
+    `)
     .eq("appointment_id", appointmentId)
     .order("voted_at", { ascending: true })
 
   if (error) throw error
-  return data
+
+  // users 정보가 있으면 phone을 voter 객체에 추가
+  const votersWithPhone = data?.map((voter: any) => ({
+    ...voter,
+    phone: voter.users?.phone || null,
+    user_name: voter.users?.name || null,
+  })) || []
+
+  return votersWithPhone
 }
 
 // 약속 통계 조회 (함수 호출)

@@ -1,4 +1,5 @@
 import { Mail, Phone, User, Building } from "lucide-react"
+import Link from "next/link"
 
 export function Footer() {
   return (
@@ -19,12 +20,6 @@ export function Footer() {
                 <Mail className="h-3 w-3" />
                 <a href="mailto:mannallemalle@gmail.com" className="hover:text-blue-600 transition-colors">
                   mannallemalle@gmail.com
-                </a>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gray-600">
-                <Phone className="h-3 w-3" />
-                <a href="tel:010-3941-2259" className="hover:text-blue-600 transition-colors">
-                  010-3941-2259
                 </a>
               </div>
             </div>
@@ -54,12 +49,12 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-2">
             <p className="text-xs text-gray-500">© 2024 만날래말래. All rights reserved.</p>
             <div className="flex gap-4 text-xs">
-              <a href="#" className="text-gray-500 hover:text-blue-600 transition-colors">
+              <Link href="/terms" className="text-gray-500 hover:text-blue-600 transition-colors">
                 이용약관
-              </a>
-              <a href="#" className="text-gray-500 hover:text-blue-600 transition-colors">
+              </Link>
+              <Link href="/privacy" className="text-gray-500 hover:text-blue-600 transition-colors">
                 개인정보처리방침
-              </a>
+              </Link>
             </div>
           </div>
         </div>

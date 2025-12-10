@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { CreateGroupFromVotersModal } from "./CreateGroupFromVotersModal"
 import {
     format,
     parseISO,
@@ -16,7 +17,7 @@ import {
     subMonths,
 } from "date-fns"
 import { ko } from "date-fns/locale"
-import { Calendar, ChevronLeft, ChevronRight, Crown, CheckCircle2, Users } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Crown, CheckCircle2, Users, UserPlus } from "lucide-react"
 
 interface ResultsDateBasedProps {
     appointment: any
@@ -32,6 +33,7 @@ export function ResultsDateBased({ appointment, dateResults, voters, token }: Re
     const [currentMonth, setCurrentMonth] = useState(
         appointment?.start_date ? parseISO(appointment.start_date) : new Date()
     )
+    const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false)
 
     // 날짜 클릭 핸들러
     const handleDateClick = (date: Date) => {
@@ -367,6 +369,16 @@ export function ResultsDateBased({ appointment, dateResults, voters, token }: Re
 
                     {/* 추가 액션 버튼들 */}
                     <div className="space-y-3">
+                        {voters.length > 0 && (
+                            <Button
+                                onClick={() => setIsCreateGroupModalOpen(true)}
+                                variant="secondary"
+                                className="w-full"
+                            >
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                이 인원으로 그룹 만들기
+                            </Button>
+                        )}
                         <Button onClick={() => router.push(`/vote/${token}`)} className="w-full">
                             투표 페이지로 이동
                         </Button>
@@ -415,6 +427,14 @@ export function ResultsDateBased({ appointment, dateResults, voters, token }: Re
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* 그룹 만들기 모달 */}
+            <CreateGroupFromVotersModal
+                open={isCreateGroupModalOpen}
+                onOpenChange={setIsCreateGroupModalOpen}
+                voters={voters}
+                appointmentTitle={appointment.title}
+            />
         </>
     )
 }

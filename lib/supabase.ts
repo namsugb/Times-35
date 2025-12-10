@@ -69,6 +69,7 @@ export type Database = {
           ip_address: string | null
           user_agent: string | null
           session_id: string | null
+          user_id: string | null
           voted_at: string
         }
         Insert: {
@@ -79,6 +80,7 @@ export type Database = {
           ip_address?: string | null
           user_agent?: string | null
           session_id?: string | null
+          user_id?: string | null
         }
         Update: {
           id?: string
@@ -88,6 +90,7 @@ export type Database = {
           ip_address?: string | null
           user_agent?: string | null
           session_id?: string | null
+          user_id?: string | null
         }
       }
       date_votes: {
@@ -155,6 +158,87 @@ export type Database = {
           voter_id?: string
           appointment_id?: string
           weekday?: number
+        }
+      }
+      groups: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          updated_at?: string
+        }
+      }
+      group_members: {
+        Row: {
+          id: string
+          group_id: string
+          name: string
+          phone: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          group_id: string
+          name: string
+          phone?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          group_id?: string
+          name?: string
+          phone?: string | null
+        }
+      }
+      users: {
+        Row: {
+          id: string
+          auth_id: string | null
+          name: string
+          email: string | null
+          phone: string | null
+          gender: string | null
+          age_range: string | null
+          birth_date: string | null
+          birth_year: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          auth_id?: string | null
+          name: string
+          email?: string | null
+          phone?: string | null
+          gender?: string | null
+          age_range?: string | null
+          birth_date?: string | null
+          birth_year?: number | null
+        }
+        Update: {
+          id?: string
+          auth_id?: string | null
+          name?: string
+          email?: string | null
+          phone?: string | null
+          gender?: string | null
+          age_range?: string | null
+          birth_date?: string | null
+          birth_year?: number | null
         }
       }
     }

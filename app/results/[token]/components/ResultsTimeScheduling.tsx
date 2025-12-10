@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { CustomCalendar } from "@/components/ui/custom-calendar"
 import { TimeResultViewer } from "@/components/time-result-viewer"
+import { CreateGroupFromVotersModal } from "./CreateGroupFromVotersModal"
 import { format, parseISO } from "date-fns"
 import { ko } from "date-fns/locale"
-import { Calendar, Clock, Crown } from "lucide-react"
+import { Calendar, Clock, Crown, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface ResultsTimeSchedulingProps {
@@ -26,6 +27,7 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
     const [isTimeResultModalOpen, setIsTimeResultModalOpen] = useState(false)
     const [selectedRangeVoters, setSelectedRangeVoters] = useState<{ date: string; time: string; voters: string[] } | null>(null)
     const [isVoterModalOpen, setIsVoterModalOpen] = useState(false)
+    const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false)
 
     // 날짜별로 그룹화
     const timeResultsByDate = timeResults.reduce((acc: Record<string, any[]>, result) => {
@@ -417,6 +419,16 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
 
                 {/* 추가 액션 버튼들 */}
                 <div className="space-y-3">
+                    {voters.length > 0 && (
+                        <Button
+                            onClick={() => setIsCreateGroupModalOpen(true)}
+                            variant="secondary"
+                            className="w-full"
+                        >
+                            <Users className="h-4 w-4 mr-2" />
+                            이 인원으로 그룹 만들기
+                        </Button>
+                    )}
                     <Button onClick={() => router.push(`/vote/${token}`)} className="w-full">
                         투표 페이지로 이동
                     </Button>
@@ -472,6 +484,14 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* 그룹 만들기 모달 */}
+            <CreateGroupFromVotersModal
+                open={isCreateGroupModalOpen}
+                onOpenChange={setIsCreateGroupModalOpen}
+                voters={voters}
+                appointmentTitle={appointment.title}
+            />
         </div>
     )
 }

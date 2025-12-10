@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { CalendarDays, Users, Clock, Timer, BookOpen } from "lucide-react"
+import { CalendarDays, Users, Clock, Timer, BookOpen, UserPlus, Bell, FolderHeart } from "lucide-react"
 
 export default function GuidePage() {
     return (
@@ -11,7 +11,7 @@ export default function GuidePage() {
                     만날래말래 설명서
                 </h1>
                 <p className="text-sm mt-2 text-muted-foreground">
-                    만날래 말래는 약속 종류에 따라 다양한 계산 방식과 ui를 제공합니다.
+                    '만날래말래'는 약속 종류에 따라 다양한 계산 방식과  ui를 제공합니다.
                 </p>
             </div>
             <div className="space-y-6">
@@ -131,6 +131,50 @@ export default function GuidePage() {
                         </CardContent>
                     </Card>
 
+                </div>
+
+                <Separator />
+
+                {/* 그룹 기능 설명 */}
+                <div className="space-y-4">
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                        <FolderHeart className="h-5 w-5 text-pink-500" />
+                        그룹 기능
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                        자주 만나는 멤버들을 그룹으로 저장하고, 약속을 더 편하게 관리하세요.
+                        <span className="text-primary font-medium"> (카카오 로그인 필요)</span>
+                    </p>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <UserPlus className="h-4 w-4 text-pink-500" />
+                                    그룹 만들기
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-sm text-muted-foreground space-y-2">
+                                <p>• <strong>마이페이지</strong>에서 직접 그룹 생성</p>
+                                <p>• <strong>결과 페이지</strong>에서 "이 인원으로 그룹 만들기" 버튼으로 참여자들을 바로 그룹 저장</p>
+                                <p>• 멤버 이름과 전화번호 저장 가능</p>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <Bell className="h-4 w-4 text-pink-500" />
+                                    알림톡 발송
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-sm text-muted-foreground space-y-2">
+                                <p>• 약속 생성 후 <strong>공유 모달</strong>에서 그룹 멤버 선택</p>
+                                <p>• 선택한 멤버들에게 카카오 알림톡으로 투표 링크 발송</p>
+                                <p>• 일일이 링크를 공유할 필요 없이 한 번에 초대</p>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
 
                 <Separator />

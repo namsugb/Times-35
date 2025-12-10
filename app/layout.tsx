@@ -7,8 +7,8 @@ import { Toaster } from "@/components/ui/sonner"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { CustomSidebarTrigger } from "@/components/custom-sidebar-trigger"
+import { HeaderAuthButton } from "@/components/header-auth-button"
 import Link from "next/link"
-import Image from "next/image"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -41,6 +41,11 @@ export default function RootLayout({
                 <Link href="/">
                   <h1 className="text-xl font-semibold">만날래말래</h1>
                 </Link>
+
+                {/* 오른쪽 끝에 로그인 버튼 */}
+                <div className="ml-auto">
+                  <HeaderAuthButton />
+                </div>
               </header>
               <main className="flex-1 p-4">
                 {children}

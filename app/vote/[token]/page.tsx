@@ -21,10 +21,12 @@ import {
   updateTimeVotes,
   addNotificationToQueue,
 } from "@/lib/database"
+import { getCurrentUser } from "@/lib/auth"
 import { checkVotingCompletion } from "@/lib/vote/checkcomplete"
 import { VotingCompletionResult } from "@/lib/vote/checkcomplete"
 import { VoteDateBased } from "./components/VoteDateBased"
 import { VoteTimeScheduling } from "./components/VoteTimeScheduling"
+import type { User } from "@supabase/supabase-js"
 
 interface DateTimeSelection {
   date: string
@@ -41,6 +43,7 @@ export default function VotePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
 
   // Form state
   const [name, setName] = useState("")
@@ -52,6 +55,12 @@ export default function VotePage() {
     if (token) {
       loadAppointment()
     }
+    // 로그인 상태 확인
+    const checkAuth = async () => {
+      const user = await getCurrentUser()
+      setCurrentUser(user)
+    }
+    checkAuth()
   }, [token])
 
   // 투표 완료 상태 확인
@@ -176,8 +185,8 @@ export default function VotePage() {
         setShowVotingCompleteModal(false)
       }
 
-      // 4단계: 투표자 생성 (기존 투표자는 upsert로 수정됨)
-      const voter = await createVoter(appointment.id, name.trim())
+      // 4단계: 투표자 생성 (기존 투표자는 upsert로 수정됨, 로그인한 사용자는 user_id도 저장)
+      const voter = await createVoter(appointment.id, name.trim(), currentUser?.id)
 
       // 기존 투표자인 경우 기존 ID 사용
       const existingVoter = voters.find((v) => v.name === name.trim())

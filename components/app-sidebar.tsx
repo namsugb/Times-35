@@ -1,8 +1,11 @@
 "use client"
 
-import { BookOpen, Mailbox, Home } from "lucide-react"
+import { useEffect, useState } from "react"
+import { BookOpen, Mailbox, Home, User, LogIn, LogOut, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { getCurrentUser, signOut } from "@/lib/auth"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 import {
     Sidebar,
@@ -14,8 +17,10 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarHeader,
+    SidebarFooter,
     useSidebar,
 } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
 
 // Menu items.
 const items = [
@@ -38,12 +43,54 @@ const items = [
 
 export function AppSidebar() {
     const pathname = usePathname()
+    const router = useRouter()
     const { setOpenMobile, isMobile } = useSidebar()
+    const [user, setUser] = useState<SupabaseUser | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [loggingOut, setLoggingOut] = useState(false)
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const currentUser = await getCurrentUser()
+                setUser(currentUser)
+            } catch (err) {
+                console.error("인증 확인 오류:", err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        checkAuth()
+    }, [pathname]) // 경로가 바뀔 때마다 다시 확인
 
     const handleMenuClick = () => {
         if (isMobile) {
             setOpenMobile(false)
         }
+    }
+
+    const handleLogout = async () => {
+        try {
+            setLoggingOut(true)
+            await signOut()
+            setUser(null)
+            handleMenuClick()
+            router.push("/")
+        } catch (err) {
+            console.error("로그아웃 오류:", err)
+        } finally {
+            setLoggingOut(false)
+        }
+    }
+
+    const handleLogin = () => {
+        handleMenuClick()
+        router.push("/login")
+    }
+
+    const handleMypage = () => {
+        handleMenuClick()
+        router.push("/mypage")
     }
 
     return (
@@ -73,10 +120,54 @@ export function AppSidebar() {
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}
+
+                            {/* 마이페이지 (로그인 시에만 표시) */}
+                            {user && (
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        isActive={pathname === "/mypage"}
+                                        onClick={handleMypage}
+                                    >
+                                        <User />
+                                        <span>마이페이지</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            )}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
+
+            {/* 로그인/로그아웃 버튼 */}
+            <SidebarFooter className="bg-sidebar border-t p-4">
+                {loading ? (
+                    <div className="flex items-center justify-center py-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    </div>
+                ) : user ? (
+                    <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={handleLogout}
+                        disabled={loggingOut}
+                    >
+                        {loggingOut ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                            <LogOut className="h-4 w-4 mr-2" />
+                        )}
+                        로그아웃
+                    </Button>
+                ) : (
+                    <Button
+                        className="w-full justify-start"
+                        onClick={handleLogin}
+                    >
+                        <LogIn className="h-4 w-4 mr-2" />
+                        로그인
+                    </Button>
+                )}
+            </SidebarFooter>
         </Sidebar>
     )
 }

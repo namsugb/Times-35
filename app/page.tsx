@@ -75,9 +75,6 @@ export default function AppointmentScheduler() {
 
       const appointment = await createAppointment(appointmentData)
 
-
-
-
       // 생성된 약속 정보 저장 및 공유 모달 열기
       setCreatedAppointment(appointment)
       setIsCreateModalOpen(false)
@@ -222,8 +219,6 @@ export default function AppointmentScheduler() {
                 )}
               </div>
             </div>
-
-
 
             <div className="pt-4">
               <Button
