@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,9 +13,24 @@ import { MessageCircle, AlertCircle, Loader2, Mail, Lock } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
 
-export default function LoginPage() {
-    const router = useRouter()
+// URL 파라미터 처리 컴포넌트
+function ErrorHandler({ onError }: { onError: (error: string | null) => void }) {
     const searchParams = useSearchParams()
+
+    useEffect(() => {
+        const errorParam = searchParams.get("error")
+        if (errorParam === "auth_failed") {
+            onError("로그인에 실패했습니다. 다시 시도해주세요.")
+        } else if (errorParam === "no_code") {
+            onError("인증 코드를 받지 못했습니다. 다시 시도해주세요.")
+        }
+    }, [searchParams, onError])
+
+    return null
+}
+
+function LoginContent() {
+    const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [checkingAuth, setCheckingAuth] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -25,16 +40,6 @@ export default function LoginPage() {
     const [password, setPassword] = useState("")
     const [emailError, setEmailError] = useState("")
     const [passwordError, setPasswordError] = useState("")
-
-    // URL 파라미터에서 에러 확인
-    useEffect(() => {
-        const errorParam = searchParams.get("error")
-        if (errorParam === "auth_failed") {
-            setError("로그인에 실패했습니다. 다시 시도해주세요.")
-        } else if (errorParam === "no_code") {
-            setError("인증 코드를 받지 못했습니다. 다시 시도해주세요.")
-        }
-    }, [searchParams])
 
     // 이미 로그인되어 있는지 확인
     useEffect(() => {
@@ -144,6 +149,9 @@ export default function LoginPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    <Suspense fallback={null}>
+                        <ErrorHandler onError={setError} />
+                    </Suspense>
                     {error && (
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
@@ -273,6 +281,18 @@ export default function LoginPage() {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     )
 }
 
