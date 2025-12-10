@@ -148,7 +148,7 @@ export default function GuidePage() {
 
                     <div className="grid gap-4 md:grid-cols-2">
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader className="space-y-2">
                                 <CardTitle className="text-base flex items-center gap-2">
                                     <UserPlus className="h-4 w-4 text-pink-500" />
                                     그룹 만들기
@@ -156,22 +156,21 @@ export default function GuidePage() {
                             </CardHeader>
                             <CardContent className="text-sm text-muted-foreground space-y-2">
                                 <p>• <strong>마이페이지</strong>에서 직접 그룹 생성</p>
-                                <p>• <strong>결과 페이지</strong>에서 "이 인원으로 그룹 만들기" 버튼으로 참여자들을 바로 그룹 저장</p>
-                                <p>• 멤버 이름과 전화번호 저장 가능</p>
+                                <p>• <strong>결과 페이지</strong>에서 "이 인원으로 그룹 만들기" 버튼으로 참여자들을 바로 그룹 저장 가능. (<span className="text-red-500">단, 참여자들이 카카오 로그인 상태에서 투표 해야 함!</span>)</p>
+
                             </CardContent>
                         </Card>
 
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader className="space-y-2">
                                 <CardTitle className="text-base flex items-center gap-2">
                                     <Bell className="h-4 w-4 text-pink-500" />
                                     알림톡 발송
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="text-sm text-muted-foreground space-y-2">
-                                <p>• 약속 생성 후 <strong>공유 모달</strong>에서 그룹 멤버 선택</p>
-                                <p>• 선택한 멤버들에게 카카오 알림톡으로 투표 링크 발송</p>
-                                <p>• 일일이 링크를 공유할 필요 없이 한 번에 초대</p>
+                                <p>• 약속 생성 후 <strong>공유 모달</strong>에서 그룹 멤버 선택 하고 알림톡 보내기 하면 개인에게 투표 참여 알림톡이 감!</p>
+                                <p>• 단톡방에 공유시 투표 잘안하는 친구들을 위한 개인 알림톡 발송.</p>
                             </CardContent>
                         </Card>
                     </div>
