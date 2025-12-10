@@ -138,36 +138,7 @@ export function AppSidebar() {
                 </SidebarGroup>
             </SidebarContent>
 
-            {/* 로그인/로그아웃 버튼 */}
-            <SidebarFooter className="bg-sidebar border-t p-4">
-                {loading ? (
-                    <div className="flex items-center justify-center py-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    </div>
-                ) : user ? (
-                    <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={handleLogout}
-                        disabled={loggingOut}
-                    >
-                        {loggingOut ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                            <LogOut className="h-4 w-4 mr-2" />
-                        )}
-                        로그아웃
-                    </Button>
-                ) : (
-                    <Button
-                        className="w-full justify-start"
-                        onClick={handleLogin}
-                    >
-                        <LogIn className="h-4 w-4 mr-2" />
-                        로그인
-                    </Button>
-                )}
-            </SidebarFooter>
+
         </Sidebar>
     )
 }

@@ -47,7 +47,14 @@ function LoginContent() {
             try {
                 const user = await getCurrentUser()
                 if (user) {
-                    router.push("/mypage")
+                    // 저장된 리다이렉트 URL 확인
+                    const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
+                    if (redirectUrl) {
+                        sessionStorage.removeItem("redirectAfterLogin")
+                        router.push(redirectUrl)
+                    } else {
+                        router.push("/")
+                    }
                 }
             } catch (err) {
                 console.error("인증 확인 오류:", err)
@@ -114,8 +121,14 @@ function LoginContent() {
                     // 회원가입 정보가 없으면 회원가입 페이지로
                     router.push("/signup")
                 } else {
-                    // 있으면 마이페이지로
-                    router.push("/mypage")
+                    // 저장된 리다이렉트 URL 확인
+                    const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
+                    if (redirectUrl) {
+                        sessionStorage.removeItem("redirectAfterLogin")
+                        router.push(redirectUrl)
+                    } else {
+                        router.push("/")
+                    }
                 }
             }
         } catch (err: any) {

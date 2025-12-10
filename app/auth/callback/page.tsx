@@ -64,8 +64,14 @@ export default function AuthCallbackPage() {
                         // 에러가 발생해도 로그인은 성공으로 처리
                     }
 
-                    // 마이페이지로 리다이렉트
-                    router.push("/mypage")
+                    // 저장된 리다이렉트 URL 확인
+                    const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
+                    if (redirectUrl) {
+                        sessionStorage.removeItem("redirectAfterLogin")
+                        router.push(redirectUrl)
+                    } else {
+                        router.push("/")
+                    }
                 } else {
                     // 세션이 없으면 로그인 페이지로
                     router.push("/login")

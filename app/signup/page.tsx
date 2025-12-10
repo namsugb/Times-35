@@ -62,8 +62,14 @@ export default function SignupPage() {
                         .single()
 
                     if (userProfile && userProfile.name && userProfile.phone) {
-                        // 이미 회원가입 완료된 경우 마이페이지로
-                        router.push("/mypage")
+                        // 이미 회원가입 완료된 경우 저장된 리다이렉트 URL 확인
+                        const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
+                        if (redirectUrl) {
+                            sessionStorage.removeItem("redirectAfterLogin")
+                            router.push(redirectUrl)
+                        } else {
+                            router.push("/")
+                        }
                         return
                     }
 
@@ -224,7 +230,15 @@ export default function SignupPage() {
             }
 
             toast.success("회원가입이 완료되었습니다!")
-            router.push("/mypage")
+
+            // 저장된 리다이렉트 URL 확인
+            const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
+            if (redirectUrl) {
+                sessionStorage.removeItem("redirectAfterLogin")
+                router.push(redirectUrl)
+            } else {
+                router.push("/")
+            }
         } catch (err: any) {
             console.error("회원가입 오류:", err)
             toast.error(err.message || "회원가입에 실패했습니다.")
@@ -310,7 +324,15 @@ export default function SignupPage() {
             }
 
             toast.success("회원가입이 완료되었습니다!")
-            router.push("/mypage")
+
+            // 저장된 리다이렉트 URL 확인
+            const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
+            if (redirectUrl) {
+                sessionStorage.removeItem("redirectAfterLogin")
+                router.push(redirectUrl)
+            } else {
+                router.push("/")
+            }
         } catch (err: any) {
             console.error("회원가입 오류:", err)
             toast.error(err.message || "회원가입에 실패했습니다.")
@@ -578,7 +600,7 @@ export default function SignupPage() {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => router.push("/mypage")}
+                                        onClick={() => router.push("/")}
                                         disabled={submitting}
                                         className="flex-1"
                                     >
