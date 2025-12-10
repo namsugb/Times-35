@@ -43,9 +43,17 @@ export default function AuthCallbackPage() {
                         .eq("auth_id", user.id)
                         .single()
 
-                    // 회원가입 정보가 없으면 회원가입 페이지로
+                    // 회원가입 정보가 없어도 로그인은 성공으로 처리하고 홈으로 이동
+                    // (회원가입은 나중에 마이페이지에서 할 수 있음)
                     if (!existingUser || !existingUser.name || !existingUser.phone) {
-                        router.push("/signup")
+                        // 저장된 리다이렉트 URL 확인
+                        const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
+                        if (redirectUrl) {
+                            sessionStorage.removeItem("redirectAfterLogin")
+                            router.push(redirectUrl)
+                        } else {
+                            router.push("/")
+                        }
                         return
                     }
 

@@ -117,18 +117,13 @@ function LoginContent() {
                     .eq("auth_id", user.id)
                     .single()
 
-                if (!userProfile || !userProfile.name || !userProfile.phone) {
-                    // 회원가입 정보가 없으면 회원가입 페이지로
-                    router.push("/signup")
+                // 저장된 리다이렉트 URL 확인
+                const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
+                if (redirectUrl) {
+                    sessionStorage.removeItem("redirectAfterLogin")
+                    router.push(redirectUrl)
                 } else {
-                    // 저장된 리다이렉트 URL 확인
-                    const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
-                    if (redirectUrl) {
-                        sessionStorage.removeItem("redirectAfterLogin")
-                        router.push(redirectUrl)
-                    } else {
-                        router.push("/")
-                    }
+                    router.push("/")
                 }
             }
         } catch (err: any) {

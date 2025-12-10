@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -13,6 +13,7 @@ import { format, parseISO } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Calendar, Clock, Crown, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getCurrentUser } from "@/lib/auth"
 
 interface ResultsTimeSchedulingProps {
     appointment: any
@@ -28,6 +29,16 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
     const [selectedRangeVoters, setSelectedRangeVoters] = useState<{ date: string; time: string; voters: string[] } | null>(null)
     const [isVoterModalOpen, setIsVoterModalOpen] = useState(false)
     const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false)
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+
+    // 로그인 상태 확인
+    useEffect(() => {
+        const checkAuth = async () => {
+            const user = await getCurrentUser()
+            setIsLoggedIn(!!user)
+        }
+        checkAuth()
+    }, [])
 
     // 날짜별로 그룹화
     const timeResultsByDate = timeResults.reduce((acc: Record<string, any[]>, result) => {
@@ -419,7 +430,7 @@ export function ResultsTimeScheduling({ appointment, timeResults, voters, token 
 
                 {/* 추가 액션 버튼들 */}
                 <div className="space-y-3">
-                    {voters.length > 0 && (
+                    {voters.length > 0 && isLoggedIn && (
                         <Button
                             onClick={() => setIsCreateGroupModalOpen(true)}
                             variant="secondary"

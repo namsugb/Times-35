@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -18,6 +18,7 @@ import {
 } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Calendar, ChevronLeft, ChevronRight, Crown, CheckCircle2, Users, UserPlus } from "lucide-react"
+import { getCurrentUser } from "@/lib/auth"
 
 interface ResultsDateBasedProps {
     appointment: any
@@ -34,6 +35,16 @@ export function ResultsDateBased({ appointment, dateResults, voters, token }: Re
         appointment?.start_date ? parseISO(appointment.start_date) : new Date()
     )
     const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false)
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+
+    // 로그인 상태 확인
+    useEffect(() => {
+        const checkAuth = async () => {
+            const user = await getCurrentUser()
+            setIsLoggedIn(!!user)
+        }
+        checkAuth()
+    }, [])
 
     // 날짜 클릭 핸들러
     const handleDateClick = (date: Date) => {
@@ -369,7 +380,7 @@ export function ResultsDateBased({ appointment, dateResults, voters, token }: Re
 
                     {/* 추가 액션 버튼들 */}
                     <div className="space-y-3">
-                        {voters.length > 0 && (
+                        {voters.length > 0 && isLoggedIn && (
                             <Button
                                 onClick={() => setIsCreateGroupModalOpen(true)}
                                 variant="secondary"
