@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
         let phone = kakaoAccountInfo?.phone_number || null
         if (phone) {
             // +82 제거하고 공백 제거
-            phone = phone.replace(/^\+82\s*/, "").trim()
+            phone = phone.replace(/^\+82\s*/, "0").trim()
         }
 
         // 생년월일 처리

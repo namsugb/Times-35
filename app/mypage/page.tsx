@@ -15,35 +15,45 @@ export default async function MyPage() {
         redirect("/login")
     }
 
-    // 사용자 프로필 정보 가져오기
+    // 사용자 프로필 정보 가져오기 (id 포함)
     const { data: userProfile } = await supabase
         .from("users")
-        .select("name, phone")
+        .select("id, name, phone")
         .eq("auth_id", user.id)
         .single()
 
+    const userId = userProfile?.id
     const userName = userProfile?.name || user.user_metadata?.name || user.user_metadata?.full_name || "사용자"
     const userPhone = userProfile?.phone || user.user_metadata?.phone || null
 
-    // 서버에서 appointments 데이터 가져오기
-    const { data: voters, error: votersError } = await supabase
-        .from("voters")
-        .select(`
-            name,
-            appointment_id,
-            appointments (
-                id,
-                title,
-                method,
-                status,
-                share_token,
-                start_date,
-                end_date,
-                created_at
-            )
-        `)
-        .eq("name", userName)
-        .order("voted_at", { ascending: false })
+    // 서버에서 appointments 데이터 가져오기 (user_id로 매칭)
+    let voters: any[] | null = null
+    let votersError: any = null
+
+    if (userId) {
+        const result = await supabase
+            .from("voters")
+            .select(`
+                name,
+                appointment_id,
+                user_id,
+                appointments (
+                    id,
+                    title,
+                    method,
+                    status,
+                    share_token,
+                    start_date,
+                    end_date,
+                    created_at
+                )
+            `)
+            .eq("user_id", userId)
+            .order("voted_at", { ascending: false })
+
+        voters = result.data
+        votersError = result.error
+    }
 
     // appointments 데이터 변환
     const appointmentsMap = new Map()

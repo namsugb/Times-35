@@ -686,48 +686,12 @@ function ProfileFields({
                 </Select>
             </div>
 
-            {/* 생일 */}
-            <div className="space-y-2">
-                <Label>생일</Label>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="outline"
-                            className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !birthDate && "text-muted-foreground"
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {birthDate ? (
-                                format(birthDate, "yyyy년 MM월 dd일", { locale: ko })
-                            ) : (
-                                <span>생일을 선택해주세요</span>
-                            )}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={birthDate}
-                            onSelect={setBirthDate}
-                            defaultMonth={birthDate}
-                            locale={ko}
-                            disabled={(date) =>
-                                date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                        />
-                    </PopoverContent>
-                </Popover>
-            </div>
-
             {/* 출생연도 */}
             <div className="space-y-2">
                 <Label htmlFor="birthYear">출생연도</Label>
                 <Input
                     id="birthYear"
-                    type="number"
+                    type="text"
                     value={birthYear}
                     onChange={(e) => {
                         const value = e.target.value

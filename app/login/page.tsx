@@ -203,7 +203,7 @@ function LoginContent() {
                     )}
 
                     <Tabs defaultValue="kakao" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
+                        {/* <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="kakao">
                                 <MessageCircle className="h-4 w-4 mr-2" />
                                 카카오
@@ -212,7 +212,7 @@ function LoginContent() {
                                 <Mail className="h-4 w-4 mr-2" />
                                 이메일
                             </TabsTrigger>
-                        </TabsList>
+                        </TabsList> */}
 
                         {/* 카카오 로그인 */}
                         <TabsContent value="kakao" className="space-y-4 mt-4">

@@ -21,7 +21,7 @@ import {
   X,
   Send,
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { shareToKakao } from "@/lib/kakao"
 import { Appointment } from "@/lib/types/appointment"
 import { GroupSelectModal } from "@/components/group-select-modal"
@@ -39,7 +39,6 @@ interface ShareModalProps {
 }
 
 export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps) {
-  const { toast } = useToast()
   const [copied, setCopied] = useState(false)
   const [isKakaoSharing, setIsKakaoSharing] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -66,17 +65,10 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
-      toast({
-        title: "복사 완료!",
-        description: `${type} 링크가 클립보드에 복사되었습니다.`,
-      })
+      toast.success(`${type} 링크가 클립보드에 복사되었습니다.`)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      toast({
-        title: "복사 실패",
-        description: "링크 복사에 실패했습니다.",
-        variant: "destructive",
-      })
+      toast.error("링크 복사에 실패했습니다.")
     }
   }
 
@@ -115,18 +107,11 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
       // 성공 시 토스트 메시지 (모바일에서만 표시)
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
       if (isMobile) {
-        toast({
-          title: "카카오톡 공유 완료!",
-          description: "카카오톡 앱에서 공유가 진행됩니다.",
-        })
+        toast.success("카카오톡 앱에서 공유가 진행됩니다.")
       }
     } catch (error) {
       console.error("카카오 공유 에러:", error)
-      toast({
-        title: "공유 실패",
-        description: "카카오톡 공유에 실패했습니다. 다시 시도해주세요.",
-        variant: "destructive",
-      })
+      toast.error("카카오톡 공유에 실패했습니다. 다시 시도해주세요.")
     } finally {
       setIsKakaoSharing(false)
     }
@@ -157,18 +142,11 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
         throw new Error("알림톡 발송 실패")
       }
 
-      toast({
-        title: "알림톡 발송 완료!",
-        description: `${inviteMembers.length}명에게 알림톡을 발송했습니다.`,
-      })
+      toast.success("멤버들에게 알림톡이 전송되었습니다.")
       setInviteMembers([]) // 발송 후 초기화
     } catch (err) {
       console.error("알림톡 발송 오류:", err)
-      toast({
-        title: "발송 실패",
-        description: "알림톡 발송에 실패했습니다. 다시 시도해주세요.",
-        variant: "destructive",
-      })
+      toast.error("알림톡 발송에 실패했습니다. 다시 시도해주세요.")
     } finally {
       setIsSendingInvite(false)
     }
