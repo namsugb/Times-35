@@ -14,15 +14,23 @@ import { toast } from "sonner"
 import Link from "next/link"
 
 // URL 파라미터 처리 컴포넌트
-function ErrorHandler({ onError }: { onError: (error: string | null) => void }) {
+function UrlParamsHandler({ onError }: { onError: (error: string | null) => void }) {
     const searchParams = useSearchParams()
 
     useEffect(() => {
+        // 에러 파라미터 처리
         const errorParam = searchParams.get("error")
         if (errorParam === "auth_failed") {
             onError("로그인에 실패했습니다. 다시 시도해주세요.")
         } else if (errorParam === "no_code") {
             onError("인증 코드를 받지 못했습니다. 다시 시도해주세요.")
+        }
+
+        // redirect 파라미터가 있으면 sessionStorage에 저장
+        const redirectParam = searchParams.get("redirect")
+        if (redirectParam) {
+            sessionStorage.setItem("redirectAfterLogin", redirectParam)
+            console.log("리다이렉트 URL 저장:", redirectParam)
         }
     }, [searchParams, onError])
 
@@ -69,7 +77,15 @@ function LoginContent() {
         try {
             setLoading(true)
             setError(null)
-            await signInWithKakao()
+
+            // 리다이렉트 URL을 쿠키에 저장 (서버 사이드 콜백에서 사용)
+            const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
+            if (redirectUrl) {
+                document.cookie = `redirectAfterLogin=${encodeURIComponent(redirectUrl)}; path=/; max-age=300; SameSite=Lax`
+            }
+
+            const data = await signInWithKakao()
+            console.log("data:", data)
         } catch (err: any) {
             console.error("로그인 오류:", err)
             setError(err.message || "로그인 중 오류가 발생했습니다.")
@@ -108,14 +124,33 @@ function LoginContent() {
 
             await signInWithEmail(email.trim(), password)
 
-            // 로그인 성공 후 회원가입 정보 확인
+            // 로그인 성공 후 public.users에서 회원가입 정보 확인
             const user = await getCurrentUser()
             if (user) {
-                const { data: userProfile } = await supabaseAuth
+                // public.users에 사용자 레코드가 없으면 생성 (트리거가 실패했을 경우 대비)
+                const { data: userProfile, error: selectError } = await supabaseAuth
                     .from("users")
                     .select("name, phone")
                     .eq("auth_id", user.id)
                     .single()
+
+                // 사용자 레코드가 없으면 생성
+                if (!userProfile || (selectError as any)?.code === "PGRST116") {
+                    const defaultName = user.email?.split("@")[0] || "사용자"
+                    const { error: insertError } = await supabaseAuth
+                        .from("users")
+                        .upsert({
+                            auth_id: user.id,
+                            email: user.email,
+                            name: defaultName,
+                        }, {
+                            onConflict: "auth_id",
+                        })
+
+                    if (insertError) {
+                        console.error("사용자 프로필 생성 오류:", insertError)
+                    }
+                }
 
                 // 저장된 리다이렉트 URL 확인
                 const redirectUrl = sessionStorage.getItem("redirectAfterLogin")
@@ -158,7 +193,7 @@ function LoginContent() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <Suspense fallback={null}>
-                        <ErrorHandler onError={setError} />
+                        <UrlParamsHandler onError={setError} />
                     </Suspense>
                     {error && (
                         <Alert variant="destructive">

@@ -48,7 +48,9 @@ export function HeaderAuthButton() {
     }
 
     const handleLogin = () => {
-        router.push("/login")
+        // 현재 페이지 URL을 redirect 파라미터로 전달
+        const currentUrl = pathname + (typeof window !== "undefined" ? window.location.search : "")
+        router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`)
     }
 
     const handleMypage = () => {

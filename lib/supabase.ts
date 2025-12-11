@@ -1,9 +1,10 @@
-import { createClient } from "@supabase/supabase-js"
+import { createBrowserClient } from "@supabase/ssr"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// @supabase/ssr의 createBrowserClient 사용 (PKCE code_verifier가 쿠키에 저장됨)
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
 // 데이터베이스 타입 정의
 export type Database = {

@@ -1,12 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Calendar, Clock, Users, Timer, ExternalLink, Vote, BarChart3 } from "lucide-react"
+import { Calendar, Clock, Users, Timer, Vote, BarChart3 } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { ko } from "date-fns/locale"
 
@@ -23,38 +20,13 @@ interface Appointment {
 }
 
 interface ParticipatingAppointmentsProps {
+    appointments: Appointment[]
     userPhone: string | null
     userName: string
 }
 
-export function ParticipatingAppointments({ userPhone, userName }: ParticipatingAppointmentsProps) {
+export function ParticipatingAppointments({ appointments, userPhone, userName }: ParticipatingAppointmentsProps) {
     const router = useRouter()
-    const [appointments, setAppointments] = useState<Appointment[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-
-    useEffect(() => {
-        const fetchAppointments = async () => {
-            try {
-                setLoading(true)
-                const response = await fetch(`/api/mypage/appointments?phone=${encodeURIComponent(userPhone || "")}&name=${encodeURIComponent(userName)}`)
-
-                if (!response.ok) {
-                    throw new Error("약속 목록을 불러오는데 실패했습니다.")
-                }
-
-                const data = await response.json()
-                setAppointments(data.appointments || [])
-            } catch (err: any) {
-                console.error("약속 조회 오류:", err)
-                setError(err.message)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchAppointments()
-    }, [userPhone, userName])
 
     const getMethodIcon = (method: string) => {
         switch (method) {
@@ -80,47 +52,6 @@ export function ParticipatingAppointments({ userPhone, userName }: Participating
             "recurring": "정기 모임",
         }
         return methodNames[method] || method
-    }
-
-    // const getStatusBadge = (status: string) => {
-    //     switch (status) {
-    //         case "active":
-    //             return <Badge variant="default">진행중</Badge>
-    //         case "completed":
-    //             return <Badge variant="secondary">완료</Badge>
-    //         case "cancelled":
-    //             return <Badge variant="destructive">취소됨</Badge>
-    //         default:
-    //             return <Badge variant="outline">{status}</Badge>
-    //     }
-    // }
-
-    if (loading) {
-        return (
-            <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                    <Card key={i}>
-                        <CardContent className="p-6">
-                            <div className="space-y-3">
-                                <Skeleton className="h-6 w-48" />
-                                <Skeleton className="h-4 w-32" />
-                                <Skeleton className="h-4 w-24" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-        )
-    }
-
-    if (error) {
-        return (
-            <Card>
-                <CardContent className="p-6 text-center">
-                    <p className="text-muted-foreground">{error}</p>
-                </CardContent>
-            </Card>
-        )
     }
 
     if (appointments.length === 0) {

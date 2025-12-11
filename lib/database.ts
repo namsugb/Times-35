@@ -17,11 +17,7 @@ export function generateSessionId(): string {
 // 약속 생성 
 export async function createAppointment(data: AppointmentInsert) {
   try {
-    // 환경 변수 디버깅
-    console.log("🔧 환경 변수 확인:")
-    console.log("  - SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
-    console.log("  - SUPABASE_KEY 존재:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    console.log("  - Supabase 클라이언트:", supabase ? "초기화됨" : "없음")
+
 
     // ➜ 1) 필수값 & 기본값 채우기
     const prepared: AppointmentInsert = {
@@ -42,17 +38,13 @@ export async function createAppointment(data: AppointmentInsert) {
       Object.entries(prepared).filter(([_, v]) => v !== undefined),
     ) as AppointmentInsert
 
-    // ➜ 3) INSERT
-    console.log("🔵 Supabase INSERT 시작...")
-    console.log("🔵 Payload:", payload)
+
 
     const startTime = Date.now()
     const { data: appointment, error } = await supabase.from("appointments").insert(payload).select().single()
     const endTime = Date.now()
 
-    console.log(`🔵 Supabase 응답 시간: ${endTime - startTime}ms`)
-    console.log("🔵 응답 data:", appointment)
-    console.log("🔵 응답 error:", error)
+
 
     // ➜ 4) 에러 처리
     if (error) {

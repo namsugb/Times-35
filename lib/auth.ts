@@ -6,13 +6,13 @@ import type { User, Session } from "@supabase/supabase-js"
 // 기존 supabase 클라이언트를 재사용 (세션 공유를 위해)
 export const supabaseAuth = supabase
 
-// 카카오 로그인
 export async function signInWithKakao() {
     const { data, error } = await supabaseAuth.auth.signInWithOAuth({
         provider: "kakao",
         options: {
-            scopes: "account_email",
             redirectTo: `${window.location.origin}/auth/callback`,
+            scopes: "name, phone_number gender birthyear",
+
         },
     })
 
@@ -20,7 +20,7 @@ export async function signInWithKakao() {
         console.error("카카오 로그인 오류:", error)
         throw error
     }
-
+    console.log("data:", data)
     return data
 }
 

@@ -208,7 +208,7 @@ export default function SignupPage() {
                 }
             }
 
-            // users 테이블에 정보 저장
+            // public.users 테이블에 정보 저장 (트리거가 이미 생성했을 수 있으므로 upsert 사용)
             const { error: profileError } = await supabaseAuth
                 .from("users")
                 .upsert({
@@ -226,7 +226,7 @@ export default function SignupPage() {
 
             if (profileError) {
                 console.error("프로필 저장 오류:", profileError)
-                // 에러가 발생해도 회원가입은 성공
+                throw new Error("프로필 정보 저장에 실패했습니다. 다시 시도해주세요.")
             }
 
             toast.success("회원가입이 완료되었습니다!")
@@ -302,7 +302,7 @@ export default function SignupPage() {
                 }
             }
 
-            // users 테이블 업데이트
+            // public.users 테이블 업데이트 (트리거가 이미 생성했을 수 있으므로 upsert 사용)
             const { error: updateError } = await supabaseAuth
                 .from("users")
                 .upsert({
@@ -313,14 +313,13 @@ export default function SignupPage() {
                     age_range: ageRange || null,
                     birth_date: formattedBirthDate,
                     birth_year: birthYearNum,
-                    updated_at: new Date().toISOString(),
                 }, {
                     onConflict: "auth_id",
                 })
 
             if (updateError) {
                 console.error("회원가입 오류:", updateError)
-                throw new Error("회원가입에 실패했습니다.")
+                throw new Error("프로필 정보 저장에 실패했습니다. 다시 시도해주세요.")
             }
 
             toast.success("회원가입이 완료되었습니다!")
