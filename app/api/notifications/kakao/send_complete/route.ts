@@ -17,15 +17,15 @@ async function sendKakaoNotification(phoneNumber: string, appointmentTitle: stri
     const requestBody = {
       userid: LUNA_USERID,
       api_key: LUNA_API_KEY,
-      template_id: 50078,
+      template_id: 50082,
 
       messages: [
         {
           no: "1",
           tel_num: phoneNumber,
           use_sms: "0",
-          sms_content: `${name}님 등록하신 ${appointmentTitle} 약속에 대한 투표가 완료되었습니다!\n결과를 확인해보세요!`,
-          msg_content: `${name}님 등록하신 ${appointmentTitle} 약속에 대한 투표가 완료되었습니다!\n결과를 확인해보세요!`,
+          sms_content: `${appointmentTitle} 투표가 완료되었습니다.\n투표 결과를 확인하고 친구들에게 공유해보세요!`,
+          msg_content: `${appointmentTitle} 투표가 완료되었습니다.\n투표 결과를 확인하고 친구들에게 공유해보세요!`,
           btn_url: [{
             url_pc: resultsUrl,
             url_mobile: resultsUrl

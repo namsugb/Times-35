@@ -11,13 +11,16 @@ interface RequestBody {
     appointmentTitle: string
     shareToken: string
     members: InviteMember[]
+    invitorName: string
 }
 
-async function sendKakaoInvite(invitor: string, phoneNumber: string, appointmentTitle: string, voteUrl: string, resultsUrl: string) {
+async function sendKakaoInvite(invitorName: string, phoneNumber: string, appointmentTitle: string, voteUrl: string, resultsUrl: string) {
     try {
         // Lunasoft API 설정 확인
         const LUNA_USERID = process.env.LUNA_USERID;
         const LUNA_API_KEY = process.env.LUNA_API_KEY;
+        const name = appointmentTitle;
+        const invitor = invitorName;
 
 
         if (!LUNA_USERID || !LUNA_API_KEY) {
@@ -35,7 +38,8 @@ async function sendKakaoInvite(invitor: string, phoneNumber: string, appointment
                     no: "1",
                     tel_num: phoneNumber,
                     use_sms: "0",
-                    sms_content: `${invitor}님께서 투표에 초대했습니다.\n${appointmentTitle} 투표에 참여해 주세요!`,
+                    sms_content: `${invitor}님께서 투표에 초대했습니다.\n${name} 투표에 참여해 주세요!`,
+                    msg_content: `${invitor}님께서 투표에 초대했습니다.\n${name} 투표에 참여해 주세요!`,
                     btn_url: [{
                         url_pc: voteUrl,
                         url_mobile: voteUrl
@@ -47,6 +51,12 @@ async function sendKakaoInvite(invitor: string, phoneNumber: string, appointment
             ],
         }
 
+        // 디버그: 요청 바디 로깅 (API 키는 마스킹)
+        console.log("알림톡 API 요청:", JSON.stringify({
+            ...requestBody,
+            api_key: "***MASKED***"
+        }, null, 2));
+
         // Lunasoft API 요청
         const response = await fetch("https://jupiter.lunasoft.co.kr/api/AlimTalk/message/send", {
             method: "POST",
@@ -56,11 +66,16 @@ async function sendKakaoInvite(invitor: string, phoneNumber: string, appointment
             body: JSON.stringify(requestBody)
         });
 
+        console.log("알림톡 API HTTP 상태:", response.status, response.statusText);
+
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error("알림톡 API HTTP 오류 응답:", errorText);
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
         }
 
         const result = await response.json();
+        console.log("알림톡 API 응답 데이터:", JSON.stringify(result, null, 2));
 
         // Lunasoft API 응답 처리
         if (result.code !== 0) {
@@ -81,7 +96,7 @@ async function sendKakaoInvite(invitor: string, phoneNumber: string, appointment
 export async function POST(request: NextRequest) {
     try {
         const body: RequestBody = await request.json()
-        const { appointmentId, appointmentTitle, shareToken, members } = body
+        const { appointmentId, appointmentTitle, shareToken, members, invitorName } = body
 
         if (!appointmentId || !shareToken || !members || members.length === 0) {
             return NextResponse.json(
@@ -99,22 +114,35 @@ export async function POST(request: NextRequest) {
 
         for (const member of members) {
             try {
-                const result = await sendKakaoInvite(member.name, member.phone, appointmentTitle, voteUrl, resultsUrl)
-
-                console.log(`알림톡 발송 예정: ${member.name} (${member.phone}) - ${appointmentTitle}`)
+                console.log(`알림톡 발송 시작: ${member.name} (${member.phone}) - ${appointmentTitle}`)
                 console.log(`투표 링크: ${voteUrl}`)
 
-                results.push({
-                    phone: member.phone,
-                    name: member.name,
-                    status: "pending", // 실제 구현 시 "success" 또는 "failed"
-                })
-            } catch (err) {
-                console.error(`알림톡 발송 실패 (${member.phone}):`, err)
+                const result = await sendKakaoInvite(invitorName, member.phone, appointmentTitle, voteUrl, resultsUrl,)
+
+                console.log(`알림톡 API 응답:`, JSON.stringify(result, null, 2))
+
+                if (result.success) {
+                    results.push({
+                        phone: member.phone,
+                        name: member.name,
+                        status: "success",
+                    })
+                } else {
+                    console.error(`알림톡 발송 실패 (${member.phone}):`, result.error)
+                    results.push({
+                        phone: member.phone,
+                        name: member.name,
+                        status: "failed",
+                        error: result.error,
+                    })
+                }
+            } catch (err: any) {
+                console.error(`알림톡 발송 예외 (${member.phone}):`, err)
                 results.push({
                     phone: member.phone,
                     name: member.name,
                     status: "failed",
+                    error: err.message,
                 })
             }
         }

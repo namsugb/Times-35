@@ -25,7 +25,7 @@ import { toast } from "sonner"
 import { shareToKakao } from "@/lib/kakao"
 import { Appointment } from "@/lib/types/appointment"
 import { GroupSelectModal } from "@/components/group-select-modal"
-import { getCurrentUser, supabaseAuth } from "@/lib/auth"
+import { getCurrentUser, getUserName, supabaseAuth } from "@/lib/auth"
 
 interface InviteMember {
   name: string
@@ -124,6 +124,7 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
     setIsSendingInvite(true)
     try {
       const { data: { session } } = await supabaseAuth.auth.getSession()
+      const user = await getCurrentUser()
       const response = await fetch("/api/notifications/kakao/send_invite", {
         method: "POST",
         headers: {
@@ -135,6 +136,7 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
           appointmentTitle: appointmentData.title,
           shareToken: appointmentData.share_token,
           members: inviteMembers,
+          invitorName: getUserName(user) || "",
         }),
       })
 
