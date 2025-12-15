@@ -96,7 +96,7 @@ export async function getAppointmentByToken(shareToken: string | undefined) {
   }
 }
 
-// 투표자 생성 (로그인한 사용자는 user_id도 저장)
+// 투표자 생성 (로그인한 사용자는 user_id와 phone도 저장)
 export async function createVoter(appointmentId: string, name: string, authUserId?: string | null) {
   try {
     const voterData: any = {
@@ -104,16 +104,20 @@ export async function createVoter(appointmentId: string, name: string, authUserI
       name: name.trim(),
     }
 
-    // 로그인한 사용자인 경우 auth_id로 users 테이블에서 user_id 조회
+    // 로그인한 사용자인 경우 auth_id로 users 테이블에서 user_id, phone 조회
     if (authUserId) {
       const { data: userData } = await supabase
         .from("users")
-        .select("id")
+        .select("id, phone")
         .eq("auth_id", authUserId)
         .single()
 
       if (userData) {
         voterData.user_id = userData.id
+        // 전화번호가 있으면 voters 테이블에도 저장
+        if (userData.phone) {
+          voterData.phone = userData.phone
+        }
       }
     }
 
@@ -460,7 +464,6 @@ export async function testDatabaseConnection() {
     return { success: false, message: error.message }
   }
 }
-
 
 
 // 알림큐 추가
