@@ -405,10 +405,10 @@ export async function getVoters(appointmentId: string) {
 
   if (error) throw error
 
-  // users 정보가 있으면 phone을 voter 객체에 추가
+  // voters.phone 우선, 없으면 users.phone 사용
   const votersWithPhone = data?.map((voter: any) => ({
     ...voter,
-    phone: voter.users?.phone || null,
+    phone: voter.phone || voter.users?.phone || null,
     user_name: voter.users?.name || null,
   })) || []
 
