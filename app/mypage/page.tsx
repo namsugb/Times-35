@@ -15,18 +15,46 @@ export default async function MyPage() {
         redirect("/login")
     }
 
-    // 사용자 프로필 정보 가져오기 (id 포함)
-    const { data: userProfile } = await supabase
-        .from("users")
-        .select("id, name, phone")
-        .eq("auth_id", user.id)
-        .single()
+    // ✅ 병렬로 모든 데이터 조회 (성능 최적화)
+    const [userProfileResult, groupsResult] = await Promise.all([
+        // 사용자 프로필
+        supabase
+            .from("users")
+            .select("id, name, phone")
+            .eq("auth_id", user.id)
+            .single(),
 
+        // 그룹 목록 (서버에서 미리 조회)
+        supabase
+            .from("groups")
+            .select(`
+                id,
+                name,
+                created_at,
+                group_members (
+                    id,
+                    name,
+                    phone
+                )
+            `)
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+    ])
+
+    const userProfile = userProfileResult.data
     const userId = userProfile?.id
     const userName = userProfile?.name || user.user_metadata?.name || user.user_metadata?.full_name || "사용자"
     const userPhone = userProfile?.phone || user.user_metadata?.phone || null
 
-    // 서버에서 appointments 데이터 가져오기 (user_id로 매칭)
+    // 그룹 데이터 포맷팅
+    const groups = (groupsResult.data || []).map((group: any) => ({
+        id: group.id,
+        name: group.name,
+        created_at: group.created_at,
+        members: group.group_members || [],
+    }))
+
+    // 서버에서 appointments 데이터 가져오기 (user_id로 매칭) - userId 확정 후 조회
     let voters: any[] | null = null
     let votersError: any = null
 
@@ -94,7 +122,7 @@ export default async function MyPage() {
                 </TabsContent>
 
                 <TabsContent value="groups">
-                    <GroupsTab userId={user.id} />
+                    <GroupsTab userId={user.id} initialGroups={groups} />
                 </TabsContent>
             </Tabs>
         </div>

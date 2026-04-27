@@ -36,8 +36,8 @@ async function initKakao() {
           })
         }
 
-        // 2. Fetch the secret key from the server-only route
-        const { key } = await fetch("/api/kakao-js-key").then((r) => r.json())
+        const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+        if (!key) throw new Error("NEXT_PUBLIC_KAKAO_JS_KEY environment variable is not set")
         if (!window.Kakao) throw new Error("Kakao SDK not found on window")
         window.Kakao.init(key)
         resolve()

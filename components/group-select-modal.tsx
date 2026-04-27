@@ -12,20 +12,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
-import { supabaseAuth } from "@/lib/auth"
+import { listGroups, type Group } from "@/lib/groups"
 import { Users, Phone, User, Loader2 } from "lucide-react"
-
-interface GroupMember {
-    id: string
-    name: string
-    phone: string | null
-}
-
-interface Group {
-    id: string
-    name: string
-    members: GroupMember[]
-}
 
 interface GroupSelectModalProps {
     open: boolean
@@ -51,22 +39,8 @@ export function GroupSelectModal({ open, onOpenChange, onSelect }: GroupSelectMo
         try {
             setLoading(true)
 
-            const { data: { session } } = await supabaseAuth.auth.getSession()
-            if (!session?.access_token) {
-                setGroups([])
-                return
-            }
-
-            const response = await fetch("/api/groups", {
-                headers: {
-                    "Authorization": `Bearer ${session.access_token}`,
-                },
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                setGroups(data.groups || [])
-            }
+            const groups = await listGroups()
+            setGroups(groups)
         } catch (err) {
             console.error("그룹 조회 오류:", err)
         } finally {

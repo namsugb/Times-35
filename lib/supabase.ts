@@ -205,6 +205,79 @@ export type Database = {
           phone?: string | null
         }
       }
+      feedback: {
+        Row: {
+          id: string
+          type: "suggestion" | "bug" | "general"
+          title: string
+          content: string
+          name: string | null
+          email: string | null
+          status: "pending" | "in_progress" | "completed" | "rejected"
+          admin_response: string | null
+          created_at: string
+          updated_at: string
+          responded_at: string | null
+        }
+        Insert: {
+          id?: string
+          type: "suggestion" | "bug" | "general"
+          title: string
+          content: string
+          name?: string | null
+          email?: string | null
+          status?: "pending" | "in_progress" | "completed" | "rejected"
+          admin_response?: string | null
+          created_at?: string
+          updated_at?: string
+          responded_at?: string | null
+        }
+        Update: {
+          id?: string
+          type?: "suggestion" | "bug" | "general"
+          title?: string
+          content?: string
+          name?: string | null
+          email?: string | null
+          status?: "pending" | "in_progress" | "completed" | "rejected"
+          admin_response?: string | null
+          created_at?: string
+          updated_at?: string
+          responded_at?: string | null
+        }
+      }
+      notification_queue: {
+        Row: {
+          id: string
+          appointment_id: string
+          phone_number: string
+          message_type: string
+          status: string
+          sent_at: string | null
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          appointment_id: string
+          phone_number: string
+          message_type: string
+          status?: string
+          sent_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          appointment_id?: string
+          phone_number?: string
+          message_type?: string
+          status?: string
+          sent_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+      }
       users: {
         Row: {
           id: string

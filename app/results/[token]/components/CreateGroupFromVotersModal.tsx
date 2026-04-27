@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
-import { getCurrentUser, supabaseAuth } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth"
+import { createGroup } from "@/lib/groups"
 import { Users, LogIn, AlertCircle, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -92,8 +93,8 @@ export function CreateGroupFromVotersModal({
             setSaving(true)
 
             // 세션에서 access_token 가져오기
-            const { data: { session } } = await supabaseAuth.auth.getSession()
-            if (!session?.access_token) {
+            const user = await getCurrentUser()
+            if (!user) {
                 toast.error("로그인이 필요합니다.")
                 return
             }
@@ -105,11 +106,12 @@ export function CreateGroupFromVotersModal({
                     phone: v.phone || "",
                 }))
 
-            const response = await fetch("/api/groups", {
+            await createGroup(groupName.trim(), members)
+            /* const response = await legacyRequest("removed-groups-route", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${session.access_token}`,
+                    "Authorization": "",
                 },
                 body: JSON.stringify({
                     name: groupName.trim(),
@@ -123,6 +125,8 @@ export function CreateGroupFromVotersModal({
             }
 
             toast.success("그룹이 생성되었습니다!")
+            */
+            toast.success("그룹이 생성되었습니다.")
             onOpenChange(false)
 
             // 마이페이지 그룹 탭으로 이동
