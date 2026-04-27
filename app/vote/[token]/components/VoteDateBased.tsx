@@ -2,8 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { format, parseISO } from "date-fns"
-import { ko } from "date-fns/locale"
+import { eachDayOfInterval, isSameDay, parseISO } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -17,6 +16,8 @@ interface VoteDateBasedProps {
     onNameChange: (value: string) => void
     onSubmit: (e: React.FormEvent, selectedDates: Date[]) => void
 }
+
+type DateGroup = "weekend" | "weekday"
 
 export function VoteDateBased({
     appointment,
@@ -37,6 +38,39 @@ export function VoteDateBased({
         const startDate = parseISO(appointment.start_date)
         const endDate = parseISO(appointment.end_date)
         return date < startDate || date > endDate
+    }
+
+    const isWeekendDate = (date: Date) => {
+        const day = date.getDay()
+        return day === 0 || day === 6
+    }
+
+    const getSelectableDatesByGroup = (group: DateGroup) => {
+        if (!appointment?.start_date || !appointment?.end_date) return []
+
+        return eachDayOfInterval({
+            start: parseISO(appointment.start_date),
+            end: parseISO(appointment.end_date),
+        }).filter((date) => {
+            if (isDateDisabled(date)) return false
+            return group === "weekend" ? isWeekendDate(date) : !isWeekendDate(date)
+        })
+    }
+
+    const handleBulkToggle = (group: DateGroup) => {
+        const targetDates = getSelectableDatesByGroup(group)
+        if (targetDates.length === 0) return
+
+        setSelectedDates((prev) => {
+            const hasAllTargetDates = targetDates.every((targetDate) =>
+                prev.some((selectedDate) => isSameDay(selectedDate, targetDate))
+            )
+            const withoutTargetDates = prev.filter(
+                (selectedDate) => !targetDates.some((targetDate) => isSameDay(selectedDate, targetDate))
+            )
+
+            return hasAllTargetDates ? withoutTargetDates : [...withoutTargetDates, ...targetDates]
+        })
     }
 
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -64,6 +98,14 @@ export function VoteDateBased({
                     참석 가능한 날짜 {selectedDates.length > 0 && `(${selectedDates.length}개 선택됨)`}
                 </Label>
                 <div className="w-full border rounded-md p-2 bg-background">
+                    <div className="flex justify-center gap-2 py-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => handleBulkToggle("weekend")}>
+                            주말
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => handleBulkToggle("weekday")}>
+                            평일
+                        </Button>
+                    </div>
                     <CustomCalendar
                         selected={selectedDates}
                         onSelect={handleDateSelect}

@@ -18,8 +18,10 @@ interface CustomCalendarProps {
     showOutsideDays?: boolean
     className?: string
     isTimeScheduling?: boolean
-    selectedDateTimes?: Array<{ date: string; times: number[] }>
+    selectedDateTimes?: Array<{ date: string; times: Array<string | number> }>
 }
+
+type DragMode = "select" | "deselect"
 
 export function CustomCalendar({
     selected = [],
@@ -35,6 +37,10 @@ export function CustomCalendar({
     selectedDateTimes = [],
 }: CustomCalendarProps) {
     const [currentMonth, setCurrentMonth] = React.useState(defaultMonth)
+    const [dragMode, setDragMode] = React.useState<DragMode | null>(null)
+    const selectedRef = React.useRef(selected)
+    const dragModeRef = React.useRef<DragMode | null>(null)
+    const dragVisitedRef = React.useRef<Set<string>>(new Set())
 
     // 월 네비게이션
     const goToPreviousMonth = () => {
@@ -45,19 +51,63 @@ export function CustomCalendar({
         setCurrentMonth((prev) => addMonths(prev, 1))
     }
 
+    React.useEffect(() => {
+        selectedRef.current = selected
+    }, [selected])
+
+    const getDateKey = React.useCallback((date: Date) => format(date, "yyyy-MM-dd"), [])
+
+    const isSelectableDate = React.useCallback((date: Date) => {
+        const isDisabled = disabled?.(date) || false
+        const isInRange = (!fromDate || date >= fromDate) && (!toDate || date <= toDate)
+        return !isDisabled && isInRange
+    }, [disabled, fromDate, toDate])
+
+    const applyDateSelection = React.useCallback((date: Date, mode?: DragMode) => {
+        if (!isSelectableDate(date)) return
+
+        const currentSelected = selectedRef.current
+        const alreadySelected = currentSelected.some((d) => isSameDay(d, date))
+        const shouldSelect = mode ? mode === "select" : !alreadySelected
+
+        if (shouldSelect === alreadySelected) return
+
+        const newSelected = shouldSelect
+            ? [...currentSelected, date]
+            : currentSelected.filter((d) => !isSameDay(d, date))
+
+        selectedRef.current = newSelected
+        onSelect?.(newSelected)
+    }, [isSelectableDate, onSelect])
+
+    const endDateDrag = React.useCallback(() => {
+        dragModeRef.current = null
+        dragVisitedRef.current.clear()
+        setDragMode(null)
+    }, [])
+
+    React.useEffect(() => {
+        if (!dragMode) return
+
+        window.addEventListener("pointerup", endDateDrag)
+        window.addEventListener("pointercancel", endDateDrag)
+
+        return () => {
+            window.removeEventListener("pointerup", endDateDrag)
+            window.removeEventListener("pointercancel", endDateDrag)
+        }
+    }, [dragMode, endDateDrag])
+
     // 날짜 클릭 핸들러
     const handleDateClick = (date: Date) => {
-        if (disabled?.(date)) return
+        if (!isSelectableDate(date)) return
 
         if (isTimeScheduling) {
             // 시간 스케줄링 모드에서는 onDayClick 호출
             onDayClick?.(date)
         } else {
             // 일반 모드에서는 선택/해제
-            const newSelected = selected.some((d) => isSameDay(d, date))
-                ? selected.filter((d) => !isSameDay(d, date))
-                : [...selected, date]
-            onSelect?.(newSelected)
+            applyDateSelection(date)
         }
     }
 
@@ -82,6 +132,47 @@ export function CustomCalendar({
         start: monthStart,
         end: monthEnd,
     })
+
+    const datesByKey = React.useMemo(() => {
+        return new Map(daysInMonth.map((day) => [getDateKey(day), day]))
+    }, [daysInMonth, getDateKey])
+
+    const getDateFromPointer = (event: React.PointerEvent<HTMLDivElement>) => {
+        const target = document.elementFromPoint(event.clientX, event.clientY)
+        if (!(target instanceof Element)) return null
+
+        const dayElement = target.closest<HTMLElement>("[data-calendar-date]")
+        const dateKey = dayElement?.dataset.calendarDate
+
+        return dateKey ? datesByKey.get(dateKey) ?? null : null
+    }
+
+    const handleDatePointerDown = (date: Date, event: React.PointerEvent<HTMLDivElement>) => {
+        if (isTimeScheduling || !isSelectableDate(date)) return
+
+        event.preventDefault()
+
+        const mode: DragMode = isDateSelected(date) ? "deselect" : "select"
+        dragModeRef.current = mode
+        dragVisitedRef.current = new Set([getDateKey(date)])
+        setDragMode(mode)
+        applyDateSelection(date, mode)
+    }
+
+    const handleCalendarPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+        const mode = dragModeRef.current
+        if (isTimeScheduling || !mode) return
+
+        const date = getDateFromPointer(event)
+        if (!date || !isSelectableDate(date)) return
+
+        const dateKey = getDateKey(date)
+        if (dragVisitedRef.current.has(dateKey)) return
+
+        event.preventDefault()
+        dragVisitedRef.current.add(dateKey)
+        applyDateSelection(date, mode)
+    }
 
     // 월 시작 전 빈 칸 수 계산
     const startDayOfWeek = monthStart.getDay()
@@ -129,7 +220,15 @@ export function CustomCalendar({
             </div>
 
             {/* 달력 그리드 */}
-            <div className="grid grid-cols-7 gap-1">
+            <div
+                className={cn(
+                    "grid grid-cols-7 gap-1 select-none",
+                    !isTimeScheduling && "touch-none"
+                )}
+                onPointerMove={handleCalendarPointerMove}
+                onPointerUp={endDateDrag}
+                onPointerCancel={endDateDrag}
+            >
                 {/* 월 시작 전 빈 칸 */}
                 {Array.from({ length: startDayOfWeek }).map((_, i) => (
                     <div key={`empty-start-${i}`} className="aspect-square" />
@@ -139,14 +238,18 @@ export function CustomCalendar({
                 {daysInMonth.map((day) => {
                     const isSelected = isDateSelected(day)
                     const isDisabled = disabled?.(day) || false
-                    const isInRange = fromDate && toDate && day >= fromDate && day <= toDate
+                    const isInRange = (!fromDate || day >= fromDate) && (!toDate || day <= toDate)
                     const dateTimeInfo = getDateTimeInfo(day)
 
                     return (
                         <div
-                            key={format(day, "yyyy-MM-dd")}
+                            key={getDateKey(day)}
+                            data-calendar-date={getDateKey(day)}
+                            role="button"
+                            tabIndex={isDisabled || !isInRange ? -1 : 0}
+                            aria-pressed={isSelected}
                             className={cn(
-                                "aspect-square rounded-lg flex flex-col items-center justify-center relative cursor-pointer border transition-all duration-200",
+                                "aspect-square rounded-lg flex flex-col items-center justify-center relative cursor-pointer border transition-all duration-100 active:scale-95",
                                 isSelected
                                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
                                     : isDisabled || !isInRange
@@ -155,7 +258,13 @@ export function CustomCalendar({
                                 isSelected && "hover:scale-105 hover:shadow-md",
                                 !isDisabled && isInRange && "hover:scale-105"
                             )}
-                            onClick={() => handleDateClick(day)}
+                            onPointerDown={(event) => handleDatePointerDown(day, event)}
+                            onClick={isTimeScheduling ? () => handleDateClick(day) : undefined}
+                            onKeyDown={(event) => {
+                                if (event.key !== "Enter" && event.key !== " ") return
+                                event.preventDefault()
+                                handleDateClick(day)
+                            }}
                         >
                             <span className="text-sm font-semibold mb-0.5">
                                 {format(day, "d")}
@@ -173,4 +282,4 @@ export function CustomCalendar({
             </div>
         </div>
     )
-} 
+}
