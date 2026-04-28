@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { eachDayOfInterval, format, isSameDay, isWeekend, parseISO } from "date-fns"
+import { eachDayOfInterval, format, isSameDay, parseISO } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -16,6 +16,8 @@ interface DateTimeSelection {
     date: string
     times: string[]
 }
+
+type DateGroup = "weekend" | "weekday"
 
 const generateAllTimeSlots = (): string[] => {
     const slots: string[] = []
@@ -55,12 +57,20 @@ export function VoteTimeScheduling({
 
     const getDateKey = (date: Date) => format(date, "yyyy-MM-dd")
 
-    const getAppointmentDates = () => {
+    const isWeekendDate = (date: Date) => {
+        const day = date.getDay()
+        return day === 0 || day === 6
+    }
+
+    const getSelectableDatesByGroup = (group: DateGroup) => {
         if (!startDate || !endDate) return []
 
         return eachDayOfInterval({
             start: startDate,
             end: endDate,
+        }).filter((date) => {
+            if (isDateDisabled(date)) return false
+            return group === "weekend" ? isWeekendDate(date) : !isWeekendDate(date)
         })
     }
 
@@ -68,12 +78,20 @@ export function VoteTimeScheduling({
         setSelectedDates(dates ?? [])
     }
 
-    const handleSelectDateGroup = (group: "weekday" | "weekend") => {
-        const dates = getAppointmentDates().filter((date) => (
-            group === "weekend" ? isWeekend(date) : !isWeekend(date)
-        ))
+    const handleBulkToggle = (group: DateGroup) => {
+        const targetDates = getSelectableDatesByGroup(group)
+        if (targetDates.length === 0) return
 
-        setSelectedDates(dates)
+        setSelectedDates((prev) => {
+            const hasAllTargetDates = targetDates.every((targetDate) =>
+                prev.some((selectedDate) => isSameDay(selectedDate, targetDate))
+            )
+            const withoutTargetDates = prev.filter(
+                (selectedDate) => !targetDates.some((targetDate) => isSameDay(selectedDate, targetDate))
+            )
+
+            return hasAllTargetDates ? withoutTargetDates : [...withoutTargetDates, ...targetDates]
+        })
     }
 
     const openTimeModal = (dates: Date[], initialTimes: string[]) => {
@@ -179,22 +197,24 @@ export function VoteTimeScheduling({
                         참석 가능한 날짜와 시간
                     </Label>
                     <div className="w-full border rounded-md p-2 bg-background">
-                        <div className="grid grid-cols-2 gap-2 px-3 pt-3">
+                        <div className="flex justify-center gap-2 py-2">
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => handleSelectDateGroup("weekday")}
+                                size="sm"
+                                onClick={() => handleBulkToggle("weekend")}
                                 disabled={!hasAppointmentRange}
                             >
-                                평일
+                                주말
                             </Button>
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => handleSelectDateGroup("weekend")}
+                                size="sm"
+                                onClick={() => handleBulkToggle("weekday")}
                                 disabled={!hasAppointmentRange}
                             >
-                                주말
+                                평일
                             </Button>
                         </div>
                         {startDate && endDate && (
