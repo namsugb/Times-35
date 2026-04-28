@@ -256,7 +256,7 @@ export function CustomCalendar({
                             tabIndex={isDisabled || !isInRange ? -1 : 0}
                             aria-pressed={isSelected}
                             className={cn(
-                                "aspect-square rounded-lg flex flex-col items-center justify-center relative cursor-pointer border transition-all duration-100 active:scale-95",
+                                "aspect-square min-h-12 rounded-lg flex flex-col items-center justify-center relative cursor-pointer border transition-all duration-100 active:scale-95",
                                 isSelected
                                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
                                     : isDisabled || !isInRange
@@ -281,7 +281,7 @@ export function CustomCalendar({
 
                             {/* 시간 정보 표시 */}
                             {hasSavedTimes && (
-                                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+                                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
                                     <Clock className={cn("h-3 w-3", isSelected ? "text-primary-foreground" : "text-primary")} />
                                 </div>
                             )}
