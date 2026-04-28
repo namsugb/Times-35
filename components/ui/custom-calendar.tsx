@@ -237,7 +237,7 @@ export function CustomCalendar({
             >
                 {/* 월 시작 전 빈 칸 */}
                 {Array.from({ length: startDayOfWeek }).map((_, i) => (
-                    <div key={`empty-start-${i}`} className="aspect-square" />
+                    <div key={`empty-start-${i}`} className="h-12 min-w-0" />
                 ))}
 
                 {/* 실제 날짜들 */}
@@ -256,7 +256,7 @@ export function CustomCalendar({
                             tabIndex={isDisabled || !isInRange ? -1 : 0}
                             aria-pressed={isSelected}
                             className={cn(
-                                "aspect-square min-h-12 rounded-lg flex flex-col items-center justify-center relative cursor-pointer border transition-all duration-100 active:scale-95",
+                                "h-12 min-w-0 rounded-lg flex flex-col items-center justify-center relative cursor-pointer border transition-all duration-100 active:scale-95",
                                 isSelected
                                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
                                     : isDisabled || !isInRange
