@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { format, isSameDay, parseISO } from "date-fns"
+import { eachDayOfInterval, format, isSameDay, isWeekend, parseISO } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -49,10 +49,31 @@ export function VoteTimeScheduling({
     const [editingDates, setEditingDates] = useState<Date[]>([])
     const [tempSelectedTimes, setTempSelectedTimes] = useState<string[]>([])
 
+    const hasAppointmentRange = Boolean(appointment?.start_date && appointment?.end_date)
+    const startDate = hasAppointmentRange ? parseISO(appointment.start_date) : undefined
+    const endDate = hasAppointmentRange ? parseISO(appointment.end_date) : undefined
+
     const getDateKey = (date: Date) => format(date, "yyyy-MM-dd")
+
+    const getAppointmentDates = () => {
+        if (!startDate || !endDate) return []
+
+        return eachDayOfInterval({
+            start: startDate,
+            end: endDate,
+        })
+    }
 
     const handleDateSelect = (dates: Date[] | undefined) => {
         setSelectedDates(dates ?? [])
+    }
+
+    const handleSelectDateGroup = (group: "weekday" | "weekend") => {
+        const dates = getAppointmentDates().filter((date) => (
+            group === "weekend" ? isWeekend(date) : !isWeekend(date)
+        ))
+
+        setSelectedDates(dates)
     }
 
     const openTimeModal = (dates: Date[], initialTimes: string[]) => {
@@ -120,9 +141,7 @@ export function VoteTimeScheduling({
     }
 
     const isDateDisabled = (date: Date) => {
-        if (!appointment?.start_date || !appointment?.end_date) return false
-        const startDate = parseISO(appointment.start_date)
-        const endDate = parseISO(appointment.end_date)
+        if (!startDate || !endDate) return false
         return date < startDate || date > endDate
     }
 
@@ -160,19 +179,39 @@ export function VoteTimeScheduling({
                         참석 가능한 날짜와 시간
                     </Label>
                     <div className="w-full border rounded-md p-2 bg-background">
-                        <CustomCalendar
-                            selected={selectedDates}
-                            onSelect={handleDateSelect}
-                            onDayClick={handleDateClick}
-                            className="mx-auto p-3"
-                            disabled={isDateDisabled}
-                            defaultMonth={parseISO(appointment.start_date)}
-                            fromDate={parseISO(appointment.start_date)}
-                            toDate={parseISO(appointment.end_date)}
-                            showOutsideDays={false}
-                            isTimeScheduling={true}
-                            selectedDateTimes={selectedDateTimes}
-                        />
+                        <div className="grid grid-cols-2 gap-2 px-3 pt-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => handleSelectDateGroup("weekday")}
+                                disabled={!hasAppointmentRange}
+                            >
+                                평일
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => handleSelectDateGroup("weekend")}
+                                disabled={!hasAppointmentRange}
+                            >
+                                주말
+                            </Button>
+                        </div>
+                        {startDate && endDate && (
+                            <CustomCalendar
+                                selected={selectedDates}
+                                onSelect={handleDateSelect}
+                                onDayClick={handleDateClick}
+                                className="mx-auto p-3"
+                                disabled={isDateDisabled}
+                                defaultMonth={startDate}
+                                fromDate={startDate}
+                                toDate={endDate}
+                                showOutsideDays={false}
+                                isTimeScheduling={true}
+                                selectedDateTimes={selectedDateTimes}
+                            />
+                        )}
                     </div>
 
                     <div className="pt-2 space-y-2">
