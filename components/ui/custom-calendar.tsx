@@ -34,7 +34,7 @@ export function CustomCalendar({
     showOutsideDays = false,
     className,
     isTimeScheduling = false,
-    selectedDateTimes = [],
+    selectedDateTimes,
 }: CustomCalendarProps) {
     const [currentMonth, setCurrentMonth] = React.useState(defaultMonth)
     const [dragMode, setDragMode] = React.useState<DragMode | null>(null)
@@ -119,7 +119,7 @@ export function CustomCalendar({
     // 날짜에 시간 정보가 있는지 확인
     const getDateTimeInfo = (date: Date) => {
         const dateStr = format(date, "yyyy-MM-dd")
-        return selectedDateTimes.find((dt) => dt.date === dateStr)
+        return selectedDateTimes?.find((dt) => dt.date === dateStr)
     }
 
     const hasDateTimeInfo = (date: Date) => {
@@ -154,7 +154,7 @@ export function CustomCalendar({
 
     const handleDatePointerDown = (date: Date, event: React.PointerEvent<HTMLDivElement>) => {
         if (!isSelectableDate(date)) return
-        if (isTimeScheduling && hasDateTimeInfo(date)) return
+        if (isTimeScheduling && (!selectedDateTimes || hasDateTimeInfo(date))) return
 
         event.preventDefault()
 
@@ -171,7 +171,7 @@ export function CustomCalendar({
 
         const date = getDateFromPointer(event)
         if (!date || !isSelectableDate(date)) return
-        if (isTimeScheduling && hasDateTimeInfo(date)) return
+        if (isTimeScheduling && (!selectedDateTimes || hasDateTimeInfo(date))) return
 
         const dateKey = getDateKey(date)
         if (dragVisitedRef.current.has(dateKey)) return
@@ -247,6 +247,7 @@ export function CustomCalendar({
                     const isInRange = (!fromDate || day >= fromDate) && (!toDate || day <= toDate)
                     const dateTimeInfo = getDateTimeInfo(day)
                     const hasSavedTimes = Boolean(dateTimeInfo && dateTimeInfo.times.length > 0)
+                    const canClickTimeSchedulingDate = isTimeScheduling && (!selectedDateTimes || hasSavedTimes)
 
                     return (
                         <div
@@ -268,7 +269,7 @@ export function CustomCalendar({
                                 !isDisabled && isInRange && "hover:scale-105"
                             )}
                             onPointerDown={(event) => handleDatePointerDown(day, event)}
-                            onClick={isTimeScheduling && hasSavedTimes ? () => handleDateClick(day) : undefined}
+                            onClick={canClickTimeSchedulingDate ? () => handleDateClick(day) : undefined}
                             onKeyDown={(event) => {
                                 if (event.key !== "Enter" && event.key !== " ") return
                                 event.preventDefault()
