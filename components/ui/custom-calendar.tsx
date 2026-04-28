@@ -122,6 +122,11 @@ export function CustomCalendar({
         return selectedDateTimes.find((dt) => dt.date === dateStr)
     }
 
+    const hasDateTimeInfo = (date: Date) => {
+        const dateTimeInfo = getDateTimeInfo(date)
+        return Boolean(dateTimeInfo && dateTimeInfo.times.length > 0)
+    }
+
     // 현재 월의 날짜들 계산
     const monthStart = startOfMonth(currentMonth)
     const monthEnd = endOfMonth(currentMonth)
@@ -148,7 +153,8 @@ export function CustomCalendar({
     }
 
     const handleDatePointerDown = (date: Date, event: React.PointerEvent<HTMLDivElement>) => {
-        if (isTimeScheduling || !isSelectableDate(date)) return
+        if (!isSelectableDate(date)) return
+        if (isTimeScheduling && hasDateTimeInfo(date)) return
 
         event.preventDefault()
 
@@ -161,10 +167,11 @@ export function CustomCalendar({
 
     const handleCalendarPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
         const mode = dragModeRef.current
-        if (isTimeScheduling || !mode) return
+        if (!mode) return
 
         const date = getDateFromPointer(event)
         if (!date || !isSelectableDate(date)) return
+        if (isTimeScheduling && hasDateTimeInfo(date)) return
 
         const dateKey = getDateKey(date)
         if (dragVisitedRef.current.has(dateKey)) return
@@ -222,8 +229,7 @@ export function CustomCalendar({
             {/* 달력 그리드 */}
             <div
                 className={cn(
-                    "grid grid-cols-7 gap-1 select-none",
-                    !isTimeScheduling && "touch-none"
+                    "grid grid-cols-7 gap-1 select-none touch-none"
                 )}
                 onPointerMove={handleCalendarPointerMove}
                 onPointerUp={endDateDrag}
@@ -240,6 +246,7 @@ export function CustomCalendar({
                     const isDisabled = disabled?.(day) || false
                     const isInRange = (!fromDate || day >= fromDate) && (!toDate || day <= toDate)
                     const dateTimeInfo = getDateTimeInfo(day)
+                    const hasSavedTimes = Boolean(dateTimeInfo && dateTimeInfo.times.length > 0)
 
                     return (
                         <div
@@ -254,12 +261,14 @@ export function CustomCalendar({
                                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
                                     : isDisabled || !isInRange
                                         ? "bg-gray-50 text-gray-300 border-gray-100 cursor-default"
-                                        : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-primary/5",
+                                        : hasSavedTimes
+                                            ? "bg-primary/5 text-foreground border-primary/60 hover:border-primary hover:bg-primary/10"
+                                            : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-primary/5",
                                 isSelected && "hover:scale-105 hover:shadow-md",
                                 !isDisabled && isInRange && "hover:scale-105"
                             )}
                             onPointerDown={(event) => handleDatePointerDown(day, event)}
-                            onClick={isTimeScheduling ? () => handleDateClick(day) : undefined}
+                            onClick={isTimeScheduling && hasSavedTimes ? () => handleDateClick(day) : undefined}
                             onKeyDown={(event) => {
                                 if (event.key !== "Enter" && event.key !== " ") return
                                 event.preventDefault()
@@ -271,7 +280,7 @@ export function CustomCalendar({
                             </span>
 
                             {/* 시간 정보 표시 */}
-                            {dateTimeInfo && dateTimeInfo.times.length > 0 && (
+                            {hasSavedTimes && (
                                 <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
                                     <Clock className={cn("h-3 w-3", isSelected ? "text-primary-foreground" : "text-primary")} />
                                 </div>

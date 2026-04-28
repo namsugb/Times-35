@@ -2,12 +2,11 @@
 
 import type React from "react"
 import { useState } from "react"
-import { format, parseISO } from "date-fns"
+import { format, isSameDay, parseISO } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { CustomCalendar } from "@/components/ui/custom-calendar"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { TimeSlotSelector } from "@/components/time-slot-selector"
@@ -18,12 +17,11 @@ interface DateTimeSelection {
     times: string[]
 }
 
-// 07:00 ~ 23:30까지 30분 간격으로 모든 시간 생성
 const generateAllTimeSlots = (): string[] => {
     const slots: string[] = []
     for (let hour = 7; hour < 24; hour++) {
-        slots.push(`${hour.toString().padStart(2, '0')}:00`)
-        slots.push(`${hour.toString().padStart(2, '0')}:30`)
+        slots.push(`${hour.toString().padStart(2, "0")}:00`)
+        slots.push(`${hour.toString().padStart(2, "0")}:30`)
     }
     return slots
 }
@@ -48,41 +46,77 @@ export function VoteTimeScheduling({
     const [selectedDates, setSelectedDates] = useState<Date[]>([])
     const [selectedDateTimes, setSelectedDateTimes] = useState<DateTimeSelection[]>([])
     const [isTimeModalOpen, setIsTimeModalOpen] = useState(false)
-    const [currentSelectedDate, setCurrentSelectedDate] = useState<Date | null>(null)
+    const [editingDates, setEditingDates] = useState<Date[]>([])
     const [tempSelectedTimes, setTempSelectedTimes] = useState<string[]>([])
+
+    const getDateKey = (date: Date) => format(date, "yyyy-MM-dd")
 
     const handleDateSelect = (dates: Date[] | undefined) => {
         setSelectedDates(dates ?? [])
     }
 
-    const handleDateClick = (date: Date) => {
-        const dateStr = format(date, "yyyy-MM-dd")
-        const existingSelection = selectedDateTimes.find((dt) => dt.date === dateStr)
-
-        // 기본값: 모든 시간 선택 (07:00 ~ 23:30)
-        const allTimes = generateAllTimeSlots()
-
-        setCurrentSelectedDate(date)
-        setTempSelectedTimes(existingSelection?.times || allTimes)
+    const openTimeModal = (dates: Date[], initialTimes: string[]) => {
+        setEditingDates(dates)
+        setTempSelectedTimes(initialTimes)
         setIsTimeModalOpen(true)
     }
 
-    const handleTimeConfirm = () => {
-        if (!currentSelectedDate) return
+    const handleDateClick = (date: Date) => {
+        const dateStr = getDateKey(date)
+        const existingSelection = selectedDateTimes.find((dt) => dt.date === dateStr)
 
-        const dateStr = format(currentSelectedDate, "yyyy-MM-dd")
+        if (existingSelection) {
+            openTimeModal([date], existingSelection.times)
+            return
+        }
+
+        setSelectedDates((prev) => {
+            const alreadySelected = prev.some((selectedDate) => isSameDay(selectedDate, date))
+
+            return alreadySelected
+                ? prev.filter((selectedDate) => !isSameDay(selectedDate, date))
+                : [...prev, date]
+        })
+    }
+
+    const handleApplySelectedDates = () => {
+        if (selectedDates.length === 0) return
+
+        openTimeModal(selectedDates, generateAllTimeSlots())
+    }
+
+    const handleTimeConfirm = () => {
+        if (editingDates.length === 0) return
+
+        const editingDateKeys = new Set(editingDates.map(getDateKey))
 
         setSelectedDateTimes((prev) => {
-            const filtered = prev.filter((dt) => dt.date !== dateStr)
-            if (tempSelectedTimes.length > 0) {
-                return [...filtered, { date: dateStr, times: tempSelectedTimes }]
+            const preserved = prev.filter((dt) => !editingDateKeys.has(dt.date))
+
+            if (tempSelectedTimes.length === 0) {
+                return preserved
             }
-            return filtered
+
+            const updates = editingDates.map((date) => ({
+                date: getDateKey(date),
+                times: tempSelectedTimes,
+            }))
+
+            return [...preserved, ...updates].sort((a, b) => a.date.localeCompare(b.date))
         })
 
+        setSelectedDates((prev) => prev.filter((date) => !editingDateKeys.has(getDateKey(date))))
         setIsTimeModalOpen(false)
-        setCurrentSelectedDate(null)
+        setEditingDates([])
         setTempSelectedTimes([])
+    }
+
+    const handleTimeModalOpenChange = (open: boolean) => {
+        setIsTimeModalOpen(open)
+        if (!open) {
+            setEditingDates([])
+            setTempSelectedTimes([])
+        }
     }
 
     const isDateDisabled = (date: Date) => {
@@ -93,9 +127,16 @@ export function VoteTimeScheduling({
     }
 
     const handleFormSubmit = (e: React.FormEvent) => {
-        console.log(selectedDateTimes)
         onSubmit(e, selectedDateTimes)
     }
+
+    const modalTitle = editingDates.length === 1
+        ? "시간 수정"
+        : "선택한 날짜 시간 적용"
+
+    const modalDescription = editingDates.length === 1
+        ? format(editingDates[0], "M월 d일 (eee)", { locale: ko })
+        : `${editingDates.length}개 날짜에 같은 시간을 적용합니다`
 
     return (
         <>
@@ -133,6 +174,22 @@ export function VoteTimeScheduling({
                             selectedDateTimes={selectedDateTimes}
                         />
                     </div>
+
+                    <div className="pt-2 space-y-2">
+                        <Button
+                            type="button"
+                            className="w-full"
+                            disabled={selectedDates.length === 0}
+                            onClick={handleApplySelectedDates}
+                        >
+                            {selectedDates.length > 0
+                                ? `선택한 ${selectedDates.length}개 날짜 시간 적용`
+                                : "시간을 적용할 날짜를 선택해주세요"}
+                        </Button>
+                        <p className="text-xs text-muted-foreground text-center">
+                            저장된 날짜를 누르면 해당 날짜의 시간을 수정할 수 있습니다.
+                        </p>
+                    </div>
                 </div>
 
                 <div className="pt-4">
@@ -148,13 +205,12 @@ export function VoteTimeScheduling({
                 </div>
             </form>
 
-            {/* 시간 선택 모달 */}
-            <Dialog open={isTimeModalOpen} onOpenChange={setIsTimeModalOpen}>
+            <Dialog open={isTimeModalOpen} onOpenChange={handleTimeModalOpenChange}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader className="text-center">
-                        <DialogTitle className="text-center">시간 선택</DialogTitle>
+                        <DialogTitle className="text-center">{modalTitle}</DialogTitle>
                         <DialogDescription className="text-center">
-                            {currentSelectedDate && format(currentSelectedDate, "M월 d일 (eee)", { locale: ko })} <br />
+                            {modalDescription}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -165,11 +221,11 @@ export function VoteTimeScheduling({
                         />
 
                         <div className="flex justify-center gap-2 mt-6">
-                            <Button variant="outline" onClick={() => setIsTimeModalOpen(false)}>
+                            <Button variant="outline" onClick={() => handleTimeModalOpenChange(false)}>
                                 취소
                             </Button>
                             <Button onClick={handleTimeConfirm}>
-                                완료
+                                시간 저장
                             </Button>
                         </div>
                     </div>
@@ -178,4 +234,3 @@ export function VoteTimeScheduling({
         </>
     )
 }
-
