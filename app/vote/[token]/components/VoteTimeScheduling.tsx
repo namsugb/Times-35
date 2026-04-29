@@ -261,6 +261,11 @@ export function VoteTimeScheduling({
                             ? <><Loader2 className="w-4 h-4 animate-spin" /><span className="animate-pulse">투표 중...</span></>
                             : <span className="font-bold">투표 완료하기</span>}
                     </Button>
+                    {!name.trim() && (
+                        <p className="mt-2 text-center text-sm text-red-500">
+                            이름을 입력해주세요
+                        </p>
+                    )}
                 </div>
             </form>
 

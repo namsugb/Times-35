@@ -129,6 +129,11 @@ export function VoteDateBased({
                         ? "투표 중..."
                         : "투표 완료하기"}
                 </Button>
+                {!name.trim() && (
+                    <p className="mt-2 text-center text-sm text-red-500">
+                        이름을 입력해주세요
+                    </p>
+                )}
             </div>
         </form>
     )

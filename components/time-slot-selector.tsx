@@ -12,6 +12,8 @@ interface TimeSlotSelectorProps {
 
 type DragMode = "select" | "deselect"
 
+const EMPHASIZED_TIME_LINES = new Set(["09:00", "12:00", "18:00"])
+
 const generateTimeSlots = () => {
     const slots: string[] = []
     for (let hour = 7; hour < 24; hour++) {
@@ -126,6 +128,8 @@ export function TimeSlotSelector({
     const isSelected = (time: string) => selected.has(time)
     const isAllSelected = selected.size === timeSlots.length
     const isAllDeselected = selected.size === 0
+    const getTimeLineClass = (time: string) =>
+        EMPHASIZED_TIME_LINES.has(time) ? "border-t-2 border-blue-500" : "border-t border-gray-300"
 
     return (
         <div
@@ -173,7 +177,7 @@ export function TimeSlotSelector({
                                 <span className="text-xs font-medium text-gray-600 w-14 text-right pr-2">
                                     {time}
                                 </span>
-                                <div className="flex-1 border-t border-gray-300" />
+                                <div className={cn("flex-1", getTimeLineClass(time))} />
                             </div>
                             <div className="flex items-stretch">
                                 <div className="w-14" />
@@ -212,7 +216,7 @@ export function TimeSlotSelector({
                     {rightColumn.map((time) => (
                         <div key={time}>
                             <div className="flex items-center -mb-px">
-                                <div className="flex-1 border-t border-gray-300" />
+                                <div className={cn("flex-1", getTimeLineClass(time))} />
                                 <span className="text-xs font-medium text-gray-600 w-14 text-left pl-2">
                                     {time}
                                 </span>
