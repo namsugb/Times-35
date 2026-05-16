@@ -78,7 +78,7 @@ export function TimeSlotSelector({
         toggleTime(time, mode)
     }, [toggleTime])
 
-    const handleStart = (time: string, event: PointerEvent<HTMLButtonElement>) => {
+    const handleStart = (time: string, event: PointerEvent<HTMLElement>) => {
         event.preventDefault()
         event.currentTarget.setPointerCapture?.(event.pointerId)
 
@@ -169,37 +169,38 @@ export function TimeSlotSelector({
                 </Button>
             </div>
 
-            <div className="grid grid-cols-[60px_1fr_60px_1fr] gap-3">
-                <div className="col-span-2">
+            <div className="grid grid-cols-[60px_1fr_60px_1fr] gap-x-3 touch-none">
+                <div className="col-span-2 touch-none">
                     {leftColumn.map((time) => (
-                        <div key={time}>
-                            <div className="flex items-center -mb-px">
-                                <span className="text-xs font-medium text-gray-600 w-14 text-right pr-2">
+                        <div
+                            key={time}
+                            data-time={time}
+                            onPointerDown={(event) => handleStart(time, event)}
+                            onPointerEnter={() => handleMove(time)}
+                            className="flex h-10 items-stretch touch-none"
+                        >
+                            <div className="relative w-14 shrink-0">
+                                <span className="absolute right-2 top-0 -translate-y-1/2 text-xs font-medium text-gray-600">
                                     {time}
                                 </span>
-                                <div className={cn("flex-1", getTimeLineClass(time))} />
                             </div>
-                            <div className="flex items-stretch">
-                                <div className="w-14" />
-                                <button
-                                    type="button"
-                                    data-time={time}
-                                    onPointerDown={(event) => handleStart(time, event)}
-                                    onPointerEnter={() => handleMove(time)}
-                                    className={cn(
-                                        "flex-1 h-10 transition-colors duration-150",
-                                        "border-l border-r border-gray-300",
-                                        "cursor-pointer touch-none",
-                                        isSelected(time)
-                                            ? "bg-primary hover:bg-primary/90 active:bg-primary/90"
-                                            : "bg-white hover:bg-gray-50 active:bg-gray-100"
-                                    )}
-                                />
-                            </div>
+                            <button
+                                type="button"
+                                data-time={time}
+                                className={cn(
+                                    "block h-10 flex-1 transition-colors duration-150",
+                                    "border-l border-r border-gray-300",
+                                    getTimeLineClass(time),
+                                    "cursor-pointer touch-none",
+                                    isSelected(time)
+                                        ? "bg-primary hover:bg-primary/90 active:bg-primary/90"
+                                        : "bg-white hover:bg-gray-50 active:bg-gray-100"
+                                )}
+                            />
                         </div>
                     ))}
-                    <div className="flex items-center">
-                        <span className="text-xs font-medium text-gray-600 w-14 text-right pr-2">
+                    <div className="flex h-0 items-start">
+                        <span className="w-14 shrink-0 pr-2 -translate-y-1/2 text-right text-xs font-medium text-gray-600">
                             {leftColumn.length > 0 && (() => {
                                 const lastTime = leftColumn[leftColumn.length - 1]
                                 const [hour, minute] = lastTime.split(":").map(Number)
@@ -208,41 +209,42 @@ export function TimeSlotSelector({
                                 return `${nextHour.toString().padStart(2, "0")}:${nextMinute}`
                             })()}
                         </span>
-                        <div className="flex-1 border-t border-gray-300" />
+                        <div className="h-0 flex-1 border-t border-gray-300" />
                     </div>
                 </div>
 
-                <div className="col-span-2">
+                <div className="col-span-2 touch-none">
                     {rightColumn.map((time) => (
-                        <div key={time}>
-                            <div className="flex items-center -mb-px">
-                                <div className={cn("flex-1", getTimeLineClass(time))} />
-                                <span className="text-xs font-medium text-gray-600 w-14 text-left pl-2">
+                        <div
+                            key={time}
+                            data-time={time}
+                            onPointerDown={(event) => handleStart(time, event)}
+                            onPointerEnter={() => handleMove(time)}
+                            className="flex h-10 items-stretch touch-none"
+                        >
+                            <button
+                                type="button"
+                                data-time={time}
+                                className={cn(
+                                    "block h-10 flex-1 transition-colors duration-150",
+                                    "border-l border-r border-gray-300",
+                                    getTimeLineClass(time),
+                                    "cursor-pointer touch-none",
+                                    isSelected(time)
+                                        ? "bg-primary hover:bg-primary/90 active:bg-primary/90"
+                                        : "bg-white hover:bg-gray-50 active:bg-gray-100"
+                                )}
+                            />
+                            <div className="relative w-14 shrink-0">
+                                <span className="absolute left-2 top-0 -translate-y-1/2 text-xs font-medium text-gray-600">
                                     {time}
                                 </span>
                             </div>
-                            <div className="flex items-stretch">
-                                <button
-                                    type="button"
-                                    data-time={time}
-                                    onPointerDown={(event) => handleStart(time, event)}
-                                    onPointerEnter={() => handleMove(time)}
-                                    className={cn(
-                                        "flex-1 h-10 transition-colors duration-150",
-                                        "border-l border-r border-gray-300",
-                                        "cursor-pointer touch-none",
-                                        isSelected(time)
-                                            ? "bg-primary hover:bg-primary/90 active:bg-primary/90"
-                                            : "bg-white hover:bg-gray-50 active:bg-gray-100"
-                                    )}
-                                />
-                                <div className="w-14" />
-                            </div>
                         </div>
                     ))}
-                    <div className="flex items-center">
-                        <div className="flex-1 border-t border-gray-300" />
-                        <span className="text-xs font-medium text-gray-600 w-14 text-left pl-2">
+                    <div className="flex h-0 items-start">
+                        <div className="h-0 flex-1 border-t border-gray-300" />
+                        <span className="w-14 shrink-0 pl-2 -translate-y-1/2 text-left text-xs font-medium text-gray-600">
                             24:00
                         </span>
                     </div>
