@@ -245,9 +245,6 @@ export function VoteTimeScheduling({
                                 ? `선택한 ${selectedDates.length}개 날짜 시간 적용`
                                 : "시간을 적용할 날짜를 선택해주세요"}
                         </Button>
-                        <p className="text-xs text-muted-foreground text-center">
-                            저장된 날짜를 누르면 해당 날짜의 시간을 수정할 수 있습니다.
-                        </p>
                     </div>
                 </div>
 

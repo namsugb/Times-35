@@ -139,14 +139,6 @@ export function TimeSlotSelector({
             onPointerUp={handleEnd}
             onPointerCancel={handleEnd}
         >
-            <div className="mb-5 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm font-medium text-blue-800 text-center">
-                    드래그하여 시간을 선택해주세요
-                </p>
-                <p className="text-xs text-blue-600 text-center mt-1">
-                    모바일에서는 시간대를 누른 뒤 원하는 범위까지 끌어 선택하거나 해제할 수 있습니다
-                </p>
-            </div>
 
             <div className="flex gap-2 mb-4 justify-center">
                 <Button
@@ -174,9 +166,6 @@ export function TimeSlotSelector({
                     {leftColumn.map((time) => (
                         <div
                             key={time}
-                            data-time={time}
-                            onPointerDown={(event) => handleStart(time, event)}
-                            onPointerEnter={() => handleMove(time)}
                             className="flex h-10 items-stretch touch-none"
                         >
                             <div className="relative w-14 shrink-0">
@@ -187,6 +176,8 @@ export function TimeSlotSelector({
                             <button
                                 type="button"
                                 data-time={time}
+                                onPointerDown={(event) => handleStart(time, event)}
+                                onPointerEnter={() => handleMove(time)}
                                 className={cn(
                                     "block h-10 flex-1 transition-colors duration-150",
                                     "border-l border-r border-gray-300",
@@ -217,14 +208,13 @@ export function TimeSlotSelector({
                     {rightColumn.map((time) => (
                         <div
                             key={time}
-                            data-time={time}
-                            onPointerDown={(event) => handleStart(time, event)}
-                            onPointerEnter={() => handleMove(time)}
                             className="flex h-10 items-stretch touch-none"
                         >
                             <button
                                 type="button"
                                 data-time={time}
+                                onPointerDown={(event) => handleStart(time, event)}
+                                onPointerEnter={() => handleMove(time)}
                                 className={cn(
                                     "block h-10 flex-1 transition-colors duration-150",
                                     "border-l border-r border-gray-300",
