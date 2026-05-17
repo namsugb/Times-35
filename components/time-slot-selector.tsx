@@ -161,12 +161,12 @@ export function TimeSlotSelector({
                 </Button>
             </div>
 
-            <div className="grid grid-cols-[60px_1fr_60px_1fr] gap-x-3 touch-none">
-                <div className="col-span-2 touch-none">
+            <div className="grid grid-cols-[60px_1fr_60px_1fr] gap-x-3">
+                <div className="col-span-2">
                     {leftColumn.map((time) => (
                         <div
                             key={time}
-                            className="flex h-10 items-stretch touch-none"
+                            className="flex h-10 items-stretch"
                         >
                             <div className="relative w-14 shrink-0">
                                 <span className="absolute right-2 top-0 -translate-y-1/2 text-xs font-medium text-gray-600">
@@ -204,11 +204,11 @@ export function TimeSlotSelector({
                     </div>
                 </div>
 
-                <div className="col-span-2 touch-none">
+                <div className="col-span-2">
                     {rightColumn.map((time) => (
                         <div
                             key={time}
-                            className="flex h-10 items-stretch touch-none"
+                            className="flex h-10 items-stretch"
                         >
                             <button
                                 type="button"
