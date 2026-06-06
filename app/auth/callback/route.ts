@@ -1,6 +1,12 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
+import { routing } from "@/i18n/routing"
+
+function getRequestLocalePrefix(pathname: string) {
+    const firstSegment = pathname.split("/").filter(Boolean)[0]
+    return routing.locales.includes(firstSegment as any) ? `/${firstSegment}` : ""
+}
 
 export async function GET(request: NextRequest) {
     const requestUrl = new URL(request.url)
@@ -8,18 +14,19 @@ export async function GET(request: NextRequest) {
     const error = requestUrl.searchParams.get("error")
     const errorDescription = requestUrl.searchParams.get("error_description")
     const origin = requestUrl.origin
+    const localePrefix = getRequestLocalePrefix(requestUrl.pathname)
     console.log('request:', request)
 
     // 에러가 있으면 로그인 페이지로 리다이렉트
     if (error) {
         console.error("OAuth 에러:", error, errorDescription)
-        return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+        return NextResponse.redirect(`${origin}${localePrefix}/login?error=auth_failed`)
     }
 
     // code가 없으면 로그인 페이지로 리다이렉트
     if (!code) {
         console.error("인증 코드 없음")
-        return NextResponse.redirect(`${origin}/login?error=no_code`)
+        return NextResponse.redirect(`${origin}${localePrefix}/login?error=no_code`)
     }
 
     const cookieStore = await cookies()
@@ -50,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     if (exchangeError) {
         console.error("세션 교환 오류:", exchangeError)
-        return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+        return NextResponse.redirect(`${origin}${localePrefix}/login?error=auth_failed`)
     }
 
     console.log("data:", data)
@@ -209,7 +216,7 @@ export async function GET(request: NextRequest) {
 
     // 저장된 리다이렉트 URL 확인 (쿠키에서)
     const redirectCookie = cookieStore.get("redirectAfterLogin")?.value
-    const redirectTo = redirectCookie ? decodeURIComponent(redirectCookie) : "/"
+    const redirectTo = redirectCookie ? decodeURIComponent(redirectCookie) : (localePrefix || "/")
 
     // 쿠키 삭제
     cookieStore.delete("redirectAfterLogin")

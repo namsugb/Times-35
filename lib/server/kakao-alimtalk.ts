@@ -18,6 +18,19 @@ type AlimtalkResult =
 
 const ALIMTALK_ENDPOINT = "https://jupiter.lunasoft.co.kr/api/AlimTalk/message/send"
 
+function normalizeKoreanPhoneNumber(phoneNumber: string) {
+  const trimmed = phoneNumber.trim()
+  if (!trimmed) return ""
+
+  const digits = trimmed.replace(/[^\d]/g, "")
+
+  if (digits.startsWith("82")) {
+    return `0${digits.slice(2)}`
+  }
+
+  return digits
+}
+
 function getLunasoftConfig() {
   const userid = process.env.LUNA_USERID
   const apiKey = process.env.LUNA_API_KEY
@@ -58,7 +71,7 @@ async function sendAlimtalk(templateId: number, messages: AlimtalkMessage[]): Pr
 
     const result = await response.json()
 
-    if (result.code !== 0) {
+    if (String(result.code) !== "0") {
       const errorMessage =
         typeof result.msg === "object"
           ? JSON.stringify(result.msg, null, 2)
@@ -80,10 +93,16 @@ export function sendKakaoInvite(
   voteUrl: string,
   resultsUrl: string,
 ) {
+  const normalizedPhoneNumber = normalizeKoreanPhoneNumber(phoneNumber)
+
+  if (!normalizedPhoneNumber) {
+    return Promise.resolve({ success: false as const, error: "Recipient phone number is empty" })
+  }
+
   return sendAlimtalk(50081, [
     {
       no: "1",
-      tel_num: phoneNumber,
+      tel_num: normalizedPhoneNumber,
       use_sms: "0",
       sms_content: `${invitorName}님께서 투표에 초대했습니다.\n${appointmentTitle} 투표에 참여해 주세요.`,
       msg_content: `${invitorName}님께서 투표에 초대했습니다.\n${appointmentTitle} 투표에 참여해 주세요.`,
@@ -102,10 +121,16 @@ export function sendKakaoInvite(
 }
 
 export function sendKakaoCompletion(phoneNumber: string, appointmentTitle: string, resultsUrl: string) {
+  const normalizedPhoneNumber = normalizeKoreanPhoneNumber(phoneNumber)
+
+  if (!normalizedPhoneNumber) {
+    return Promise.resolve({ success: false as const, error: "Recipient phone number is empty" })
+  }
+
   return sendAlimtalk(50082, [
     {
       no: "1",
-      tel_num: phoneNumber,
+      tel_num: normalizedPhoneNumber,
       use_sms: "0",
       sms_content: `${appointmentTitle} 투표가 완료되었습니다.\n투표 결과를 확인하고 친구들에게 공유해보세요!`,
       msg_content: `${appointmentTitle} 투표가 완료되었습니다.\n투표 결과를 확인하고 친구들에게 공유해보세요!`,

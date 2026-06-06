@@ -122,15 +122,23 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
           shareToken: appointmentData.share_token,
           members: inviteMembers,
           invitorName: getUserName(user) || "",
+          voteUrl: urls.voteUrl,
+          resultsUrl: urls.resultsUrl,
         }),
       })
 
+      const result = await response.json().catch(() => null)
+
       if (!response.ok) {
-        throw new Error("Failed to send invite")
+        throw new Error(result?.results?.[0]?.error || result?.error || "Failed to send invite")
       }
 
-      toast.success(t("inviteSent"))
-      setInviteMembers([])
+      if (result?.failedCount > 0) {
+        toast.error(`${result.successCount ?? 0}명 성공, ${result.failedCount}명 실패`)
+      } else {
+        toast.success(t("inviteSent"))
+        setInviteMembers([])
+      }
     } catch (error) {
       console.error("Failed to send invite:", error)
       toast.error(t("inviteFailed"))
