@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -28,6 +29,7 @@ export function TimeSlotSelector({
     onChange,
     className
 }: TimeSlotSelectorProps) {
+    const t = useTranslations("timeSlot")
     const timeSlots = useMemo(() => generateTimeSlots(), [])
     const selectedTimesKey = useMemo(() => [...selectedTimes].sort().join("|"), [selectedTimes])
 
@@ -148,7 +150,7 @@ export function TimeSlotSelector({
                     size="sm"
                     className="min-w-[100px]"
                 >
-                    전체선택
+                    {t("selectAll")}
                 </Button>
                 <Button
                     type="button"
@@ -157,7 +159,7 @@ export function TimeSlotSelector({
                     size="sm"
                     className="min-w-[100px]"
                 >
-                    전체해제
+                    {t("deselectAll")}
                 </Button>
             </div>
 
@@ -253,7 +255,7 @@ export function SelectedTimesDisplay({ times, className }: SelectedTimesDisplayP
     if (times.length === 0) {
         return (
             <div className={cn("text-sm text-muted-foreground italic", className)}>
-                선택된 시간이 없습니다
+                <SelectedTimesEmpty />
             </div>
         )
     }
@@ -305,4 +307,9 @@ export function SelectedTimesDisplay({ times, className }: SelectedTimesDisplayP
             ))}
         </div>
     )
+}
+
+function SelectedTimesEmpty() {
+    const t = useTranslations("timeSlot")
+    return <>{t("empty")}</>
 }

@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameDay } from "date-fns"
-import { ko } from "date-fns/locale"
+import { addDays, format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameDay } from "date-fns"
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react"
+import { useLocale } from "next-intl"
 import { Button } from "@/components/ui/button"
+import { getDateFnsLocale } from "@/lib/locale-date"
 import { cn } from "@/lib/utils"
 
 interface CustomCalendarProps {
@@ -36,6 +37,8 @@ export function CustomCalendar({
     isTimeScheduling = false,
     selectedDateTimes,
 }: CustomCalendarProps) {
+    const locale = useLocale()
+    const dateLocale = getDateFnsLocale(locale)
     const [currentMonth, setCurrentMonth] = React.useState(defaultMonth)
     const [dragMode, setDragMode] = React.useState<DragMode | null>(null)
     const selectedRef = React.useRef(selected)
@@ -183,6 +186,14 @@ export function CustomCalendar({
 
     // 월 시작 전 빈 칸 수 계산
     const startDayOfWeek = monthStart.getDay()
+    const weekdayLabels = React.useMemo(
+        () =>
+            Array.from({ length: 7 }, (_, index) =>
+                format(addDays(new Date(2020, 7, 2), index), "EEE", { locale: dateLocale })
+            ),
+        [dateLocale]
+    )
+    const monthLabelFormat = locale === "en" ? "MMM yyyy" : locale === "ja" ? "yyyy年M月" : "yyyy년 M월"
 
     return (
         <div className={cn("w-full", className)}>
@@ -198,7 +209,7 @@ export function CustomCalendar({
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <div className="text-lg font-semibold min-w-[140px] text-center">
-                    {format(currentMonth, "yyyy년 M월", { locale: ko })}
+                    {format(currentMonth, monthLabelFormat, { locale: dateLocale })}
                 </div>
                 <Button
                     type="button"
@@ -213,7 +224,7 @@ export function CustomCalendar({
 
             {/* 요일 헤더 */}
             <div className="grid grid-cols-7 gap-1 mb-3">
-                {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
+                {weekdayLabels.map((day, index) => (
                     <div
                         key={day}
                         className={cn(

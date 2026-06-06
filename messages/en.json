@@ -236,5 +236,10 @@
       "improvementTitle": "Feature improvement",
       "improvementBody": "Tell us what is inconvenient, how it could improve, and any concrete examples."
     }
+  },
+  "timeSlot": {
+    "selectAll": "Select all",
+    "deselectAll": "Clear all",
+    "empty": "No time selected"
   }
 }

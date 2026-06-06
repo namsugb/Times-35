@@ -236,5 +236,10 @@
       "improvementTitle": "機能改善",
       "improvementBody": "不便な点、改善してほしい方向、具体例を教えてください。"
     }
+  },
+  "timeSlot": {
+    "selectAll": "すべて選択",
+    "deselectAll": "すべて解除",
+    "empty": "選択された時間はありません"
   }
 }

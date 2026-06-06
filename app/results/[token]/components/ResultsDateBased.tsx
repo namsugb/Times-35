@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import {
   addMonths,
+  addDays,
   eachDayOfInterval,
   endOfMonth,
   format,
@@ -35,6 +36,9 @@ export function ResultsDateBased({ appointment, dateResults, voters, token, loca
   const commonT = useTranslations("common")
   const locale = useLocale()
   const dateLocale = getDateFnsLocale(locale)
+  const weekdayLabels = Array.from({ length: 7 }, (_, index) =>
+    format(addDays(new Date(2020, 7, 2), index), "EEE", { locale: dateLocale })
+  )
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [showDateDetail, setShowDateDetail] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(
@@ -152,7 +156,7 @@ export function ResultsDateBased({ appointment, dateResults, voters, token, loca
               {hasVotesInCurrentMonth() ? (
                 <>
                   <div className="mb-3 grid grid-cols-7 gap-1">
-                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+                    {weekdayLabels.map((day, index) => (
                       <div
                         key={day}
                         className={`py-2 text-center text-sm font-medium ${

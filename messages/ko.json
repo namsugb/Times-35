@@ -236,5 +236,10 @@
       "improvementTitle": "기능 개선",
       "improvementBody": "불편한 점, 개선되면 좋은 방향, 구체적인 예시를 알려주세요."
     }
+  },
+  "timeSlot": {
+    "selectAll": "전체 선택",
+    "deselectAll": "전체 해제",
+    "empty": "선택된 시간이 없습니다"
   }
 }
