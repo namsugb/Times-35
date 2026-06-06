@@ -2,7 +2,6 @@ import "./globals.css"
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { getLocale } from "next-intl/server"
 import { AppShell } from "@/components/app-shell"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -22,10 +21,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const locale = await getLocale()
-
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen`} suppressHydrationWarning>
         <AppShell>{children}</AppShell>
       </body>

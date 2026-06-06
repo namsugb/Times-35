@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
 
     for (const notification of notifications || []) {
       try {
-        const resultsUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/results/${notification.appointments.share_token}`
+        const requestOrigin = request.headers.get("origin")
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || requestOrigin || "https://www.mannallemalle.com"
+        const resultsUrl = `${baseUrl}/results/${notification.appointments.share_token}`
         const result = await sendKakaoCompletion(notification.phone_number, notification.appointments.title, resultsUrl)
 
         if (result.success) {
