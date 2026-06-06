@@ -1,31 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useEffect, useMemo, useState } from "react"
+import { CheckCircle2, Copy, Loader2, MessageCircle, Send, Share2, Users, X } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
+import { toast } from "sonner"
+import { GroupSelectModal } from "@/components/group-select-modal"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import {
-  Copy,
-  Share2,
-  MessageCircle,
-  ExternalLink,
-  CheckCircle2,
-  Calendar,
-  Users,
-  RotateCcw,
-  Clock,
-  Loader2,
-  X,
-  Send,
-} from "lucide-react"
-import { toast } from "sonner"
-import { shareToKakao } from "@/lib/kakao"
-import { Appointment } from "@/lib/types/appointment"
-import { GroupSelectModal } from "@/components/group-select-modal"
 import { getCurrentUser, getUserName, supabaseAuth } from "@/lib/auth"
+import { shareToKakao } from "@/lib/kakao"
+import { getLocalePrefix } from "@/lib/locale-date"
+import type { Appointment } from "@/lib/types/appointment"
 
 interface InviteMember {
   name: string
@@ -39,6 +27,8 @@ interface ShareModalProps {
 }
 
 export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps) {
+  const t = useTranslations("share")
+  const locale = useLocale()
   const [copied, setCopied] = useState(false)
   const [isKakaoSharing, setIsKakaoSharing] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -46,51 +36,46 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
   const [inviteMembers, setInviteMembers] = useState<InviteMember[]>([])
   const [isSendingInvite, setIsSendingInvite] = useState(false)
 
-  // 로그인 상태 확인
   useEffect(() => {
     const checkAuth = async () => {
       const user = await getCurrentUser()
-      setIsLoggedIn(!!user)
+      setIsLoggedIn(Boolean(user))
     }
+
     if (isOpen) {
       checkAuth()
-      setInviteMembers([]) // 모달 열릴 때 초기화
+      setInviteMembers([])
     }
   }, [isOpen])
 
-  const voteUrl = `${window.location.origin}/vote/${appointmentData.share_token}`
-  const resultsUrl = `${window.location.origin}/results/${appointmentData.share_token}`
+  const urls = useMemo(() => {
+    if (typeof window === "undefined") {
+      return { voteUrl: "", resultsUrl: "" }
+    }
+
+    const localePrefix = getLocalePrefix(window.location.pathname, locale)
+    const origin = window.location.origin
+
+    return {
+      voteUrl: `${origin}${localePrefix}/vote/${appointmentData.share_token}`,
+      resultsUrl: `${origin}${localePrefix}/results/${appointmentData.share_token}`,
+    }
+  }, [appointmentData.share_token, locale])
 
   const copyToClipboard = async (text: string, type: string) => {
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
-      toast.success(`${type} 링크가 클립보드에 복사되었습니다.`)
+      toast.success(t("copySuccess", { type }))
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      toast.error("링크 복사에 실패했습니다.")
+    } catch {
+      toast.error(t("copyFailed"))
     }
   }
 
-  const choseAdd = (appointment: Appointment) => {
-    const baseUrl = window.location.origin
-    const imageMap: Record<string, string> = {
-      "회식": "food.jpg",
-      "쇼핑": "shopping.jpg",
-      "영화": "movie.jpg",
-      "음악": "music.jpg",
-      "책": "book.jpg",
-    }
-
-    // 키워드 매칭
-    for (const [keyword, filename] of Object.entries(imageMap)) {
-      if (appointment.title.includes(keyword)) {
-        return `${baseUrl}/add/${filename}`
-      }
-    }
-
-    // 기본 이미지
-    return `${baseUrl}/logo.png`
+  const getShareImageUrl = (appointment: Appointment) => {
+    if (typeof window === "undefined") return "/logo.png"
+    return `${window.location.origin}/logo.png`
   }
 
   const handleKakaoShare = async () => {
@@ -98,38 +83,38 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
     try {
       await shareToKakao({
         title: appointmentData.title,
-        description: `${appointmentData.title} 투표에 참여해주세요!`,
-        voteUrl: voteUrl,
-        resultsUrl: resultsUrl,
-        imageUrl: choseAdd(appointmentData),
+        description: t("kakaoDescription", { title: appointmentData.title }),
+        voteUrl: urls.voteUrl,
+        resultsUrl: urls.resultsUrl,
+        imageUrl: getShareImageUrl(appointmentData),
       })
 
-      // 성공 시 토스트 메시지 (모바일에서만 표시)
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
       if (isMobile) {
-        toast.success("카카오톡 앱에서 공유가 진행됩니다.")
+        toast.success(t("kakaoSuccess"))
       }
     } catch (error) {
-      console.error("카카오 공유 에러:", error)
-      toast.error("카카오톡 공유에 실패했습니다. 다시 시도해주세요.")
+      console.error("Failed to share to Kakao:", error)
+      toast.error(t("kakaoFailed"))
     } finally {
       setIsKakaoSharing(false)
     }
   }
 
-  // 그룹 멤버에게 알림톡 발송
   const handleSendInvite = async () => {
     if (inviteMembers.length === 0) return
 
     setIsSendingInvite(true)
     try {
-      const { data: { session } } = await supabaseAuth.auth.getSession()
+      const {
+        data: { session },
+      } = await supabaseAuth.auth.getSession()
       const user = await getCurrentUser()
       const response = await fetch("/api/notifications/kakao/send_invite", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(session?.access_token && { "Authorization": `Bearer ${session.access_token}` }),
+          ...(session?.access_token && { Authorization: `Bearer ${session.access_token}` }),
         },
         body: JSON.stringify({
           appointmentId: appointmentData.id,
@@ -141,14 +126,14 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
       })
 
       if (!response.ok) {
-        throw new Error("알림톡 발송 실패")
+        throw new Error("Failed to send invite")
       }
 
-      toast.success("멤버들에게 알림톡이 전송되었습니다.")
-      setInviteMembers([]) // 발송 후 초기화
-    } catch (err) {
-      console.error("알림톡 발송 오류:", err)
-      toast.error("알림톡 발송에 실패했습니다. 다시 시도해주세요.")
+      toast.success(t("inviteSent"))
+      setInviteMembers([])
+    } catch (error) {
+      console.error("Failed to send invite:", error)
+      toast.error(t("inviteFailed"))
     } finally {
       setIsSendingInvite(false)
     }
@@ -156,47 +141,45 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader className="space-y-4 pb-4">
-          <DialogTitle className="text-2xl font-bold flex justify-center items-center gap-3 text-green-600">
-            <div className="p-2 bg-green-100 rounded-full">
+          <DialogTitle className="flex items-center justify-center gap-3 text-2xl font-bold text-green-600">
+            <div className="rounded-full bg-green-100 p-2">
               <CheckCircle2 className="h-6 w-6" />
             </div>
-            약속이 생성되었습니다!
+            {t("createdTitle")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* 공유 안내 */}
-          <div className="text-center py-2">
-            <p className="text-slate-600 font-medium">친구들에게 공유해서 투표를 받아보세요!</p>
+          <div className="py-2 text-center">
+            <p className="font-medium text-slate-600">{t("guide")}</p>
           </div>
 
-          {/* 투표 링크 공유 */}
           <div className="space-y-3">
-            <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <Label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
               <Share2 className="h-4 w-4" />
-              투표 링크
+              {t("voteLink")}
             </Label>
             <Button
               id="kakao-share-btn"
               onClick={handleKakaoShare}
               disabled={isKakaoSharing}
-              className="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-lg bg-yellow-400 py-3 font-semibold text-yellow-900 transition-colors hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isKakaoSharing ? (
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               ) : (
-                <MessageCircle className="h-5 w-5 mr-2" />
+                <MessageCircle className="mr-2 h-5 w-5" />
               )}
-              {isKakaoSharing ? "공유 중..." : "카카오톡으로 공유하기"}
+              {isKakaoSharing ? t("sharing") : t("kakaoShare")}
             </Button>
             <div className="flex gap-2">
-              <Input value={voteUrl} readOnly className="flex-1 bg-slate-50 border-slate-200 text-sm" />
+              <Input value={urls.voteUrl} readOnly className="flex-1 border-slate-200 bg-slate-50 text-sm" />
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => copyToClipboard(voteUrl, "투표")}
+                onClick={() => copyToClipboard(urls.voteUrl, t("vote"))}
                 className="shrink-0 hover:bg-slate-100"
               >
                 {copied ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
@@ -204,60 +187,45 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
             </div>
           </div>
 
-          {/* 그룹 멤버 초대 (로그인 사용자만) */}
           {isLoggedIn && (
-            <div className="space-y-3 pt-2 border-t">
-              <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <div className="space-y-3 border-t pt-2">
+              <Label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                 <Users className="h-4 w-4" />
-                그룹 멤버에게 알림톡 보내기
+                {t("sendToGroup")}
               </Label>
 
-              <Button
-                variant="outline"
-                onClick={() => setIsGroupSelectOpen(true)}
-                className="w-full"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                그룹에서 멤버 선택
+              <Button variant="outline" onClick={() => setIsGroupSelectOpen(true)} className="w-full">
+                <Users className="mr-2 h-4 w-4" />
+                {t("selectGroupMembers")}
               </Button>
 
-              {/* 선택된 그룹 멤버 표시 */}
               {inviteMembers.length > 0 && (
-                <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+                <div className="space-y-2 rounded-lg bg-muted/50 p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium">선택된 멤버</span>
-                    <span className="text-xs text-muted-foreground">{inviteMembers.length}명</span>
+                    <span className="text-xs font-medium">{t("selectedMembers")}</span>
+                    <span className="text-xs text-muted-foreground">{inviteMembers.length}</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {inviteMembers.map((member, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="flex items-center gap-1 pr-1 text-xs"
-                      >
+                      <Badge key={`${member.phone}-${index}`} variant="secondary" className="flex items-center gap-1 pr-1 text-xs">
                         {member.name}
                         <button
                           type="button"
-                          onClick={() => setInviteMembers(inviteMembers.filter((_, i) => i !== index))}
-                          className="ml-0.5 hover:bg-muted rounded-full p-0.5"
+                          onClick={() => setInviteMembers(inviteMembers.filter((_, itemIndex) => itemIndex !== index))}
+                          className="ml-0.5 rounded-full p-0.5 hover:bg-muted"
                         >
                           <X className="h-3 w-3" />
                         </button>
                       </Badge>
                     ))}
                   </div>
-                  <Button
-                    onClick={handleSendInvite}
-                    disabled={isSendingInvite}
-                    className="w-full mt-2"
-                    size="sm"
-                  >
+                  <Button onClick={handleSendInvite} disabled={isSendingInvite} className="mt-2 w-full" size="sm">
                     {isSendingInvite ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      <Send className="h-4 w-4 mr-2" />
+                      <Send className="mr-2 h-4 w-4" />
                     )}
-                    {isSendingInvite ? "발송 중..." : `${inviteMembers.length}명에게 알림톡 보내기`}
+                    {isSendingInvite ? t("sendingInvite") : t("sendInvite", { count: inviteMembers.length })}
                   </Button>
                 </div>
               )}
@@ -265,14 +233,12 @@ export function ShareModal({ isOpen, onClose, appointmentData }: ShareModalProps
           )}
         </div>
 
-        {/* 그룹 선택 모달 */}
         <GroupSelectModal
           open={isGroupSelectOpen}
           onOpenChange={setIsGroupSelectOpen}
           onSelect={(members) => {
-            // 기존 멤버와 중복 제거하여 추가
-            const existingPhones = new Set(inviteMembers.map((m) => m.phone))
-            const newMembers = members.filter((m) => !existingPhones.has(m.phone))
+            const existingPhones = new Set(inviteMembers.map((member) => member.phone))
+            const newMembers = members.filter((member) => !existingPhones.has(member.phone))
             setInviteMembers([...inviteMembers, ...newMembers])
           }}
         />

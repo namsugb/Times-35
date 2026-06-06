@@ -2,58 +2,64 @@ import "./globals.css"
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/sonner"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import Link from "next/link"
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale, getMessages, getTranslations } from "next-intl/server"
 import { AppSidebar } from "@/components/app-sidebar"
 import { CustomSidebarTrigger } from "@/components/custom-sidebar-trigger"
 import { HeaderAuthButton } from "@/components/header-auth-button"
-import Link from "next/link"
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "만날래말래 - 약속 잡기 서비스",
-  description: "여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.",
+  title: "Meet or Not",
+  description: "Pick the best date to meet with a group.",
   openGraph: {
-    title: "만날래말래",
-    description: "여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.",
+    title: "Meet or Not",
+    description: "Pick the best date to meet with a group.",
     type: "website",
-  }
+  },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+  const appT = await getTranslations("app")
+
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen`} suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                <CustomSidebarTrigger />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset>
+                <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                  <CustomSidebarTrigger />
+                  <div className="h-4 border-l border-sidebar-border" />
+                  <Link href="/">
+                    <h1 className="text-xl font-semibold">{appT("name")}</h1>
+                  </Link>
 
-                <div className="h-4 border-l border-sidebar-border" />
-                <Link href="/">
-                  <h1 className="text-xl font-semibold">만날래말래</h1>
-                </Link>
-
-                {/* 오른쪽 끝에 로그인 버튼 */}
-                <div className="ml-auto">
-                  <HeaderAuthButton />
-                </div>
-              </header>
-              <main className="flex-1 p-4">
-                {children}
-              </main>
-            </SidebarInset>
-          </SidebarProvider>
-          <Toaster />
-        </ThemeProvider>
+                  <div className="ml-auto flex items-center gap-1">
+                    <LanguageSwitcher />
+                    <HeaderAuthButton />
+                  </div>
+                </header>
+                <main className="flex-1 p-4">{children}</main>
+              </SidebarInset>
+            </SidebarProvider>
+            <Toaster />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

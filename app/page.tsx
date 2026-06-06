@@ -1,34 +1,36 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import { addDays, format } from "date-fns"
+import { Loader2, LockIcon, PhoneIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
+import { toast } from "sonner"
+import { DateRangePicker } from "@/components/date-range-picker"
+import { Footer } from "@/components/footer"
+import { ShareModal } from "@/components/share-modal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { DateRangePicker } from "@/components/date-range-picker"
-import { addDays, format } from "date-fns"
+import { Label } from "@/components/ui/label"
 import { createAppointment } from "@/lib/database"
-import { toast } from "sonner"
-import { ShareModal } from "@/components/share-modal"
-import { Footer } from "@/components/footer"
 import { methods } from "@/lib/type/appointmentMethods"
-import { CalendarIcon, Loader2, LockIcon, PhoneIcon } from "lucide-react"
 
 export default function AppointmentScheduler() {
+  const t = useTranslations("home")
+  const appT = useTranslations("app")
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)  // 약속 생성 모달
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [appointmentName, setAppointmentName] = useState("")
-  const [participantCount, setParticipantCount] = useState<string>("5")
+  const [participantCount, setParticipantCount] = useState("5")
   const [creatorPhone, setCreatorPhone] = useState("")
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | null>(null)
-  const [deadline, setDeadline] = useState<string>("")
+  const [deadline] = useState("")
   const [isCreating, setIsCreating] = useState(false)
   const [createdAppointment, setCreatedAppointment] = useState<any>(null)
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false)  // 약속 공유 모달
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [isClient, setIsClient] = useState(false)
 
-  // 클라이언트 사이드에서만 날짜 초기화
   useEffect(() => {
     setIsClient(true)
     setDateRange({
@@ -37,21 +39,17 @@ export default function AppointmentScheduler() {
     })
   }, [])
 
-
-
-
-  // 메서드 선택시 모달 열기
   const handleMethodSelect = (methodId: string) => {
-
-    // 모달 열기
     setSelectedMethod(methodId)
     setIsCreateModalOpen(true)
   }
 
-  // 약속 생성
+  const getMethodTitle = (methodId: string) => t(`methods.${methodId}.title`)
+  const getMethodDescription = (methodId: string) => t(`methods.${methodId}.description`)
+
   const handleCreateAppointment = async () => {
     if (!selectedMethod || !appointmentName || !participantCount || !creatorPhone) {
-      toast.error("입력 정보를 확인해주세요", { description: "모든 필수 정보를 입력해주세요." })
+      toast.error(t("requiredErrorTitle"), { description: t("requiredErrorDescription") })
       return
     }
 
@@ -71,118 +69,100 @@ export default function AppointmentScheduler() {
         creator_phone: creatorPhone.trim() || undefined,
       }
 
-
-
       const appointment = await createAppointment(appointmentData)
-
-      // 생성된 약속 정보 저장 및 공유 모달 열기
       setCreatedAppointment(appointment)
       setIsCreateModalOpen(false)
       setIsShareModalOpen(true)
     } catch (error: any) {
-      console.error("약속 생성 실패:", error)
-
-      let errorMessage = "약속 생성에 실패했습니다."
-
-      if (error.message.includes("연결")) {
-        errorMessage = "데이터베이스 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요."
-      } else if (error.message.includes("생성")) {
-        errorMessage = error.message
-      }
-
-      toast.error("❌ 오류가 발생했습니다", { description: errorMessage })
+      console.error("Failed to create appointment:", error)
+      toast.error("Error", {
+        description: error.message || "Failed to create appointment.",
+      })
     } finally {
       setIsCreating(false)
     }
   }
 
-  // 투표 가능한 날짜 범위 변경
-  const handleDateRangeChange = (newRange: { from: Date; to: Date }) => {
-    setDateRange(newRange)
-  }
-
-
-
-
-
-  // 클라이언트 사이드에서만 렌더링
   if (!isClient) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold mb-2 md:text-4xl">만날래말래</h1>
-          <p className="text-muted-foreground text-lg mobile-break">
-            여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요.
-          </p>
+      <div className="container mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-12 text-center">
+          <h1 className="mb-2 text-3xl font-bold md:text-4xl">{appT("name")}</h1>
+          <p className="text-lg text-muted-foreground mobile-break">{appT("description")}</p>
         </div>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">결과를 불러오는 중...</p>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
+          <p className="mt-4 text-muted-foreground">{t("loading")}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto max-w-6xl px-4 py-8">
+      <div className="mb-8 text-center">
+        <h1 className="mb-2 text-3xl font-bold md:text-4xl">{appT("name")}</h1>
+        <p className="text-lg text-muted-foreground mobile-break">{appT("description")}</p>
+      </div>
 
-      {/* 약속 방식 선택 */}
       <div className="mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {methods.map((method) => (
             <Card
               key={method.id}
-              className={`transition-all duration-300 hover:shadow-lg hover:border-primary cursor-pointer relative ${method.comingSoon ? "opacity-60" : ""
-                }`}
+              className={`relative cursor-pointer transition-all duration-300 hover:border-primary hover:shadow-lg ${
+                method.comingSoon ? "opacity-60" : ""
+              }`}
               onClick={() => handleMethodSelect(method.id)}
             >
               {method.comingSoon && (
-                <div className="absolute inset-0 bg-black/20 rounded-lg flex items-center justify-center z-10">
-                  <div className="bg-white/90 rounded-full p-3 shadow-lg">
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/20">
+                  <div className="rounded-full bg-white/90 p-3 shadow-lg">
                     <LockIcon className="h-6 w-6 text-gray-600" />
                   </div>
                 </div>
               )}
-              <CardHeader className="text-center pb-2">
-                <div className="flex justify-center"><method.icon className="h-8 w-8 mb-2 text-primary" /></div>
-                <CardTitle className="text-xl">{method.title}</CardTitle>
+              <CardHeader className="pb-2 text-center">
+                <div className="flex justify-center">
+                  <method.icon className="mb-2 h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl">{getMethodTitle(method.id)}</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-center text-sm">{method.description}</CardDescription>
+                <CardDescription className="text-center text-sm">
+                  {getMethodDescription(method.id)}
+                </CardDescription>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
 
-      {/* 약속 생성 모달 */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-[400px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-[400px] overflow-y-auto">
           <DialogHeader className="space-y-3 px-6">
-            <DialogTitle className="text-xl font-semibold flex justify-center items-center gap-2">
-              {selectedMethod && methods.find((m) => m.id === selectedMethod)?.title}
+            <DialogTitle className="flex items-center justify-center gap-2 text-xl font-semibold">
+              {selectedMethod && getMethodTitle(selectedMethod)}
             </DialogTitle>
-            <DialogDescription>
-              약속 세부 정보를 입력해주세요.
-            </DialogDescription>
+            <DialogDescription>{t("createInfo")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="appointment-name" className="text-sm font-medium">
-                약속 이름
+                {t("appointmentName")}
               </Label>
               <Input
                 id="appointment-name"
                 className="w-full"
                 value={appointmentName}
-                onChange={(e) => setAppointmentName(e.target.value)}
+                onChange={(event) => setAppointmentName(event.target.value)}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="participant-count" className="text-sm font-medium">
-                {selectedMethod === "minimum-required" ? "기준 인원수" : "참여 인원수"}
+                {selectedMethod === "minimum-required" ? t("requiredCount") : t("participantCount")}
               </Label>
               <Input
                 id="participant-count"
@@ -190,32 +170,34 @@ export default function AppointmentScheduler() {
                 min="2"
                 className="w-full"
                 value={participantCount}
-                onChange={(e) => setParticipantCount(e.target.value)}
+                onChange={(event) => setParticipantCount(event.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="creator-phone" className="text-sm font-medium flex items-center gap-2">
+              <Label htmlFor="creator-phone" className="flex items-center gap-2 text-sm font-medium">
                 <PhoneIcon className="h-4 w-4" />
-                연락처
+                {t("contact")}
               </Label>
               <Input
                 id="creator-phone"
                 type="tel"
                 className="w-full"
                 value={creatorPhone}
-                onChange={(e) => setCreatorPhone(e.target.value)}
+                onChange={(event) => setCreatorPhone(event.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                투표 완료 시 카카오 알림톡으로 알림을 보내드립니다.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("contactHelp")}</p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">투표 가능한 날짜 범위</Label>
+              <Label className="text-sm font-medium">{t("dateRange")}</Label>
               <div className="flex items-center justify-center">
                 {dateRange && (
-                  <DateRangePicker value={dateRange} onChange={handleDateRangeChange} className="w-full" />
+                  <DateRangePicker
+                    value={dateRange}
+                    onChange={setDateRange}
+                    className="w-full"
+                  />
                 )}
               </div>
             </div>
@@ -225,24 +207,16 @@ export default function AppointmentScheduler() {
                 className="w-full py-6 text-base font-medium"
                 size="lg"
                 onClick={handleCreateAppointment}
-                disabled={
-                  isCreating ||
-                  !appointmentName ||
-                  !participantCount ||
-                  !dateRange?.from ||
-                  !dateRange?.to
-                }
+                disabled={isCreating || !appointmentName || !participantCount || !dateRange?.from || !dateRange?.to}
               >
-                {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isCreating ? "생성 중..." : "만들기"}
+                {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isCreating ? t("creating") : t("create")}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-
-      {/* 약속 공유 모달 */}
       {createdAppointment && (
         <ShareModal
           isOpen={isShareModalOpen}

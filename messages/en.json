@@ -1,0 +1,240 @@
+{
+  "app": {
+    "name": "Mannalmalle",
+    "description": "Pick the best date to meet with a group, fast."
+  },
+  "nav": {
+    "language": "Language",
+    "menu": "Menu",
+    "home": "Home",
+    "guide": "Guide",
+    "fast": "Quick guide",
+    "feedback": "Feedback",
+    "mypage": "My page",
+    "openMenu": "Open menu"
+  },
+  "auth": {
+    "login": "Log in",
+    "logout": "Log out",
+    "mypage": "My page",
+    "account": "My account",
+    "checking": "Checking...",
+    "loggingOut": "Logging out..."
+  },
+  "home": {
+    "loading": "Loading...",
+    "methods": {
+      "time-scheduling": {
+        "title": "Time",
+        "description": "Find the best date and time from everyone's availability."
+      },
+      "all-available": {
+        "title": "Everyone",
+        "description": "Find dates that work for everyone."
+      },
+      "max-available": {
+        "title": "Most Available",
+        "description": "Find dates that work for the largest number of people."
+      },
+      "minimum-required": {
+        "title": "Minimum Required",
+        "description": "Find dates that work for at least the required number of people."
+      }
+    },
+    "createInfo": "Enter the appointment details.",
+    "appointmentName": "Appointment name",
+    "participantCount": "Participants",
+    "requiredCount": "Required participants",
+    "contact": "Contact",
+    "contactHelp": "We will send a Kakao notification when voting is complete.",
+    "dateRange": "Available voting date range",
+    "create": "Create",
+    "creating": "Creating...",
+    "requiredErrorTitle": "Check the required fields",
+    "requiredErrorDescription": "Please fill in all required information."
+  },
+  "common": {
+    "error": "Something went wrong",
+    "backHome": "Back home",
+    "newAppointment": "Create new appointment",
+    "participants": "Participants",
+    "people": "{count} people",
+    "none": "None",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "loading": "Loading..."
+  },
+  "vote": {
+    "loading": "Loading appointment...",
+    "notFound": "Appointment not found.",
+    "loadFailed": "Failed to load the appointment.",
+    "nameLabel": "Enter your name",
+    "namePlaceholder": "Name",
+    "nameRequired": "Please enter your name.",
+    "dateInstruction": "Select all dates that work for you.",
+    "timeInstruction": "Select all dates and times that work for you.",
+    "dateRange": "Choose between {start} and {end}",
+    "clickDateForTime": "Click a date to select times.",
+    "availableDates": "Available dates",
+    "availableDateTimes": "Available dates and times",
+    "selectedCount": "{count} selected",
+    "weekend": "Weekend",
+    "weekday": "Weekday",
+    "submit": "Submit vote",
+    "submitting": "Submitting...",
+    "applyTimes": "Apply times to {count} selected dates",
+    "selectDatesForTime": "Select dates to apply times",
+    "editTime": "Edit times",
+    "applyTimeToDates": "Apply times to selected dates",
+    "sameTimeForDates": "The same times will be applied to {count} dates.",
+    "saveTimes": "Save times",
+    "submitFailed": "Vote failed",
+    "submitFailedDescription": "Failed to submit your vote.",
+    "completeTitle": "Voting is complete",
+    "completeDescription": "All required participants have voted.",
+    "completeHint": "Existing voters can still update their vote by using the same name.",
+    "viewResults": "View results",
+    "methodNames": {
+      "time-scheduling": "Time scheduling",
+      "all-available": "Everyone available",
+      "max-available": "Most available",
+      "minimum-required": "Minimum required",
+      "recurring": "Recurring schedule"
+    }
+  },
+  "results": {
+    "loading": "Loading results...",
+    "notFound": "Appointment not found.",
+    "loadFailed": "Failed to load results.",
+    "calendarTitle": "Voting result calendar",
+    "calendarDescription": "Darker dates were selected by more people. Click a date to see details.",
+    "timeCalendarTitle": "Voting result calendar",
+    "timeCalendarDescription": "Click a date to view time-slot availability.",
+    "resultTitle": "Voting results",
+    "bestTimesDescription": "Time ranges that work for the most people",
+    "participants": "Participants",
+    "createGroupFromVoters": "Create group from voters",
+    "goVote": "Go to voting page",
+    "noVotesInMonth": "There are no votable dates in this month.",
+    "noResults": "No voting results yet.",
+    "allAvailable": "Everyone available",
+    "maxAvailable": "Most available",
+    "requiredAvailable": "At least {count} people available",
+    "dateDetailTitle": "Date voting details",
+    "dateDetailDescription": "Detailed voting information for {date}",
+    "availableVoters": "Available ({count})",
+    "unavailableVoters": "Unavailable",
+    "timeDetailTitle": "{date} time-slot results",
+    "timeDetailDescription": "Click a time slot to see who is available.",
+    "availablePeople": "Available people ({count})"
+  },
+  "share": {
+    "createdTitle": "Appointment created",
+    "guide": "Share it with friends and collect votes.",
+    "voteLink": "Voting link",
+    "kakaoShare": "Share via KakaoTalk",
+    "sharing": "Sharing...",
+    "copySuccess": "{type} link copied to clipboard.",
+    "copyFailed": "Failed to copy link.",
+    "vote": "Vote",
+    "kakaoDescription": "Please join the vote for {title}!",
+    "kakaoSuccess": "KakaoTalk sharing has started.",
+    "kakaoFailed": "Failed to share via KakaoTalk. Please try again.",
+    "sendToGroup": "Send notification to group members",
+    "selectGroupMembers": "Select members from a group",
+    "selectedMembers": "Selected members",
+    "sendInvite": "Send notification to {count} people",
+    "sendingInvite": "Sending...",
+    "inviteSent": "Notifications were sent to members.",
+    "inviteFailed": "Failed to send notifications. Please try again."
+  },
+  "guidePage": {
+    "title": "How Meet or Not works",
+    "description": "Meet or Not provides different voting methods and result calculations for different scheduling needs.",
+    "completion": "Completion rule",
+    "recommended": "Best for",
+    "features": "Features",
+    "methods": {
+      "all": {
+        "title": "Everyone available",
+        "description": "Use this when you need a date that works for everyone.",
+        "completion": "Voting completes when the number of participants set during creation has voted.",
+        "recommended": "Meetings where everyone must attend, club gatherings"
+      },
+      "max": {
+        "title": "Most available",
+        "description": "Use this to find the date that works for the largest number of people.",
+        "completion": "Voting completes when the number of participants set during creation has voted.",
+        "recommended": "Events where full attendance is not required, but more people is better"
+      },
+      "required": {
+        "title": "Minimum required",
+        "description": "Use this to find dates where at least a required number of people can attend.",
+        "completion": "Voting completes once a date reaches the required number of available participants.",
+        "recommended": "Team schedules, meetings that require a minimum attendance"
+      },
+      "time": {
+        "title": "Time",
+        "description": "Use this when you need to decide both the date and the time.",
+        "completion": "Voting completes when the number of participants set during creation has voted.",
+        "features": "30-minute time slots, continuous time range suggestions, date-by-date time availability",
+        "recommended": "Meeting time coordination, study sessions, appointments that need exact timing"
+      }
+    },
+    "groups": {
+      "title": "Groups",
+      "description": "Save frequently invited members as groups and manage appointments more easily.",
+      "loginRequired": "Kakao login is required.",
+      "createTitle": "Create groups",
+      "createBody": "Create groups from My Page, or save voters directly as a group from the results page.",
+      "notifyTitle": "Send notifications",
+      "notifyBody": "After creating an appointment, select group members in the share modal to send individual voting notifications."
+    },
+    "faq": {
+      "title": "FAQ",
+      "anonymousQ": "Is voting anonymous?",
+      "anonymousA": "No. Participants can see who voted for which dates.",
+      "editQ": "Can I edit my vote?",
+      "editA": "Yes. Vote again with the same name and your previous vote will be replaced.",
+      "kakaoQ": "Are Kakao notifications required?",
+      "kakaoA": "No. They are optional, but they help participants notice and check results faster."
+    }
+  },
+  "feedbackPage": {
+    "title": "Feedback",
+    "description": "Send us your thoughts to help make Meet or Not better.",
+    "formTitle": "Write feedback",
+    "formDescription": "Bug reports, feature ideas, improvement requests, and any other feedback are welcome.",
+    "name": "Name (optional)",
+    "namePlaceholder": "Leave blank to submit anonymously",
+    "email": "Email (optional)",
+    "emailPlaceholder": "Enter this if you want a reply",
+    "category": "Category",
+    "categoryPlaceholder": "Select a feedback type",
+    "message": "Feedback *",
+    "messagePlaceholder": "Describe your feedback in detail. For bugs, include when and how the issue happened.",
+    "submit": "Send feedback",
+    "submitting": "Sending...",
+    "successTitle": "Feedback sent",
+    "successDescription": "Thanks for your feedback. We will review it.",
+    "failedTitle": "Failed to send feedback",
+    "failedDescription": "Please try again later.",
+    "guideTitle": "Feedback guide",
+    "categories": {
+      "bug": "Bug report",
+      "feature": "New feature idea",
+      "improvement": "Improve existing feature",
+      "ui": "UI/UX improvement",
+      "other": "Other"
+    },
+    "guide": {
+      "bugTitle": "Bug report",
+      "bugBody": "Tell us the situation, expected result, actual result, device, and browser.",
+      "featureTitle": "New feature idea",
+      "featureBody": "Tell us what feature you need, why you need it, and how it should work.",
+      "improvementTitle": "Feature improvement",
+      "improvementBody": "Tell us what is inconvenient, how it could improve, and any concrete examples."
+    }
+  }
+}

@@ -1,0 +1,240 @@
+{
+  "app": {
+    "name": "만날래말래",
+    "description": "여러 사람과 만나기 좋은 날짜를 간편하게 정해보세요."
+  },
+  "nav": {
+    "language": "언어",
+    "menu": "메뉴",
+    "home": "홈",
+    "guide": "설명",
+    "fast": "빠른 설명",
+    "feedback": "건의함",
+    "mypage": "마이페이지",
+    "openMenu": "메뉴 열기"
+  },
+  "auth": {
+    "login": "로그인",
+    "logout": "로그아웃",
+    "mypage": "마이페이지",
+    "account": "내 계정",
+    "checking": "확인 중...",
+    "loggingOut": "로그아웃 중..."
+  },
+  "home": {
+    "loading": "불러오는 중...",
+    "methods": {
+      "time-scheduling": {
+        "title": "시간",
+        "description": "가능한 날짜와 시간을 함께 골라 최적의 시간을 찾습니다."
+      },
+      "all-available": {
+        "title": "모두 가능",
+        "description": "모든 사람이 가능한 날짜를 찾습니다."
+      },
+      "max-available": {
+        "title": "최대 다수",
+        "description": "가장 많은 사람이 가능한 날짜를 찾습니다."
+      },
+      "minimum-required": {
+        "title": "기준 인원",
+        "description": "특정 인원 이상이 가능한 날짜를 찾습니다."
+      }
+    },
+    "createInfo": "약속 정보를 입력해주세요.",
+    "appointmentName": "약속 이름",
+    "participantCount": "참여 인원",
+    "requiredCount": "기준 인원",
+    "contact": "연락처",
+    "contactHelp": "투표 완료 시 카카오 알림톡으로 알림을 보내드립니다.",
+    "dateRange": "투표 가능한 날짜 범위",
+    "create": "만들기",
+    "creating": "생성 중...",
+    "requiredErrorTitle": "입력 정보를 확인해주세요",
+    "requiredErrorDescription": "필수 정보를 모두 입력해주세요."
+  },
+  "common": {
+    "error": "오류가 발생했습니다",
+    "backHome": "홈으로 돌아가기",
+    "newAppointment": "새 약속 만들기",
+    "participants": "참여 인원",
+    "people": "{count}명",
+    "none": "없음",
+    "cancel": "취소",
+    "save": "저장",
+    "close": "닫기",
+    "loading": "불러오는 중..."
+  },
+  "vote": {
+    "loading": "약속 정보를 불러오는 중...",
+    "notFound": "약속을 찾을 수 없습니다.",
+    "loadFailed": "약속을 불러오는데 실패했습니다.",
+    "nameLabel": "이름을 입력해주세요",
+    "namePlaceholder": "이름",
+    "nameRequired": "이름을 입력해주세요.",
+    "dateInstruction": "가능한 날짜를 모두 선택해주세요.",
+    "timeInstruction": "가능한 날짜와 시간을 모두 선택해주세요.",
+    "dateRange": "{start} ~ {end} 사이에서 선택",
+    "clickDateForTime": "날짜를 클릭하여 시간을 선택하세요.",
+    "availableDates": "참석 가능한 날짜",
+    "availableDateTimes": "참석 가능한 날짜와 시간",
+    "selectedCount": "{count}개 선택됨",
+    "weekend": "주말",
+    "weekday": "평일",
+    "submit": "투표 완료하기",
+    "submitting": "투표 중...",
+    "applyTimes": "선택한 {count}개 날짜에 시간 적용",
+    "selectDatesForTime": "시간을 적용할 날짜를 선택해주세요",
+    "editTime": "시간 수정",
+    "applyTimeToDates": "선택한 날짜에 시간 적용",
+    "sameTimeForDates": "{count}개 날짜에 같은 시간을 적용합니다.",
+    "saveTimes": "시간 저장",
+    "submitFailed": "투표 실패",
+    "submitFailedDescription": "투표 제출에 실패했습니다.",
+    "completeTitle": "투표가 완료된 약속입니다",
+    "completeDescription": "모든 인원이 투표에 참여하여 투표가 종료되었습니다.",
+    "completeHint": "기존 투표자의 이름으로 다시 투표하면 투표가 수정됩니다.",
+    "viewResults": "결과 보기",
+    "methodNames": {
+      "time-scheduling": "시간 정하기",
+      "all-available": "모두 가능",
+      "max-available": "최대 다수",
+      "minimum-required": "기준 인원",
+      "recurring": "반복 일정"
+    }
+  },
+  "results": {
+    "loading": "결과를 불러오는 중...",
+    "notFound": "약속을 찾을 수 없습니다.",
+    "loadFailed": "결과를 불러오는데 실패했습니다.",
+    "calendarTitle": "투표 결과 달력",
+    "calendarDescription": "진할수록 더 많은 사람이 선택한 날짜입니다. 날짜를 클릭하면 상세 정보를 볼 수 있습니다.",
+    "timeCalendarTitle": "투표 결과 달력",
+    "timeCalendarDescription": "날짜를 클릭하면 해당 날짜의 시간대별 참여 현황을 확인할 수 있습니다.",
+    "resultTitle": "투표 결과",
+    "bestTimesDescription": "가장 많은 사람이 참여 가능한 시간대",
+    "participants": "참여 인원",
+    "createGroupFromVoters": "참여 인원으로 그룹 만들기",
+    "goVote": "투표 페이지로 이동",
+    "noVotesInMonth": "이 달에는 투표 가능한 날짜가 없습니다.",
+    "noResults": "아직 투표 결과가 없습니다.",
+    "allAvailable": "전원 참여 가능",
+    "maxAvailable": "최다 참여",
+    "requiredAvailable": "{count}명 이상 가능한 날",
+    "dateDetailTitle": "날짜별 상세 투표 결과",
+    "dateDetailDescription": "{date}의 투표 상세 정보",
+    "availableVoters": "참여 가능 ({count}명)",
+    "unavailableVoters": "참여 불가",
+    "timeDetailTitle": "{date} 시간대별 투표 현황",
+    "timeDetailDescription": "각 시간대를 클릭하면 참여 가능한 사람들을 확인할 수 있습니다.",
+    "availablePeople": "참석 가능한 사람 ({count}명)"
+  },
+  "share": {
+    "createdTitle": "약속이 생성되었습니다",
+    "guide": "친구들에게 공유해서 투표를 받아보세요.",
+    "voteLink": "투표 링크",
+    "kakaoShare": "카카오톡으로 공유하기",
+    "sharing": "공유 중...",
+    "copySuccess": "{type} 링크가 클립보드에 복사되었습니다.",
+    "copyFailed": "링크 복사에 실패했습니다.",
+    "vote": "투표",
+    "kakaoDescription": "{title} 투표에 참여해주세요!",
+    "kakaoSuccess": "카카오톡 공유가 진행됩니다.",
+    "kakaoFailed": "카카오톡 공유에 실패했습니다. 다시 시도해주세요.",
+    "sendToGroup": "그룹 멤버에게 알림 보내기",
+    "selectGroupMembers": "그룹에서 멤버 선택",
+    "selectedMembers": "선택한 멤버",
+    "sendInvite": "{count}명에게 알림 보내기",
+    "sendingInvite": "발송 중...",
+    "inviteSent": "멤버들에게 알림톡이 전송되었습니다.",
+    "inviteFailed": "알림톡 전송에 실패했습니다. 다시 시도해주세요."
+  },
+  "guidePage": {
+    "title": "만날래말래 설명",
+    "description": "약속 종류에 따라 다른 투표 방식과 결과 계산 방식을 제공합니다.",
+    "completion": "투표 완료 기준",
+    "recommended": "추천 상황",
+    "features": "특징",
+    "methods": {
+      "all": {
+        "title": "모두 가능",
+        "description": "모든 사람이 가능한 날짜를 찾을 때 사용하는 방식입니다.",
+        "completion": "생성 시 정한 인원 수만큼 투표에 참여하면 완료됩니다.",
+        "recommended": "모두가 꼭 참석해야 하는 모임, 동아리 모임"
+      },
+      "max": {
+        "title": "최대 다수",
+        "description": "가장 많은 사람이 가능한 날짜를 찾을 때 사용하는 방식입니다.",
+        "completion": "생성 시 정한 인원 수만큼 투표에 참여하면 완료됩니다.",
+        "recommended": "전원이 참석하지 않아도 되지만 최대한 많이 모이면 좋은 약속"
+      },
+      "required": {
+        "title": "기준 인원",
+        "description": "특정 인원 이상이 모일 수 있는 날짜를 찾을 때 사용하는 방식입니다.",
+        "completion": "정한 기준 인원 이상이 가능한 날짜가 생기면 투표가 완료됩니다.",
+        "recommended": "팀 일정, 최소 인원이 필요한 모임"
+      },
+      "time": {
+        "title": "시간",
+        "description": "날짜뿐 아니라 시간대까지 함께 정할 때 사용하는 방식입니다.",
+        "completion": "생성 시 정한 인원 수만큼 투표에 참여하면 완료됩니다.",
+        "features": "30분 단위 시간 선택, 연속 가능한 시간대 추천, 날짜별 시간대 현황 확인",
+        "recommended": "회의 시간 조율, 스터디 시간 조율, 정확한 시간이 필요한 약속"
+      }
+    },
+    "groups": {
+      "title": "그룹 기능",
+      "description": "자주 만나는 멤버들을 그룹으로 저장하고 약속을 더 편하게 관리할 수 있습니다.",
+      "loginRequired": "카카오 로그인이 필요합니다.",
+      "createTitle": "그룹 만들기",
+      "createBody": "마이페이지에서 직접 그룹을 만들거나, 결과 페이지에서 참여 인원을 바로 그룹으로 저장할 수 있습니다.",
+      "notifyTitle": "알림톡 발송",
+      "notifyBody": "약속 생성 후 공유 모달에서 그룹 멤버를 선택하면 개인별 투표 참여 알림을 보낼 수 있습니다."
+    },
+    "faq": {
+      "title": "자주 묻는 질문",
+      "anonymousQ": "투표는 익명인가요?",
+      "anonymousA": "아니요. 누가 어떤 날짜에 투표했는지 모든 참여자가 확인할 수 있습니다.",
+      "editQ": "투표를 수정할 수 있나요?",
+      "editA": "네. 같은 이름으로 다시 투표하면 이전 투표가 덮어써집니다.",
+      "kakaoQ": "카카오톡 알림은 필수인가요?",
+      "kakaoA": "아니요. 선택 사항입니다. 알림을 사용하면 결과를 더 빠르게 확인할 수 있습니다."
+    }
+  },
+  "feedbackPage": {
+    "title": "건의함",
+    "description": "만날래말래 서비스를 더 좋게 만들기 위한 의견을 보내주세요.",
+    "formTitle": "건의사항 작성",
+    "formDescription": "버그 신고, 기능 제안, 개선 요청 등 어떤 의견이든 환영합니다.",
+    "name": "이름 (선택)",
+    "namePlaceholder": "익명으로 제출하려면 비워두세요",
+    "email": "이메일 (선택)",
+    "emailPlaceholder": "답변을 받고 싶다면 입력해주세요",
+    "category": "카테고리",
+    "categoryPlaceholder": "건의사항 유형을 선택해주세요",
+    "message": "건의사항 *",
+    "messagePlaceholder": "자세한 내용을 작성해주세요. 버그는 언제, 어떤 상황에서 발생했는지 적어주시면 도움이 됩니다.",
+    "submit": "건의사항 전송",
+    "submitting": "전송 중...",
+    "successTitle": "건의사항이 전송되었습니다",
+    "successDescription": "소중한 의견 감사합니다. 검토 후 반영하겠습니다.",
+    "failedTitle": "건의사항 전송 실패",
+    "failedDescription": "잠시 후 다시 시도해주세요.",
+    "guideTitle": "건의사항 가이드",
+    "categories": {
+      "bug": "버그 신고",
+      "feature": "새 기능 제안",
+      "improvement": "기존 기능 개선",
+      "ui": "UI/UX 개선",
+      "other": "기타"
+    },
+    "guide": {
+      "bugTitle": "버그 신고",
+      "bugBody": "발생 상황, 예상 결과와 실제 결과, 사용한 기기와 브라우저 정보를 알려주세요.",
+      "featureTitle": "새 기능 제안",
+      "featureBody": "필요한 기능, 필요한 이유, 원하는 동작 방식을 알려주세요.",
+      "improvementTitle": "기능 개선",
+      "improvementBody": "불편한 점, 개선되면 좋은 방향, 구체적인 예시를 알려주세요."
+    }
+  }
+}

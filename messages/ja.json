@@ -1,0 +1,240 @@
+{
+  "app": {
+    "name": "会う？会わない？",
+    "description": "複数人で会いやすい日程を簡単に決めましょう。"
+  },
+  "nav": {
+    "language": "言語",
+    "menu": "メニュー",
+    "home": "ホーム",
+    "guide": "使い方",
+    "fast": "クイックガイド",
+    "feedback": "フィードバック",
+    "mypage": "マイページ",
+    "openMenu": "メニューを開く"
+  },
+  "auth": {
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "mypage": "マイページ",
+    "account": "アカウント",
+    "checking": "確認中...",
+    "loggingOut": "ログアウト中..."
+  },
+  "home": {
+    "loading": "読み込み中...",
+    "methods": {
+      "time-scheduling": {
+        "title": "時間",
+        "description": "参加可能な日付と時間から最適な時間を探します。"
+      },
+      "all-available": {
+        "title": "全員可能",
+        "description": "全員が参加できる日付を探します。"
+      },
+      "max-available": {
+        "title": "最多参加",
+        "description": "最も多くの人が参加できる日付を探します。"
+      },
+      "minimum-required": {
+        "title": "必要人数",
+        "description": "必要人数以上が参加できる日付を探します。"
+      }
+    },
+    "createInfo": "予定の情報を入力してください。",
+    "appointmentName": "予定名",
+    "participantCount": "参加人数",
+    "requiredCount": "必要人数",
+    "contact": "連絡先",
+    "contactHelp": "投票完了時にKakao通知を送信します。",
+    "dateRange": "投票可能な日付範囲",
+    "create": "作成",
+    "creating": "作成中...",
+    "requiredErrorTitle": "入力内容を確認してください",
+    "requiredErrorDescription": "必須項目をすべて入力してください。"
+  },
+  "common": {
+    "error": "エラーが発生しました",
+    "backHome": "ホームに戻る",
+    "newAppointment": "新しい予定を作成",
+    "participants": "参加人数",
+    "people": "{count}人",
+    "none": "なし",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "close": "閉じる",
+    "loading": "読み込み中..."
+  },
+  "vote": {
+    "loading": "予定情報を読み込んでいます...",
+    "notFound": "予定が見つかりません。",
+    "loadFailed": "予定の読み込みに失敗しました。",
+    "nameLabel": "名前を入力してください",
+    "namePlaceholder": "名前",
+    "nameRequired": "名前を入力してください。",
+    "dateInstruction": "参加可能な日付をすべて選択してください。",
+    "timeInstruction": "参加可能な日付と時間をすべて選択してください。",
+    "dateRange": "{start} 〜 {end} の間で選択",
+    "clickDateForTime": "日付をクリックして時間を選択してください。",
+    "availableDates": "参加可能な日付",
+    "availableDateTimes": "参加可能な日付と時間",
+    "selectedCount": "{count}件選択済み",
+    "weekend": "週末",
+    "weekday": "平日",
+    "submit": "投票を完了する",
+    "submitting": "投票中...",
+    "applyTimes": "選択した{count}件の日付に時間を適用",
+    "selectDatesForTime": "時間を適用する日付を選択してください",
+    "editTime": "時間を編集",
+    "applyTimeToDates": "選択した日付に時間を適用",
+    "sameTimeForDates": "{count}件の日付に同じ時間を適用します。",
+    "saveTimes": "時間を保存",
+    "submitFailed": "投票に失敗しました",
+    "submitFailedDescription": "投票の送信に失敗しました。",
+    "completeTitle": "投票は完了しています",
+    "completeDescription": "必要な参加者全員が投票しました。",
+    "completeHint": "既存の投票者は同じ名前で投票を更新できます。",
+    "viewResults": "結果を見る",
+    "methodNames": {
+      "time-scheduling": "時間調整",
+      "all-available": "全員可能",
+      "max-available": "最多参加",
+      "minimum-required": "必要人数",
+      "recurring": "繰り返し予定"
+    }
+  },
+  "results": {
+    "loading": "結果を読み込んでいます...",
+    "notFound": "予定が見つかりません。",
+    "loadFailed": "結果の読み込みに失敗しました。",
+    "calendarTitle": "投票結果カレンダー",
+    "calendarDescription": "色が濃いほど多くの人が選択した日付です。日付をクリックすると詳細を確認できます。",
+    "timeCalendarTitle": "投票結果カレンダー",
+    "timeCalendarDescription": "日付をクリックすると時間帯ごとの参加状況を確認できます。",
+    "resultTitle": "投票結果",
+    "bestTimesDescription": "最も多くの人が参加できる時間帯",
+    "participants": "参加人数",
+    "createGroupFromVoters": "参加者からグループを作成",
+    "goVote": "投票ページへ移動",
+    "noVotesInMonth": "この月には投票可能な日付がありません。",
+    "noResults": "まだ投票結果がありません。",
+    "allAvailable": "全員参加可能",
+    "maxAvailable": "最多参加",
+    "requiredAvailable": "{count}人以上参加可能",
+    "dateDetailTitle": "日付別の詳細結果",
+    "dateDetailDescription": "{date} の投票詳細",
+    "availableVoters": "参加可能 ({count}人)",
+    "unavailableVoters": "参加不可",
+    "timeDetailTitle": "{date} 時間帯別の結果",
+    "timeDetailDescription": "時間帯をクリックすると参加可能な人を確認できます。",
+    "availablePeople": "参加可能な人 ({count}人)"
+  },
+  "share": {
+    "createdTitle": "予定が作成されました",
+    "guide": "友達に共有して投票してもらいましょう。",
+    "voteLink": "投票リンク",
+    "kakaoShare": "KakaoTalkで共有",
+    "sharing": "共有中...",
+    "copySuccess": "{type}リンクをクリップボードにコピーしました。",
+    "copyFailed": "リンクのコピーに失敗しました。",
+    "vote": "投票",
+    "kakaoDescription": "{title} の投票に参加してください！",
+    "kakaoSuccess": "KakaoTalk共有を開始しました。",
+    "kakaoFailed": "KakaoTalk共有に失敗しました。もう一度お試しください。",
+    "sendToGroup": "グループメンバーに通知を送信",
+    "selectGroupMembers": "グループからメンバーを選択",
+    "selectedMembers": "選択したメンバー",
+    "sendInvite": "{count}人に通知を送信",
+    "sendingInvite": "送信中...",
+    "inviteSent": "メンバーに通知を送信しました。",
+    "inviteFailed": "通知の送信に失敗しました。もう一度お試しください。"
+  },
+  "guidePage": {
+    "title": "会う？会わない？の使い方",
+    "description": "予定の種類に応じて、さまざまな投票方式と結果計算を提供します。",
+    "completion": "投票完了の条件",
+    "recommended": "おすすめの場面",
+    "features": "特徴",
+    "methods": {
+      "all": {
+        "title": "全員可能",
+        "description": "全員が参加できる日付を探す方式です。",
+        "completion": "作成時に設定した人数が投票すると完了します。",
+        "recommended": "全員参加が必要な会議、サークルの集まり"
+      },
+      "max": {
+        "title": "最多参加",
+        "description": "最も多くの人が参加できる日付を探す方式です。",
+        "completion": "作成時に設定した人数が投票すると完了します。",
+        "recommended": "全員参加でなくても、できるだけ多く集まりたい予定"
+      },
+      "required": {
+        "title": "必要人数",
+        "description": "必要人数以上が参加できる日付を探す方式です。",
+        "completion": "必要人数以上が参加できる日付ができると完了します。",
+        "recommended": "チーム予定、最低人数が必要な集まり"
+      },
+      "time": {
+        "title": "時間",
+        "description": "日付だけでなく時間帯まで決める方式です。",
+        "completion": "作成時に設定した人数が投票すると完了します。",
+        "features": "30分単位の時間選択、連続時間帯の提案、日付別の時間帯状況確認",
+        "recommended": "会議時間の調整、勉強会、正確な時間が必要な予定"
+      }
+    },
+    "groups": {
+      "title": "グループ機能",
+      "description": "よく会うメンバーをグループとして保存し、予定をより簡単に管理できます。",
+      "loginRequired": "Kakaoログインが必要です。",
+      "createTitle": "グループ作成",
+      "createBody": "マイページで直接作成したり、結果ページから参加者をグループとして保存できます。",
+      "notifyTitle": "通知送信",
+      "notifyBody": "予定作成後、共有モーダルでグループメンバーを選択すると個別に投票通知を送信できます。"
+    },
+    "faq": {
+      "title": "よくある質問",
+      "anonymousQ": "投票は匿名ですか？",
+      "anonymousA": "いいえ。誰がどの日付に投票したか参加者全員が確認できます。",
+      "editQ": "投票を修正できますか？",
+      "editA": "はい。同じ名前でもう一度投票すると、以前の投票が上書きされます。",
+      "kakaoQ": "Kakao通知は必須ですか？",
+      "kakaoA": "いいえ。任意です。通知を使うと結果をより早く確認できます。"
+    }
+  },
+  "feedbackPage": {
+    "title": "フィードバック",
+    "description": "サービス改善のため、ご意見をお聞かせください。",
+    "formTitle": "フィードバックを書く",
+    "formDescription": "バグ報告、機能提案、改善要望など、どんな意見でも歓迎します。",
+    "name": "名前（任意）",
+    "namePlaceholder": "匿名で送信する場合は空欄にしてください",
+    "email": "メール（任意）",
+    "emailPlaceholder": "返信を希望する場合は入力してください",
+    "category": "カテゴリ",
+    "categoryPlaceholder": "種類を選択してください",
+    "message": "内容 *",
+    "messagePlaceholder": "詳細を入力してください。バグの場合は、いつ、どのような状況で発生したかを書いてください。",
+    "submit": "送信",
+    "submitting": "送信中...",
+    "successTitle": "送信しました",
+    "successDescription": "ご意見ありがとうございます。確認後、反映を検討します。",
+    "failedTitle": "送信に失敗しました",
+    "failedDescription": "しばらくしてからもう一度お試しください。",
+    "guideTitle": "フィードバックガイド",
+    "categories": {
+      "bug": "バグ報告",
+      "feature": "新機能の提案",
+      "improvement": "既存機能の改善",
+      "ui": "UI/UX改善",
+      "other": "その他"
+    },
+    "guide": {
+      "bugTitle": "バグ報告",
+      "bugBody": "発生状況、期待した結果と実際の結果、使用端末とブラウザを教えてください。",
+      "featureTitle": "新機能の提案",
+      "featureBody": "必要な機能、必要な理由、期待する動作を教えてください。",
+      "improvementTitle": "機能改善",
+      "improvementBody": "不便な点、改善してほしい方向、具体例を教えてください。"
+    }
+  }
+}
