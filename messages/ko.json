@@ -117,7 +117,7 @@
     "createGroupFromVoters": "참여 인원으로 그룹 만들기",
     "goVote": "투표 페이지로 이동",
     "noVotesInMonth": "이 달에는 투표 가능한 날짜가 없습니다.",
-    "noResults": "아직 투표 결과가 없습니다.",
+    "noResults": "전원이 참여 가능한 날짜가 없습니다.",
     "allAvailable": "전원 참여 가능",
     "maxAvailable": "최다 참여",
     "requiredAvailable": "{count}명 이상 가능한 날",
